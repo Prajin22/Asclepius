@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.languages import LanguageCode
 from app.db.base import Base, Timestamps, UUIDPrimaryKey, enum_column
+from app.models.enums import DoctorApproval
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -22,7 +24,8 @@ class DoctorProfile(UUIDPrimaryKey, Timestamps, Base):
     name: Mapped[str] = mapped_column(sa.String(120), nullable=False)
     specialization: Mapped[str] = mapped_column(sa.String(120), nullable=False, index=True)
     qualification: Mapped[str] = mapped_column(sa.String(200), nullable=False)
-    # Synthetic in this prototype. Real registration verification is out of scope.
+    # Synthetic in this prototype. An admin checks it by hand before approving;
+    # there is no automated register lookup.
     registration_identifier: Mapped[str] = mapped_column(sa.String(64), nullable=False)
     clinic_name: Mapped[str | None] = mapped_column(sa.String(200))
     clinic_address: Mapped[str | None] = mapped_column(sa.Text)
@@ -30,6 +33,21 @@ class DoctorProfile(UUIDPrimaryKey, Timestamps, Base):
     is_accepting_consultations: Mapped[bool] = mapped_column(
         sa.Boolean, nullable=False, default=True, server_default=sa.true()
     )
+    # Self sign-ups start pending. Who reviewed is in the audit trail.
+    approval_status: Mapped[DoctorApproval] = mapped_column(
+        enum_column(DoctorApproval, "doctor_approval"),
+        nullable=False,
+        default=DoctorApproval.PENDING,
+        server_default=DoctorApproval.PENDING.value,
+        index=True,
+    )
+    # Shown to the applicant when an application is not approved.
+    approval_note: Mapped[str | None] = mapped_column(sa.String(300))
+    reviewed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+
+    @property
+    def is_approved(self) -> bool:
+        return self.approval_status == DoctorApproval.APPROVED
 
     user: Mapped[User] = relationship(back_populates="doctor_profile")
     language_links: Mapped[list[DoctorLanguage]] = relationship(

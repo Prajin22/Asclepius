@@ -14,6 +14,7 @@
 | Constant-ish login timing (dummy hash when the email is unknown) and one generic failure message | `app/services/auth_service.py` |
 | Signed JWT access tokens (HS256) with `exp`, `iat`, `jti`; role in the token is re-checked against the database on every request | `app/core/security.py`, `app/api/deps.py` |
 | Role-based access (`patient` / `doctor` / `admin`) enforced server-side on every route | `app/api/deps.py` |
+| Doctor accounts from sign-up start `pending`; only an approved doctor reaches clinician routes, appears in the directory or can be sent a consultation request. One dependency enforces it, and rejecting an approved doctor revokes access on the next request | `app/api/deps.get_current_doctor`, D-051 |
 | Ownership checks after role checks (a patient can only reach their own rows) | `app/services/*` |
 | Patient-controlled sharing: a doctor sees only granted items, checked on every read, including file downloads | `app/services/consultation_service.py` |
 | Consultation access revoked on decline/cancel | `_require_doctor_visibility` |
@@ -22,7 +23,7 @@
 | Server-generated storage keys + path-traversal guard; user filenames are display-only | `document_service`, `providers/storage/local.py` |
 | Oversized request bodies rejected before multipart parsing | `app/main.py` |
 | File responses served with `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox`, `Cache-Control: private, no-store` | `app/api/v1/files.py` |
-| Security headers and `no-store` on API responses; CORS limited to the two app origins, credentials disabled | `app/main.py` |
+| Security headers and `no-store` on API responses; CORS limited to the configured web-app origin, credentials disabled | `app/main.py` |
 | Input validation and length limits on every field | Pydantic schemas |
 | Audit log of logins, failed logins, case views, document views by a doctor, sharing decisions, prescription creation, record changes | `app/services/audit.py`, `audit_events` |
 | Secrets only in `.env` (git-ignored); `.env.example` holds placeholders; app refuses a default `JWT_SECRET` outside development | `app/core/config.py`, `.gitignore` |
@@ -108,7 +109,9 @@
 1. **Token storage.** The JWT lives in `sessionStorage`, so a successful XSS in
    a frontend could steal it (D-003). No `HttpOnly` cookie, no CSRF tokens, no
    refresh-token rotation, no server-side session revocation — a stolen token
-   is valid until `exp` (default 2 hours).
+   is valid until `exp` (default 2 hours). One app now serves every role
+   (D-050), so a browser tab holds one session; people sharing a machine must
+   sign out between uses.
 2. **No rate limiting or lockout.** Login and all other endpoints can be called
    as fast as the client likes. Add a reverse-proxy/ASGI rate limiter and
    progressive lockout before any deployment.
@@ -122,9 +125,12 @@
 6. **Shared items are live references** (D-006): a doctor sees later edits, and
    deletions remove items from a case. Not suitable as a legal clinical record.
 7. **No account recovery, email verification, MFA, or password rotation.**
-   Patient self-registration is open by design for the demo.
-8. **No identity verification of doctors.** `registration_identifier` is
-   free text and unverified; real registry verification is out of scope.
+   Patient self-registration and doctor applications are open by design for the demo.
+8. **Doctor verification is manual.** An administrator approves each
+   self-registered doctor (D-051) after checking the registration number by
+   hand; nothing queries a medical council register, and no document is
+   collected. The seeded admin password is published in the README, so on a
+   public demo approval shows the flow but keeps no one out.
 9. **Audit log is append-only by convention**, not by database permission, and
    is readable by any admin account. There is no tamper-evidence.
 10. **No data-retention, export or deletion workflow** (patient right to erasure
@@ -133,8 +139,9 @@
 11. **Authorisation is enforced per request, not per field, in the frontend.**
     The UI hides what it should, but the server is the only real boundary —
     treat any frontend check as cosmetic.
-12. **No protection against a malicious admin.** The admin role can create
-    doctors and read the audit log; there is no separation of duties.
+12. **No protection against a malicious admin.** The admin role can create,
+    approve and revoke doctors and read the audit log; there is no separation of
+    duties and no second reviewer.
 
 ## Reporting and handling
 

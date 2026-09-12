@@ -2,7 +2,7 @@ import type { AIRecordInsight } from "@carebridge/shared-types";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { renderWithI18n } from "@/test/utils";
+import { renderClinician } from "@/test/utils";
 import { AIInsight } from "./AIInsight";
 
 const ORIGINAL = "எனக்கு இரண்டு நாட்களாக தலைவலி உள்ளது";
@@ -49,13 +49,13 @@ async function open() {
 
 describe("AIInsight", () => {
   it("is collapsed by default so the original text stays primary", () => {
-    renderWithI18n(<AIInsight insight={insight()} />);
+    renderClinician(<AIInsight insight={insight()} />);
     expect(screen.queryByText(/Patient reports headache/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Show AI interpretation" })).toBeInTheDocument();
   });
 
   it("shows all three layers with evidence and confirmation status", async () => {
-    renderWithI18n(<AIInsight insight={insight()} />);
+    renderClinician(<AIInsight insight={insight()} />);
     await open();
 
     expect(screen.getByText("1 · Patient's words")).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe("AIInsight", () => {
   });
 
   it("separates a relative's information from the patient's own", async () => {
-    renderWithI18n(
+    renderClinician(
       <AIInsight
         insight={insight({
           original_text: "My father has diabetes. I have a headache.",
@@ -101,7 +101,7 @@ describe("AIInsight", () => {
   });
 
   it("flags when the English may not match the patient's words", async () => {
-    renderWithI18n(
+    renderClinician(
       <AIInsight
         insight={insight({
           normalization_check: { status: "review", added_terms: ["diabetes"], dropped_facts: [], notes: [] },
@@ -114,13 +114,13 @@ describe("AIInsight", () => {
   });
 
   it("reports a degraded run rather than inventing an interpretation", async () => {
-    renderWithI18n(<AIInsight insight={insight({ status: "unavailable", normalized_english: null, facts: [] })} />);
+    renderClinician(<AIInsight insight={insight({ status: "unavailable", normalized_english: null, facts: [] })} />);
     await open();
     expect(screen.getByText(/AI processing was unavailable/)).toBeInTheDocument();
   });
 
   it("renders nothing when the record was never processed", () => {
-    const { container } = renderWithI18n(<AIInsight insight={insight({ status: "not_processed" })} />);
+    const { container } = renderClinician(<AIInsight insight={insight({ status: "not_processed" })} />);
     expect(container).toBeEmptyDOMElement();
   });
 });

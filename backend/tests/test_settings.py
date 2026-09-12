@@ -17,7 +17,7 @@ def _file_values_win(monkeypatch):
 def test_env_example_loads():
     """README setup is `cp .env.example .env`; that file must parse."""
     settings = Settings(_env_file=REPO_ROOT / ".env.example")
-    assert settings.cors_origins == ["http://localhost:3000", "http://localhost:3001"]
+    assert settings.cors_origins == ["http://localhost:3000"]
     assert settings.demo_mode is True
 
 

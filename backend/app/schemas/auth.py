@@ -5,7 +5,7 @@ from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 from app.core.languages import LanguageCode
 from app.core.security import BCRYPT_MAX_BYTES
-from app.models.enums import UserRole
+from app.models.enums import DoctorApproval, UserRole
 from app.schemas.common import ORMModel, ShortText
 
 
@@ -49,3 +49,5 @@ class MeResponse(BaseModel):
     user: UserOut
     profile_id: uuid.UUID | None
     display_name: str | None
+    # Doctors only. Lets a client route an unapproved doctor to their application status.
+    doctor_approval: DoctorApproval | None = None

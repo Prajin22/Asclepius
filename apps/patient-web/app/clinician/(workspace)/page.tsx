@@ -16,6 +16,7 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useState } from "react";
 import { patientMeta } from "@/lib/format";
+import { HOME_FOR_ROLE } from "@/lib/routes";
 
 type Group = "incoming" | "active" | "completed";
 
@@ -24,7 +25,7 @@ function CaseRow({ item, dateLabel }: { item: DoctorQueueItem; dateLabel: string
   return (
     <li>
       <Link
-        href={`/cases/${item.id}`}
+        href={`${HOME_FOR_ROLE.doctor}/cases/${item.id}`}
         className="group flex gap-3 border-b border-line px-4 py-3.5 transition-colors duration-150 last:border-b-0 hover:bg-sunken"
         aria-label={`${t("dashboard.openCase")}: ${item.patient.display_name}`}
       >

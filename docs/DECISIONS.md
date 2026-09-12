@@ -10,7 +10,7 @@ clinician) need different layouts fast. Next.js + Tailwind gives the shortest
 path to a responsive, accessible demo. Native clients remain possible later:
 all logic lives behind the HTTP API, and `packages/shared-types` documents it.
 
-## D-002 — Two separate frontends instead of one app with role switching
+## D-002 — Two separate frontends instead of one app with role switching (superseded by D-050)
 
 Patient and doctor UIs differ in density, language and risk. Separate origins
 (`:3000`, `:3001`) also isolate browser storage, so a patient session can never
@@ -23,7 +23,8 @@ cookie. A bearer token in each app's `sessionStorage` keeps sessions separate,
 needs no CSRF machinery, and disappears when the tab closes. Trade-off: a
 successful XSS could read the token. Phase 9 should move to `HttpOnly`,
 `SameSite=Strict` cookies on distinct hostnames plus CSRF tokens. See
-SECURITY.md.
+SECURITY.md. Since D-050 there is one origin, so the isolation argument no
+longer applies; the token stays in `sessionStorage`, one account per tab.
 
 ## D-004 — Enumerations as `VARCHAR` + `CHECK`, not native PostgreSQL enums
 
@@ -393,6 +394,56 @@ every run — including a cache hit — is validated under the new rule. Facts
 already stored keep their status until their source is processed again. The
 Phase 2 test asserting that wrong offsets need review now asserts they are
 ignored.
+
+## D-050 — One web app; the role is chosen at sign-in
+
+Supersedes D-002. Patients, doctors and administrators use one Next.js app
+(`apps/patient-web` — the directory keeps its name so existing deployments keep
+working). The sign-in page asks who you are, Patient or Doctor, and offers the
+matching sign-up. After sign-in the account's role, not that choice, decides
+where you land: `/home`, `/clinician` or `/admin`. Each area checks the role
+again on the client; the API remains the only real boundary.
+
+* One deployment and one CORS origin instead of two.
+* The clinician workspace and the admin screens keep their English catalogue by
+  nesting an `I18nProvider`; patient screens and the sign-in page keep the
+  language switcher.
+* **Trade-off:** separate origins no longer isolate browser storage. A tab holds
+  one session (`asclepius.session` in `sessionStorage`), so a patient and a
+  doctor sharing a machine sign out between uses, as on any single sign-in site.
+
+Revisit: put the clinician area on its own hostname (not just a port) if session
+isolation on shared machines matters more than a single deployment.
+
+## D-051 — Doctors sign themselves up; an administrator approves them
+
+A doctor applies with name, specialty, qualification, registration number and
+languages (`POST /auth/register-doctor`). The account signs in at once but is
+`pending`: every clinician route except its own profile and application answers
+`403 doctor_not_approved`, the directory leaves it out, and a consultation
+request to it is a `404`, as for a doctor who does not exist. An administrator
+approves it, or rejects it with a reason the doctor sees. The doctor can correct
+a pending or rejected application, which returns it to `pending`. Rejecting an
+approved doctor revokes access immediately.
+
+* **Verification is a person, not a lookup.** The administrator checks the
+  number against the medical council register by hand. Nothing here queries the
+  NMC or a state council, and the interface says so.
+* Registration numbers are compared ignoring case, spacing and punctuation. A
+  number another doctor account uses is flagged during review, and cannot be
+  approved while an approved doctor holds it — so an impostor cannot take a real
+  doctor's number, and an impostor's earlier application cannot block the real
+  doctor from applying.
+* Doctors created by an administrator (`POST /admin/doctors`) or by the seed are
+  approved on creation; migration `0006` marks every existing doctor approved,
+  and its downgrade deactivates accounts that were never approved rather than
+  letting them in.
+* Who reviewed, and when, is in the audit trail (`doctor.applied`,
+  `doctor.approved`, `doctor.rejected`, `doctor.application_updated`); the row
+  keeps only the status, the reason and `reviewed_at`.
+
+Revisit: automate the register check where an official API exists, and ask for
+a registration certificate before review.
 
 ## D-018 — Doctor UI is English-only in Phase 1
 

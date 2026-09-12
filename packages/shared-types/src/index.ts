@@ -103,6 +103,15 @@ export interface MeResponse {
   user: UserOut;
   profile_id: UUID | null;
   display_name: string | null;
+  /** Doctors only: where their application stands. */
+  doctor_approval: DoctorApproval | null;
+}
+
+export interface PatientRegisterRequest {
+  email: string;
+  password: string;
+  display_name: string;
+  preferred_language: LanguageCode;
 }
 
 // ---------- patient ----------
@@ -193,6 +202,42 @@ export type DoctorProfileUpdate = Partial<
     "name" | "specialization" | "qualification" | "clinic_name" | "clinic_address" | "phone" | "languages" | "is_accepting_consultations"
   >
 >;
+
+/** Only an approved doctor appears in the directory or sees patient information. */
+export type DoctorApproval = "pending" | "approved" | "rejected";
+
+/** What a doctor submits for an administrator to check. */
+export interface DoctorDetails {
+  name: string;
+  specialization: string;
+  qualification: string;
+  registration_identifier: string;
+  clinic_name: string | null;
+  clinic_address: string | null;
+  phone: string | null;
+  languages: LanguageCode[];
+}
+
+export interface DoctorApplication extends DoctorDetails {
+  email: string;
+  password: string;
+}
+
+/** A doctor's own profile, including where their application stands. */
+export interface DoctorAccount extends DoctorPublic {
+  approval_status: DoctorApproval;
+  /** The administrator's reason when an application is not approved. */
+  approval_note: string | null;
+  reviewed_at: ISODateTime | null;
+}
+
+/** What an administrator reviews. */
+export interface DoctorApplicationReview extends DoctorAccount {
+  email: string;
+  applied_at: ISODateTime;
+  /** Another doctor account uses the same registration number. */
+  registration_conflict: boolean;
+}
 
 export interface DoctorAttribution {
   id: UUID;

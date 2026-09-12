@@ -12,13 +12,12 @@ doctors. See [AI_POLICY.md](AI_POLICY.md).
 ## 1. System overview
 
 ```text
-┌──────────────────┐        ┌──────────────────┐
-│  patient-web     │        │  doctor-web      │
-│  Next.js :3000   │        │  Next.js :3001   │
-└────────┬─────────┘        └────────┬─────────┘
-         │  HTTPS/JSON + Bearer JWT  │
-         └────────────┬──────────────┘
-                      ▼
+    ┌──────────────────────────────────────┐
+    │  web app — Next.js :3000             │
+    │  /home · /clinician · /admin         │
+    └───────────────────┬──────────────────┘
+                        │  HTTPS/JSON + Bearer JWT
+                        ▼
             ┌──────────────────────┐
             │  FastAPI  :8000      │
             │  /api/v1/*           │
@@ -36,10 +35,11 @@ doctors. See [AI_POLICY.md](AI_POLICY.md).
             └───────────┘ └────────────────────────┘
 ```
 
-Two separate frontends are deliberate: patient and doctor experiences have
-different density, language, and security expectations, and separate origins
-mean separate browser storage (a patient session can never leak into the doctor
-app on the same machine).
+One web app serves every role (D-050). Everyone signs in on the same page and
+chooses Patient or Doctor; the account's role then decides the area — `/home`
+for patients, `/clinician` for approved doctors (`/clinician/application` until
+then), `/admin` for administrators. The areas keep their own density and
+language rules, and the API enforces the role on every request.
 
 ## 2. Layering rules
 
@@ -128,8 +128,12 @@ Role check first (`require_role`), then ownership:
   sex, preferred language, and the doctor's *own* earlier consultations with
   the patient). Visible while status ∈ {requested, accepted, active, completed};
   a cancelled consultation grants nothing.
-* **Admin**: create doctors, read the audit log. Admin has no clinical-data
-  endpoints in Phase 1.
+* **Doctor, not yet approved**: signs in, reads and corrects their own
+  application; every other clinician route returns `403 doctor_not_approved`,
+  and patients cannot find or consult them (D-051).
+* **Admin**: create doctors (approved on creation), review doctor applications —
+  approve, reject with a reason, revoke — and read the audit log. Admin has no
+  clinical-data endpoints.
 
 Every doctor read of a case or document writes an `audit_event`.
 
@@ -137,13 +141,13 @@ Every doctor read of a case or document writes an `audit_event`.
 
 | Area | Endpoints |
 |---|---|
-| auth | `POST /auth/register` (patient self-signup), `POST /auth/login`, `GET /auth/me` |
+| auth | `POST /auth/register` (patient self-signup), `POST /auth/register-doctor` (doctor application, starts pending), `POST /auth/login`, `GET /auth/me` |
 | meta | `GET /meta/languages`, `GET /meta/ai` |
 | patient | `GET/PUT /patients/me/profile`, `GET /patients/me/dashboard`, `GET/POST /patients/me/records`, `PATCH/DELETE /patients/me/records/{id}`, `GET/POST /patients/me/documents`, `GET /patients/me/documents/{id}`, `GET /patients/me/documents/{id}/file`, `GET/POST /patients/me/consultations`, `GET /patients/me/consultations/{id}`, `POST /patients/me/consultations/{id}/cancel`, `GET /patients/me/prescriptions` |
-| directory | `GET /doctors`, `GET /doctors/{id}` |
-| doctor | `GET/PUT /doctors/me/profile`, `GET /doctors/me/consultations`, `GET /doctors/me/consultations/{id}` (case view), `POST …/{id}/accept`, `POST …/{id}/decline`, `POST …/{id}/complete`, `PUT …/{id}/assessment`, `POST …/{id}/prescriptions`, `GET …/{id}/documents/{doc_id}/file` |
+| directory | `GET /doctors`, `GET /doctors/{id}` (approved doctors only) |
+| doctor | `GET /doctors/me/profile` (open before approval), `PUT /doctors/me/application` (before approval), `PUT /doctors/me/profile`, `GET /doctors/me/consultations`, `GET /doctors/me/consultations/{id}` (case view), `POST …/{id}/accept`, `POST …/{id}/decline`, `POST …/{id}/complete`, `PUT …/{id}/assessment`, `POST …/{id}/prescriptions`, `GET …/{id}/documents/{doc_id}/file` |
 | messages | `GET/POST /consultations/{id}/messages` (either party) |
-| admin | `POST /admin/doctors`, `GET /admin/audit-events` |
+| admin | `POST /admin/doctors`, `GET /admin/doctors?status=`, `POST /admin/doctors/{id}/approve`, `POST /admin/doctors/{id}/reject`, `GET /admin/audit-events` |
 
 OpenAPI docs are served at `http://localhost:8000/docs`.
 
@@ -322,15 +326,18 @@ transcription, confidence, warnings).
 ## 8. Frontend structure
 
 ```text
-apps/patient-web      Next.js App Router, client components, calm/large targets
-apps/doctor-web       Next.js App Router, denser case view
+apps/patient-web      the one Next.js App Router app (name kept for deployments):
+                        /login       role choice, sign-in, patient sign-up, doctor application
+                        /home …      patient area, calm/large targets
+                        /clinician   doctor workspace, denser case view; /clinician/application before approval
+                        /admin       doctor applications
 packages/shared-types API DTO types (hand-written mirror of Pydantic schemas)
 packages/api-client   fetch wrapper + typed endpoint functions
 packages/i18n         message catalogues + I18nProvider/useT
 packages/ui           shared presentational components (Button, Card, SourceBadge…)
 ```
 
-Auth token: JWT in `sessionStorage` of each app origin, sent as
+Auth token: JWT in this tab's `sessionStorage` (one account per tab), sent as
 `Authorization: Bearer`. See SECURITY.md for the trade-off.
 
 ## 9. Testing

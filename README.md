@@ -26,8 +26,7 @@ affect a demo, and no text or page image leaves the machine.
 > not production-ready. See [docs/SECURITY.md](docs/SECURITY.md).
 
 ```text
-apps/patient-web   Next.js patient app        → http://localhost:3000
-apps/doctor-web    Next.js clinician app      → http://localhost:3001
+apps/patient-web   Next.js web app for every role (patient, doctor, admin) → http://localhost:3000
 backend            FastAPI + PostgreSQL API   → http://localhost:8000  (docs at /docs)
 packages/          shared types, API client, i18n catalogues, UI components
 ```
@@ -57,10 +56,9 @@ uv run alembic upgrade head            # create the schema
 uv run python -m app.seed              # synthetic demo data (prints logins)
 uv run uvicorn app.main:app --reload --port 8000
 
-# 4. Frontends (from the repository root, in another terminal)
+# 4. Web app (from the repository root, in another terminal)
 npm install
-npm run dev:patient                    # http://localhost:3000
-npm run dev:doctor                     # http://localhost:3001  (third terminal)
+npm run dev                            # http://localhost:3000 — everyone signs in here
 ```
 
 Without `uv`, use a virtual environment and `pip install -e backend`, then run
@@ -78,13 +76,17 @@ Health check: <http://localhost:8000/health> → `{"status":"ok"}`.
 | Doctor (cardiology, has an earlier consultation) | `rajesh.iyer@carebridge.demo` | `Doctor@2026` |
 | Doctor (dermatology) | `fatima.khan@carebridge.demo` | `Doctor@2026` |
 | Doctor (endocrinology) | `anitha.rao@carebridge.demo` | `Doctor@2026` |
-| Admin | `admin@carebridge.demo` | `Admin@2026` |
+| Doctor who applied and awaits approval | `kavya.nair@carebridge.demo` | `Doctor@2026` |
+| Admin (reviews doctor applications) | `admin@carebridge.demo` | `Admin@2026` |
+
+Everyone signs in at the same page and picks **Patient** or **Doctor**; the
+administrator can sign in under either.
 
 `python -m app.seed --reset` wipes all data and re-seeds (development only).
 
 ## Demo walkthrough (~5 minutes)
 
-1. **Patient** signs in at <http://localhost:3000>. The interface starts in
+1. **Patient** opens <http://localhost:3000>, chooses **Patient** and signs in. The interface starts in
    **English**; switch to हिन्दी or தமிழ் with the selector at the top right.
    The UI language and the language the patient writes in are separate.
 2. **Dashboard** — current conditions, allergies, medications, the last problem
@@ -98,14 +100,36 @@ Health check: <http://localhost:8000/health> → `{"status":"ok"}`.
 6. **Find Care** — filter by specialty/language, choose Dr. Meera Sharma.
 7. **Request a consultation** — tick exactly what to share. Previous
    consultations/prescriptions start unticked. Send the request.
-8. **Doctor** signs in at <http://localhost:3001> as Meera: the request is in
-   *Incoming*, with the patient's own words. Open the case — only shared items
+8. **Doctor** — sign out, choose **Doctor** and sign in as Meera: the request is
+   in *Incoming*, with the patient's own words. Open the case — only shared items
    appear — then **Accept**.
 9. Exchange a message, write **Assessment / notes**, and **Issue prescription**.
 10. Back in the patient app: the consultation is active, the notes and the
     prescription are visible, attributed to the doctor who wrote them.
 11. Repeat 6–9 with a second doctor to see two independent consultations that
     are never merged.
+
+## Doctor sign-up and approval
+
+A doctor can create their own account, but it opens nothing until an
+administrator approves it.
+
+1. At <http://localhost:3000/login> choose **Doctor** → **Apply to join** and
+   give name, specialty, qualification, registration number and languages.
+2. The new account lands on **Your doctor application**, waiting for review. It
+   cannot see any patient and does not appear in Find Care; the API answers its
+   clinician requests with `403 doctor_not_approved`.
+3. Sign in as the **Admin** → **Doctor applications**. Check the registration
+   number against the medical council register — by hand; nothing is looked up
+   automatically — then **Approve**, or **Reject** with a reason the doctor will
+   see. A registration number another doctor account uses is flagged, and cannot
+   be approved while an approved doctor holds it.
+4. Sign back in as the doctor. Approved: the clinician workspace opens.
+   Rejected: the reason is shown and the details can be corrected and
+   resubmitted. Rejecting an approved doctor revokes their access at once.
+
+Doctors created by `python -m app.seed` or by an admin through
+`POST /api/v1/admin/doctors` are approved from the start.
 
 ## AI demo (Phase 2, works entirely offline)
 
@@ -227,15 +251,14 @@ npm run typecheck
 
 ## Deploy
 
-Two Next.js apps on Vercel, the API and its database on Render. The repository
+One Next.js app on Vercel, the API and its database on Render. The repository
 carries [`render.yaml`](render.yaml), so Render creates both from a blueprint.
 
 1. **Render** → New → Blueprint → this repository. Creates `asclepius-api` and
    its PostgreSQL database, runs migrations and seeds the demo data.
-2. **Vercel** → two projects from the same repository, root directories
-   `apps/patient-web` and `apps/doctor-web`, each with
-   `NEXT_PUBLIC_API_BASE_URL` set to the Render URL.
-3. **Render** → set `CORS_ORIGINS` to the two Vercel URLs and redeploy.
+2. **Vercel** → one project from the repository, root directory
+   `apps/patient-web`, with `NEXT_PUBLIC_API_BASE_URL` set to the Render URL.
+3. **Render** → set `CORS_ORIGINS` to the Vercel URL and redeploy.
 
 The deployed demo keeps `DEMO_MODE=true`, so no AI provider key is involved and
 nothing leaves the server. The walkthrough, including the free-plan caveats

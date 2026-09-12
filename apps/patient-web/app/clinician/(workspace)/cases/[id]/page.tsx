@@ -23,9 +23,10 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PrescriptionForm } from "@/components/PrescriptionForm";
-import { SharedClinicalInfo } from "@/components/SharedClinicalInfo";
+import { PrescriptionForm } from "@/components/clinician/PrescriptionForm";
+import { SharedClinicalInfo } from "@/components/clinician/SharedClinicalInfo";
 import { patientMeta } from "@/lib/format";
+import { HOME_FOR_ROLE } from "@/lib/routes";
 
 function AssessmentEditor({ view, onSave }: { view: CaseView; onSave: (text: string) => Promise<void> }) {
   const { t } = useI18n();
@@ -97,7 +98,7 @@ export default function CasePage() {
   const [reason, setReason] = useState("");
 
   const back = (
-    <Link href="/" className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+    <Link href={HOME_FOR_ROLE.doctor} className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
       <ArrowLeft size={16} aria-hidden />
       {t("case.back")}
     </Link>
@@ -134,7 +135,7 @@ export default function CasePage() {
   const decline = () =>
     run(async () => {
       await api.doctor.decline(v.id, reason.trim());
-      router.push("/");
+      router.push(HOME_FOR_ROLE.doctor);
     });
 
   return (

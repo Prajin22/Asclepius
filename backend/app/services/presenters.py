@@ -11,7 +11,7 @@ from app.schemas.consultation import (
     PrescriptionOut,
     SharedConsultationOut,
 )
-from app.schemas.doctor import DoctorPublicOut
+from app.schemas.doctor import DoctorAccountOut, DoctorApplicationOut, DoctorPublicOut
 from app.schemas.patient import PatientProfileOut
 
 
@@ -23,6 +23,19 @@ def doctor_attribution(d: DoctorProfile) -> DoctorAttribution:
 
 def doctor_public(d: DoctorProfile) -> DoctorPublicOut:
     return DoctorPublicOut.model_validate(d)
+
+
+def doctor_account(d: DoctorProfile) -> DoctorAccountOut:
+    return DoctorAccountOut.model_validate(d)
+
+
+def doctor_application(d: DoctorProfile, registration_conflict: bool) -> DoctorApplicationOut:
+    return DoctorApplicationOut(
+        **doctor_account(d).model_dump(),
+        email=d.user.email,
+        applied_at=d.created_at,
+        registration_conflict=registration_conflict,
+    )
 
 
 def patient_profile(p: PatientProfile) -> PatientProfileOut:

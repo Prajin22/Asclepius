@@ -7,6 +7,7 @@ import { SignOut } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ComponentProps, type ReactNode } from "react";
+import { HOME_FOR_ROLE } from "@/lib/routes";
 import { ChatIcon, FileIcon, HeartIcon, HomeIcon, SearchIcon, UserIcon } from "./icons";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -28,10 +29,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
 
   useEffect(() => {
-    if (ready && !session) router.replace("/login");
+    if (!ready) return;
+    if (!session) router.replace("/login");
+    // Doctors and administrators have their own areas.
+    else if (session.user.role !== "patient") router.replace(HOME_FOR_ROLE[session.user.role]);
   }, [ready, session, router]);
 
-  if (!ready || !session) {
+  if (!ready || !session || session.user.role !== "patient") {
     return (
       <div className="mx-auto max-w-6xl px-4">
         <LoadingState />

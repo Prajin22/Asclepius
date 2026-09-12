@@ -1,6 +1,12 @@
 "use client";
 
-import type { Role, UserOut } from "@carebridge/shared-types";
+import type {
+  DoctorApplication,
+  PatientRegisterRequest,
+  Role,
+  TokenResponse,
+  UserOut,
+} from "@carebridge/shared-types";
 import {
   createContext,
   useCallback,
@@ -21,8 +27,9 @@ export interface Session {
 }
 
 /**
- * Session kept in sessionStorage of this app's origin (patient :3000 and doctor
- * :3001 are separate origins, so sessions never mix). See docs/SECURITY.md.
+ * Session kept in this tab's sessionStorage. One app serves every role, so a tab
+ * holds one account at a time; the API re-checks the role on every request.
+ * See docs/SECURITY.md.
  */
 export function createSessionStore(key: string) {
   return {
@@ -58,6 +65,10 @@ interface AuthValue {
   ready: boolean;
   api: ApiClient;
   login: (email: string, password: string) => Promise<Session>;
+  /** Patient sign-up; signs the new account in. */
+  register: (data: PatientRegisterRequest) => Promise<Session>;
+  /** Doctor sign-up; signs the new, not-yet-approved account in. */
+  applyAsDoctor: (data: DoctorApplication) => Promise<Session>;
   logout: () => void;
 }
 
@@ -72,7 +83,8 @@ export function AuthProvider({
   children: ReactNode;
   baseUrl: string;
   storageKey: string;
-  expectedRole: Role;
+  /** Refuse any other kind of account. Omit when one app serves every role. */
+  expectedRole?: Role;
 }) {
   const store = useMemo(() => createSessionStore(storageKey), [storageKey]);
   const [session, setSession] = useState<Session | null>(null);
@@ -102,20 +114,35 @@ export function AuthProvider({
     setReady(true);
   }, [store]);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const r = await api.auth.login(email, password);
-      if (r.user.role !== expectedRole) throw new ApiError(403, "wrong_role", "Wrong account type");
+  const start = useCallback(
+    (r: TokenResponse) => {
+      if (expectedRole && r.user.role !== expectedRole) throw new ApiError(403, "wrong_role", "Wrong account type");
       const s: Session = { token: r.access_token, user: r.user, expiresAt: Date.now() + r.expires_in * 1000 };
       store.write(s);
       sessionRef.current = s;
       setSession(s);
       return s;
     },
-    [api, expectedRole, store],
+    [expectedRole, store],
   );
 
-  const value = useMemo(() => ({ session, ready, api, login, logout }), [session, ready, api, login, logout]);
+  const login = useCallback(
+    async (email: string, password: string) => start(await api.auth.login(email, password)),
+    [api, start],
+  );
+  const register = useCallback(
+    async (data: PatientRegisterRequest) => start(await api.auth.registerPatient(data)),
+    [api, start],
+  );
+  const applyAsDoctor = useCallback(
+    async (data: DoctorApplication) => start(await api.auth.applyAsDoctor(data)),
+    [api, start],
+  );
+
+  const value = useMemo(
+    () => ({ session, ready, api, login, register, applyAsDoctor, logout }),
+    [session, ready, api, login, register, applyAsDoctor, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

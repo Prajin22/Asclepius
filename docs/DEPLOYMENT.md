@@ -1,17 +1,17 @@
 # Deploying Asclepius
 
-Two Next.js apps on **Vercel**, the FastAPI service and its database on
-**Render**. Everything below deploys the demo configuration: synthetic data
-only, all AI running locally on the server, no provider key involved.
+One Next.js app on **Vercel**, used by patients, doctors and administrators
+alike, and the FastAPI service with its database on **Render**. Everything below
+deploys the demo configuration: synthetic data only, all AI running locally on
+the server, no provider key involved.
 
 > **Before you start.** This is a prototype, not a production healthcare system
 > (see [SECURITY.md](SECURITY.md)). Once deployed it is public: anyone with the
-> URL can register a patient account. Never put real patient information in it.
+> URL can register a patient account or apply as a doctor. Never put real
+> patient information in it.
 
 ```text
-patient-web (Vercel)  ─┐
-                       ├─► asclepius-api (Render) ─► PostgreSQL (Render)
-doctor-web  (Vercel)  ─┘
+web app (Vercel) ─► asclepius-api (Render) ─► PostgreSQL (Render)
 ```
 
 ## Order of operations
@@ -19,8 +19,8 @@ doctor-web  (Vercel)  ─┘
 The two sides need each other's URLs, so deploy in this order:
 
 1. **Render**: API + database → gives you `https://asclepius-api.onrender.com`.
-2. **Vercel**: both apps with `NEXT_PUBLIC_API_BASE_URL` set to that URL.
-3. **Render**: set `CORS_ORIGINS` to the two Vercel URLs, then redeploy.
+2. **Vercel**: the web app with `NEXT_PUBLIC_API_BASE_URL` set to that URL.
+3. **Render**: set `CORS_ORIGINS` to the Vercel URL, then redeploy.
 
 ---
 
@@ -49,7 +49,7 @@ Check it: `https://<your-api>.onrender.com/health` → `{"status":"ok"}`.
 | `DEMO_MODE` | `true` | pins the local AI provider: no external call is possible |
 | `OCR_ENGINE` | `local` | offline OCR for scans; no page image leaves the server |
 | `STORAGE_LOCAL_ROOT` | `/tmp/asclepius-storage` | writable on every plan, but see the caveats |
-| `CORS_ORIGINS` | *you set it* | the two Vercel origins, comma separated |
+| `CORS_ORIGINS` | *you set it* | the Vercel origin; comma-separate any extra origins |
 
 ### Free-plan caveats worth knowing before judging day
 
@@ -70,18 +70,20 @@ removes all four problems.
 
 ---
 
-## 2. Frontends on Vercel
+## 2. The web app on Vercel
 
-Create **two** projects from the same repository — one per app.
+Create **one** project from the repository.
 
-| Setting | patient app | clinician app |
-|---|---|---|
-| Root Directory | `apps/patient-web` | `apps/doctor-web` |
-| Framework | Next.js (auto-detected) | Next.js (auto-detected) |
-| Environment variable | `NEXT_PUBLIC_API_BASE_URL` = your Render URL | same |
+| Setting | Value |
+|---|---|
+| Root Directory | `apps/patient-web` — the name predates the merge; the app serves every role |
+| Framework | Next.js (auto-detected) |
+| Environment variable | `NEXT_PUBLIC_API_BASE_URL` = your Render URL |
 
 Notes:
 
+- If you created a second project for `apps/doctor-web` earlier, delete it. That
+  directory no longer exists, so its builds fail.
 - Leave the build and install commands on their defaults. Vercel detects the npm
   workspace and installs from the repository root, which is what the shared
   `packages/*` need. "Include source files outside of the Root Directory" must
@@ -91,29 +93,41 @@ Notes:
 - The build downloads Geist and Noto fonts from Google Fonts, so the build
   environment needs network access. Vercel has it.
 
-## 3. Point the API back at the frontends
+## 3. Point the API back at the web app
 
 In the Render service → **Environment**, set:
 
 ```text
-CORS_ORIGINS=https://asclepius-patient.vercel.app,https://asclepius-clinician.vercel.app
+CORS_ORIGINS=https://asclepius.vercel.app
 ```
 
-Use your real Vercel domains, no trailing slashes. Save; Render redeploys.
+Use your real Vercel domain, no trailing slash. Save; Render redeploys.
 Preview deployments get their own URLs and will be blocked by CORS unless you
-add them too.
+add them too, comma separated.
 
 ## 4. Check the deployment
 
 1. `https://<api>/health` returns `{"status":"ok"}`.
-2. The patient app's landing page loads, and **Get started** reaches the sign-in
-   form.
-3. Sign in with the seeded demo account (printed in the Render logs on first
-   boot, and listed in the README) and open the dashboard — if the dashboard
-   loads, CORS and the API URL are both correct.
+2. The landing page loads, and **Get started** reaches the sign-in page with its
+   **Patient** / **Doctor** choice.
+3. Choose **Patient** and sign in with the seeded demo account (printed in the
+   Render logs on first boot, and listed in the README) — if the dashboard loads,
+   CORS and the API URL are both correct.
 4. Open a seeded document and read it. If reading a scan restarts the service,
    apply the `OCR_ENGINE` note above.
-5. Sign in to the clinician app with a doctor account and open a case.
+5. Sign out, choose **Doctor**, sign in with a doctor account and open a case.
+6. Sign in as the administrator: **Doctor applications** lists the seeded
+   applicant waiting for review.
+
+## Doctor approval on a public demo
+
+A doctor who signs up sees nothing until an administrator approves them. On a
+deployment whose admin password is published — the seeded one is in the README —
+anyone can sign in as that administrator, so approval demonstrates the flow but
+does not keep anyone out. Before sharing the URL beyond the people judging it,
+change the seeded admin's password in the database, and set
+`NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=false` on Vercel to hide the demo logins from the
+sign-in page.
 
 ## Keeping the deployment in step with the code
 
@@ -126,7 +140,7 @@ add them too.
   ```
 
 - Database migrations run automatically on every deploy (`alembic upgrade head`).
-- Both Vercel projects redeploy on push to `main`; Render does too.
+- The Vercel project redeploys on push to `main`; Render does too.
 
 ## What is deliberately not deployed
 

@@ -117,6 +117,9 @@ export function LandingPage() {
           </span>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
+            <Link href="/login?role=doctor" className={buttonClasses("ghost", "sm", "max-sm:hidden")}>
+              {t("landing.forDoctors")}
+            </Link>
             <Link href="/login" className={buttonClasses("primary", "sm")}>
               {t("actions.signIn")}
             </Link>

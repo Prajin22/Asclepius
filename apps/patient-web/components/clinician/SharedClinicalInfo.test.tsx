@@ -1,7 +1,7 @@
 import type { CaseView } from "@carebridge/shared-types";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithI18n } from "@/test/utils";
+import { renderClinician } from "@/test/utils";
 import { SharedClinicalInfo } from "./SharedClinicalInfo";
 
 const base: CaseView = {
@@ -30,12 +30,12 @@ const base: CaseView = {
 
 describe("SharedClinicalInfo", () => {
   it("says clearly when the patient did not share something", () => {
-    renderWithI18n(<SharedClinicalInfo view={base} loadDocument={vi.fn()} />);
+    renderClinician(<SharedClinicalInfo view={base} loadDocument={vi.fn()} />);
     expect(screen.getAllByText("The patient did not share this.")).toHaveLength(3);
   });
 
   it("shows the patient's own words with their language", () => {
-    renderWithI18n(
+    renderClinician(
       <SharedClinicalInfo
         view={{
           ...base,
@@ -63,7 +63,7 @@ describe("SharedClinicalInfo", () => {
   });
 
   it("shows a document's machine reading beside the original file", () => {
-    renderWithI18n(
+    renderClinician(
       <SharedClinicalInfo
         view={{
           ...base,
@@ -106,7 +106,7 @@ describe("SharedClinicalInfo", () => {
   });
 
   it("keeps another doctor's opinion separate and attributed", () => {
-    renderWithI18n(
+    renderClinician(
       <SharedClinicalInfo
         view={{
           ...base,

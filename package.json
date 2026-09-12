@@ -7,9 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:patient": "npm run dev -w @carebridge/patient-web",
-    "dev:doctor": "npm run dev -w @carebridge/doctor-web",
-    "build": "npm run build -w @carebridge/patient-web && npm run build -w @carebridge/doctor-web",
+    "dev": "npm run dev -w @carebridge/patient-web",
+    "build": "npm run build -w @carebridge/patient-web",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },

@@ -7,6 +7,11 @@ import type {
   ConsultationRequestCreate,
   ConsultationStatus,
   ConsultationSummary,
+  DoctorAccount,
+  DoctorApplication,
+  DoctorApplicationReview,
+  DoctorApproval,
+  DoctorDetails,
   DoctorProfileUpdate,
   DoctorPublic,
   DoctorQueueItem,
@@ -23,6 +28,7 @@ import type {
   PatientDashboard,
   PatientProfile,
   PatientProfileUpdate,
+  PatientRegisterRequest,
   Prescription,
   PrescriptionCreate,
   RecordType,
@@ -119,6 +125,11 @@ export function createApiClient(config: ClientConfig) {
     auth: {
       login: (email: string, password: string) =>
         request<TokenResponse>("/auth/login", { method: "POST", body: { email, password } }),
+      registerPatient: (data: PatientRegisterRequest) =>
+        request<TokenResponse>("/auth/register", { method: "POST", body: data }),
+      /** Doctor sign-up. The account reaches no patient information until an administrator approves it. */
+      applyAsDoctor: (data: DoctorApplication) =>
+        request<TokenResponse>("/auth/register-doctor", { method: "POST", body: data }),
       me: () => request<MeResponse>("/auth/me"),
     },
     patient: {
@@ -192,9 +203,13 @@ export function createApiClient(config: ClientConfig) {
       get: (id: string) => request<DoctorPublic>(`/doctors/${enc(id)}`),
     },
     doctor: {
-      profile: () => request<DoctorPublic>("/doctors/me/profile"),
+      /** Available before approval, so an applicant can see where their application stands. */
+      profile: () => request<DoctorAccount>("/doctors/me/profile"),
       updateProfile: (data: DoctorProfileUpdate) =>
-        request<DoctorPublic>("/doctors/me/profile", { method: "PUT", body: data }),
+        request<DoctorAccount>("/doctors/me/profile", { method: "PUT", body: data }),
+      /** Correct the details an administrator reviews. The application goes back to pending. */
+      updateApplication: (data: DoctorDetails) =>
+        request<DoctorAccount>("/doctors/me/application", { method: "PUT", body: data }),
       queue: (statuses?: ConsultationStatus[]) =>
         request<DoctorQueueItem[]>("/doctors/me/consultations", { query: { status: statuses } }),
       caseView: (id: string) => request<CaseView>(`/doctors/me/consultations/${enc(id)}`),
@@ -231,6 +246,15 @@ export function createApiClient(config: ClientConfig) {
           method: "POST",
           body: { body, language: language ?? null },
         }),
+    },
+    admin: {
+      doctors: (status?: DoctorApproval) =>
+        request<DoctorApplicationReview[]>("/admin/doctors", { query: { status } }),
+      approveDoctor: (id: string) =>
+        request<DoctorApplicationReview>(`/admin/doctors/${enc(id)}/approve`, { method: "POST" }),
+      /** Declines an application, or revokes an approved doctor. The reason is shown to the doctor. */
+      rejectDoctor: (id: string, reason: string) =>
+        request<DoctorApplicationReview>(`/admin/doctors/${enc(id)}/reject`, { method: "POST", body: { reason } }),
     },
   };
 }

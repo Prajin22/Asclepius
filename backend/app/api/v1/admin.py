@@ -7,9 +7,10 @@ from sqlalchemy import select
 
 from app.api.deps import DB, AdminUser, Ctx
 from app.models import AuditEvent
+from app.models.enums import DoctorApproval
 from app.schemas.common import ORMModel
-from app.schemas.doctor import DoctorCreate, DoctorPublicOut
-from app.services import auth_service, presenters
+from app.schemas.doctor import DoctorApplicationOut, DoctorCreate, DoctorPublicOut, DoctorRejectRequest
+from app.services import auth_service, doctor_service, presenters
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -30,6 +31,32 @@ class AuditEventOut(ORMModel):
 @router.post("/doctors", response_model=DoctorPublicOut, status_code=status.HTTP_201_CREATED)
 def create_doctor(data: DoctorCreate, admin: AdminUser, db: DB, ctx: Ctx) -> DoctorPublicOut:
     return presenters.doctor_public(auth_service.create_doctor(db, data, admin, ctx))
+
+
+@router.get("/doctors", response_model=list[DoctorApplicationOut])
+def doctor_applications(
+    _: AdminUser, db: DB, status_: DoctorApproval | None = Query(default=None, alias="status")
+) -> list[DoctorApplicationOut]:
+    doctors = doctor_service.list_applications(db, status_)
+    conflicts = doctor_service.registration_conflicts(db, doctors)
+    return [presenters.doctor_application(d, d.id in conflicts) for d in doctors]
+
+
+@router.post("/doctors/{doctor_id}/approve", response_model=DoctorApplicationOut)
+def approve_doctor(doctor_id: uuid.UUID, admin: AdminUser, db: DB, ctx: Ctx) -> DoctorApplicationOut:
+    doctor = doctor_service.review_application(db, doctor_id, DoctorApproval.APPROVED, admin, ctx=ctx)
+    return presenters.doctor_application(doctor, doctor.id in doctor_service.registration_conflicts(db, [doctor]))
+
+
+@router.post("/doctors/{doctor_id}/reject", response_model=DoctorApplicationOut)
+def reject_doctor(
+    doctor_id: uuid.UUID, data: DoctorRejectRequest, admin: AdminUser, db: DB, ctx: Ctx
+) -> DoctorApplicationOut:
+    """Declines an application, or revokes an approved doctor's access. The reason is shown to the doctor."""
+    doctor = doctor_service.review_application(
+        db, doctor_id, DoctorApproval.REJECTED, admin, note=data.reason, ctx=ctx
+    )
+    return presenters.doctor_application(doctor, doctor.id in doctor_service.registration_conflicts(db, [doctor]))
 
 
 @router.get("/audit-events", response_model=list[AuditEventOut])

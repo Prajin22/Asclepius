@@ -7,6 +7,19 @@ class UserRole(StrEnum):
     ADMIN = "admin"
 
 
+class DoctorApproval(StrEnum):
+    """Where a doctor's application stands.
+
+    Only an approved doctor appears in the directory, receives consultations or
+    sees any patient information. An admin checks the registration number by
+    hand; nothing here queries a medical council register.
+    """
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class Sex(StrEnum):
     FEMALE = "female"
     MALE = "male"

@@ -42,7 +42,7 @@ from app.models.enums import (
 from app import synthetic_documents
 from app.providers.storage import get_storage
 from app.schemas.auth import PatientRegisterRequest
-from app.schemas.doctor import DoctorCreate
+from app.schemas.doctor import DoctorApplication, DoctorCreate
 from app.services import auth_service, document_service
 
 ADMIN = ("admin@carebridge.demo", "Admin@2026")
@@ -69,6 +69,12 @@ DOCTORS = [
          clinic_name="Balance Endocrine Care (demo)", clinic_address="3 Placeholder Avenue, Velachery, Chennai 600042",
          phone="+91 44 0000 0404", languages=[L.EN, L.KN, L.TA]),
 ]
+# Signed up through the app and waiting for an admin, so the review screen has work in it.
+APPLICANT = dict(email="kavya.nair@carebridge.demo", name="Dr. Kavya Nair", specialization="Pediatrics",
+                 qualification="MBBS, MD (Pediatrics)", registration_identifier="DEMO-REG-PE-0005",
+                 clinic_name="Little Steps Child Clinic (demo)",
+                 clinic_address="21 Sample Street, Mylapore, Chennai 600004",
+                 phone="+91 44 0000 0505", languages=[L.EN, L.TA])
 
 
 def make_pdf(lines: list[str]) -> bytes:
@@ -154,6 +160,7 @@ def seed(db: Session) -> None:
         key = spec.pop("key")
         doctors[key] = auth_service.create_doctor(db, DoctorCreate(password=DOCTOR_PASSWORD, **spec), actor=admin)
         spec["key"] = key
+    auth_service.apply_as_doctor(db, DoctorApplication(password=DOCTOR_PASSWORD, **APPLICANT))
 
     patient_user = auth_service.register_patient(
         db, PatientRegisterRequest(email=PATIENT[0], password=PATIENT[1], display_name="Arun Kumar",
@@ -271,6 +278,7 @@ def seed(db: Session) -> None:
     print(f"  Patient  {PATIENT[0]:<34} {PATIENT[1]}")
     for spec in DOCTORS:
         print(f"  Doctor   {spec['email']:<34} {DOCTOR_PASSWORD}")
+    print(f"  Pending  {APPLICANT['email']:<34} {DOCTOR_PASSWORD}  (doctor awaiting admin approval)")
     print(f"  Admin    {ADMIN[0]:<34} {ADMIN[1]}")
 
 

@@ -2,7 +2,7 @@ import type { DocumentInsight as DocumentInsightData } from "@carebridge/shared-
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { renderWithI18n } from "@/test/utils";
+import { renderClinician } from "@/test/utils";
 import { DocumentInsight } from "./DocumentInsight";
 
 const TEXT = "Diagnosis: Hypertension\nFamily history: Father has diabetes.";
@@ -69,14 +69,14 @@ beforeAll(() => {
 
 describe("DocumentInsight", () => {
   it("is collapsed by default so the original file stays primary", () => {
-    renderWithI18n(<DocumentInsight insight={insight()} />);
+    renderClinician(<DocumentInsight insight={insight()} />);
     expect(screen.getByText("1 of 1 pages read")).toBeInTheDocument();
     expect(screen.getByText("About a relative")).toBeInTheDocument(); // flagged before opening
     expect(screen.queryByText(/Father has diabetes/)).not.toBeInTheDocument();
   });
 
   it("shows how the page was read, what was read, and the extracted items", async () => {
-    renderWithI18n(<DocumentInsight insight={insight()} />);
+    renderClinician(<DocumentInsight insight={insight()} />);
     await open();
 
     expect(screen.getByText(/Not clinical advice/)).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe("DocumentInsight", () => {
   });
 
   it("outlines an item's evidence on the original page", async () => {
-    renderWithI18n(<DocumentInsight insight={insight()} loadPage={async () => new Blob(["png"])} />);
+    renderClinician(<DocumentInsight insight={insight()} loadPage={async () => new Blob(["png"])} />);
     await open();
     await screen.findByAltText("Page 1 of the original document");
 
@@ -102,7 +102,7 @@ describe("DocumentInsight", () => {
   });
 
   it("does not offer a reading for a document that could not be read", () => {
-    renderWithI18n(<DocumentInsight insight={insight({ extraction_status: "failed", pages: [], pages_processed: 0 })} />);
+    renderClinician(<DocumentInsight insight={insight({ extraction_status: "failed", pages: [], pages_processed: 0 })} />);
     expect(screen.getByText("This document could not be read. Use the original file.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Show machine reading" })).not.toBeInTheDocument();
   });

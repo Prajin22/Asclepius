@@ -4,17 +4,8 @@
     "profile": "Profile",
     "main": "Main navigation",
     "clinician": "Clinician workspace",
+    "admin": "Administration",
     "policy": "Asclepius organises patient-provided information. It does not diagnose or prescribe; clinical decisions remain yours."
-  },
-  "login": {
-    "title": "Clinician sign in",
-    "subtitle": "Review patient requests and run consultations.",
-    "email": "Email",
-    "password": "Password",
-    "submit": "Sign in",
-    "submitting": "Signing in…",
-    "demoTitle": "Demo account (synthetic data only)",
-    "demoFill": "Use demo account"
   },
   "dashboard": {
     "title": "Consultations",
@@ -143,12 +134,54 @@
     "specialization": "Specialty",
     "qualification": "Qualification",
     "registration": "Registration number",
-    "registrationHint": "Registration verification is out of scope for this prototype.",
+    "registrationHint": "Checked by an administrator before your account was approved.",
     "clinicName": "Clinic name",
     "clinicAddress": "Clinic address",
     "phone": "Clinic phone",
     "languages": "Languages you consult in",
     "accepting": "Accepting new consultation requests",
     "saved": "Profile saved."
+  },
+  "admin": {
+    "title": "Doctor applications",
+    "subtitle": "A doctor appears to patients and sees patient information only after you approve them.",
+    "checklist": {
+      "title": "Before you approve",
+      "register": "Look the registration number up on the State Medical Council or National Medical Commission register.",
+      "match": "Check that the name and qualification on the register match the application.",
+      "reason": "If something does not match, reject with a reason the doctor can act on."
+    },
+    "tabs": {
+      "label": "Application status",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Not approved"
+    },
+    "empty": {
+      "pending": "No applications are waiting.",
+      "approved": "No approved doctors yet.",
+      "rejected": "No applications have been turned down."
+    },
+    "appliedOn": "Applied {date}",
+    "reviewedOn": "Reviewed {date}",
+    "registration": "Registration number",
+    "qualification": "Qualification",
+    "email": "Email",
+    "phone": "Phone",
+    "clinic": "Clinic",
+    "languages": "Languages",
+    "notGiven": "Not given",
+    "conflict": "Another doctor account uses this registration number.",
+    "note": "Reason given",
+    "approve": "Approve",
+    "reject": "Reject",
+    "revoke": "Revoke access",
+    "reasonLabel": "Reason (shown to the doctor)",
+    "reasonPlaceholder": "For example: this registration number is not on the council register.",
+    "confirmReject": "Reject application",
+    "confirmRevoke": "Revoke access",
+    "revokeWarning": "The doctor loses access to their consultations at once and no longer appears in Find Care.",
+    "approvedNotice": "{name} is approved and can now receive consultation requests.",
+    "rejectedNotice": "{name} was not approved. They can see your reason."
   }
 }

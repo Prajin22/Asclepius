@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Query, Response, status
 from pydantic import BaseModel
 
-from app.api.deps import DB, Ctx, CurrentDoctor, DirectoryUser
+from app.api.deps import DB, Ctx, CurrentDoctor, DirectoryUser, DoctorAccount
 from app.api.v1.files import document_file_response, page_image_response
 from app.core.languages import LanguageCode
 from app.models.enums import ConsultationStatus
@@ -16,7 +16,7 @@ from app.schemas.consultation import (
     PrescriptionCreate,
     PrescriptionOut,
 )
-from app.schemas.doctor import DoctorProfileUpdate, DoctorPublicOut
+from app.schemas.doctor import DoctorAccountOut, DoctorDetails, DoctorProfileUpdate, DoctorPublicOut
 from app.services import consultation_service, doctor_service, document_pipeline, presenters
 
 # ----- doctor's own workspace -----
@@ -28,14 +28,21 @@ class ConsultationStatusOut(BaseModel):
     status: ConsultationStatus
 
 
-@me_router.get("/profile", response_model=DoctorPublicOut)
-def get_my_profile(doctor: CurrentDoctor) -> DoctorPublicOut:
-    return presenters.doctor_public(doctor)
+@me_router.get("/profile", response_model=DoctorAccountOut)
+def get_my_profile(doctor: DoctorAccount) -> DoctorAccountOut:
+    """Open before approval, so an applicant can see where their application stands."""
+    return presenters.doctor_account(doctor)
 
 
-@me_router.put("/profile", response_model=DoctorPublicOut)
-def update_my_profile(data: DoctorProfileUpdate, doctor: CurrentDoctor, db: DB) -> DoctorPublicOut:
-    return presenters.doctor_public(doctor_service.update_profile(db, doctor, data, doctor.user))
+@me_router.put("/profile", response_model=DoctorAccountOut)
+def update_my_profile(data: DoctorProfileUpdate, doctor: CurrentDoctor, db: DB) -> DoctorAccountOut:
+    return presenters.doctor_account(doctor_service.update_profile(db, doctor, data, doctor.user))
+
+
+@me_router.put("/application", response_model=DoctorAccountOut)
+def update_my_application(data: DoctorDetails, doctor: DoctorAccount, db: DB, ctx: Ctx) -> DoctorAccountOut:
+    """Correct the details an admin reviews. The application goes back to pending."""
+    return presenters.doctor_account(doctor_service.update_application(db, doctor, data, doctor.user, ctx))
 
 
 @me_router.get("/consultations", response_model=list[DoctorQueueItem])

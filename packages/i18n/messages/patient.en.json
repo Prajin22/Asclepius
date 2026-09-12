@@ -10,15 +10,87 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
-  "login": {
-    "title": "Sign in",
-    "subtitle": "Welcome to Asclepius.",
+  "auth": {
+    "title": "Welcome to Asclepius",
+    "roleLabel": "I am a",
+    "role": {
+      "patient": "Patient",
+      "patientHint": "Keep your health information and share it with doctors you choose.",
+      "doctor": "Doctor",
+      "doctorHint": "Review what patients share with you, once your registration is checked."
+    },
+    "modeLabel": "Sign in or create an account",
+    "mode": {
+      "signIn": "Sign in",
+      "register": "Create account",
+      "apply": "Apply to join"
+    },
     "email": "Email",
     "password": "Password",
-    "submit": "Sign in",
-    "submitting": "Signing in…",
-    "demoTitle": "Demo account (synthetic data only)",
-    "demoFill": "Use demo account"
+    "passwordHint": "At least 8 characters.",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "name": "Your name",
+    "language": "Language you are most comfortable in",
+    "languageHint": "Doctors see this. The display language is set separately, at the top of the page.",
+    "register": "Create account",
+    "registering": "Creating account…",
+    "applyIntro": "An administrator checks your registration number before your account can see any patient information.",
+    "apply": "Submit application",
+    "applying": "Submitting…",
+    "doctorPitch": {
+      "title": "See what your patients choose to share.",
+      "body": "Their own words and documents, beside an organised version that shows where every item came from. The clinical decision stays yours."
+    },
+    "demoTitle": "Demo accounts (synthetic data only)",
+    "demo": {
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "pendingDoctor": "Doctor awaiting approval"
+    },
+    "demoFill": "Fill in",
+    "demoFillLabel": "Fill in the {account} demo account"
+  },
+  "doctorForm": {
+    "name": "Full name, as registered",
+    "specialization": "Specialty",
+    "specializationHint": "For example: General Medicine",
+    "qualification": "Qualification",
+    "qualificationHint": "For example: MBBS, MD",
+    "registration": "Medical registration number",
+    "registrationHint": "As issued by your State Medical Council or the National Medical Commission.",
+    "clinicName": "Clinic or hospital (optional)",
+    "clinicAddress": "Clinic address (optional)",
+    "phone": "Clinic phone (optional)",
+    "languages": "Languages you consult in",
+    "languagesHint": "Choose at least one."
+  },
+  "application": {
+    "title": "Your doctor application",
+    "status": {
+      "pending": "Waiting for review",
+      "rejected": "Not approved",
+      "approved": "Approved"
+    },
+    "pendingBody": "An administrator is checking your registration number. Your workspace opens as soon as your application is approved.",
+    "rejectedBody": "Correct the details below and submit your application again.",
+    "approvedBody": "Your registration has been checked. Your clinician workspace is ready.",
+    "reason": "Reason from the administrator",
+    "open": "Open workspace",
+    "steps": {
+      "label": "Application progress",
+      "submitted": "Application submitted",
+      "review": "Registration checked by an administrator",
+      "access": "Workspace opens"
+    },
+    "privacy": "Until you are approved, patients cannot find you and you cannot see any patient information.",
+    "submitted": "What you submitted",
+    "edit": "Correct details",
+    "resubmit": "Submit again",
+    "resubmitting": "Submitting…",
+    "resubmitted": "Submitted. Your application is back in the review queue.",
+    "checkAgain": "Check again",
+    "notGiven": "Not given"
   },
   "dashboard": {
     "greeting": "Hello, {name}",
@@ -244,6 +316,7 @@
     "reviewSubtitle": "Confirm, correct or reject each item. Nothing is added to your health record until you confirm it."
   },
   "landing": {
+    "forDoctors": "For doctors",
     "hero": {
       "title": "Your health information, connected.",
       "subtitle": "Keep your records in your own words, have your documents read, and share exactly what you choose.",

@@ -12,6 +12,7 @@ from app.db.session import get_db
 from app.models import DoctorProfile, PatientProfile, User
 from app.models.enums import UserRole
 from app.services.audit import RequestContext
+from app.services.errors import DoctorNotApproved
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -64,11 +65,22 @@ def get_current_patient(db: DB, user: PatientUser) -> PatientProfile:
     return profile
 
 
-def get_current_doctor(db: DB, user: DoctorUser) -> DoctorProfile:
+def get_doctor_account(db: DB, user: DoctorUser) -> DoctorProfile:
+    """The signed-in doctor's own profile, whatever the state of their application."""
     profile = db.scalar(select(DoctorProfile).where(DoctorProfile.user_id == user.id))
     if profile is None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Doctor profile missing")
     return profile
+
+
+DoctorAccount = Annotated[DoctorProfile, Depends(get_doctor_account)]
+
+
+def get_current_doctor(doctor: DoctorAccount) -> DoctorProfile:
+    """An approved doctor. Every route that can reach patient data depends on this."""
+    if not doctor.is_approved:
+        raise DoctorNotApproved("An administrator has not approved this doctor account")
+    return doctor
 
 
 CurrentPatient = Annotated[PatientProfile, Depends(get_current_patient)]

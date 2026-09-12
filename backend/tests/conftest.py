@@ -35,7 +35,7 @@ os.environ["AI_CACHE_ENABLED"] = "true"
 os.environ["AI_RATE_LIMIT_PER_HOUR"] = "20"
 os.environ["AI_RATE_LIMIT_PER_DAY"] = "100"
 os.environ["AI_DAILY_COST_LIMIT_USD"] = "1.0"
-os.environ["CORS_ORIGINS"] = "http://localhost:3000,http://localhost:3001"
+os.environ["CORS_ORIGINS"] = "http://localhost:3000"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

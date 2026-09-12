@@ -1,42 +1,80 @@
 "use client";
 
-import { useAuth } from "@carebridge/api-client/react";
+import { useAuth, useQuery } from "@carebridge/api-client/react";
 import { useT } from "@carebridge/i18n";
-import { Avatar, Button, LoadingState, Logo, cn } from "@carebridge/ui";
+import { Avatar, Button, ErrorState, LoadingState, Logo, cn } from "@carebridge/ui";
 import { SignOut } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { DOCTOR_APPLICATION_PATH, HOME_FOR_ROLE } from "@/lib/routes";
+
+const HOME = HOME_FOR_ROLE.doctor;
 
 const NAV = [
-  { href: "/", key: "nav.dashboard" },
-  { href: "/profile", key: "nav.profile" },
+  { href: HOME, key: "nav.dashboard" },
+  { href: `${HOME}/profile`, key: "nav.profile" },
 ];
+
+function Holding({ children }: { children: ReactNode }) {
+  return <div className="mx-auto max-w-7xl px-4">{children}</div>;
+}
 
 /**
  * The clinician tool: ink chrome, dense content, no decoration. Same brand, same
- * type and colour system as the patient app — a different instrument.
+ * type and colour system as the patient area — a different instrument.
  */
 export function DoctorShell({ children }: { children: ReactNode }) {
-  const { session, ready, logout } = useAuth();
+  const { session, ready } = useAuth();
+  const router = useRouter();
+  const isDoctor = session?.user.role === "doctor";
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!session) router.replace("/login");
+    else if (session.user.role !== "doctor") router.replace(HOME_FOR_ROLE[session.user.role]);
+  }, [ready, session, router]);
+
+  if (!ready || !isDoctor) {
+    return (
+      <Holding>
+        <LoadingState />
+      </Holding>
+    );
+  }
+  return <ApprovedWorkspace>{children}</ApprovedWorkspace>;
+}
+
+/** The workspace opens only for an approved doctor. Anyone else is shown their application. */
+function ApprovedWorkspace({ children }: { children: ReactNode }) {
+  const { session, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const t = useT();
+  const account = useQuery((a) => a.doctor.profile());
+  const approved = account.data?.approval_status === "approved";
 
   useEffect(() => {
-    if (ready && !session) router.replace("/login");
-  }, [ready, session, router]);
+    if (account.data && !approved) router.replace(DOCTOR_APPLICATION_PATH);
+  }, [account.data, approved, router]);
 
-  if (!ready || !session) {
+  if (account.error && !account.data) {
     return (
-      <div className="mx-auto max-w-7xl px-4">
+      <Holding>
+        <ErrorState error={account.error} onRetry={account.reload} />
+      </Holding>
+    );
+  }
+  if (!approved || !session) {
+    return (
+      <Holding>
         <LoadingState />
-      </div>
+      </Holding>
     );
   }
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname.startsWith("/cases") : pathname.startsWith(href);
+    href === HOME ? pathname === HOME || pathname.startsWith(`${HOME}/cases`) : pathname.startsWith(href);
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -50,7 +88,7 @@ export function DoctorShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 bg-ink text-white">
         <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2.5 text-subheading tracking-tight">
+            <Link href={HOME} className="flex items-center gap-2.5 text-subheading tracking-tight">
               <Logo size={24} />
               <span>
                 {t("app.name")}

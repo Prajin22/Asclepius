@@ -16,8 +16,8 @@ import {
   formatBytes,
 } from "@carebridge/ui";
 import { useState } from "react";
-import { AIInsight } from "@/components/AIInsight";
-import { DocumentInsight } from "@/components/DocumentInsight";
+import { AIInsight } from "@/components/clinician/AIInsight";
+import { DocumentInsight } from "@/components/clinician/DocumentInsight";
 import { languageLabel } from "@/lib/format";
 
 const HISTORY_ORDER: RecordType[] = ["condition", "allergy", "medication", "history_note", "family_history"];

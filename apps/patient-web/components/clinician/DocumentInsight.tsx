@@ -5,7 +5,7 @@ import type { AIFactSummary, DocumentInsight as DocumentInsightData } from "@car
 import { Button, PageImage, ProvenanceBlock, ProvenanceChip, ReadingProvenance, cn } from "@carebridge/ui";
 import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
-import { FactList } from "@/components/AIInsight";
+import { FactList } from "@/components/clinician/AIInsight";
 
 /**
  * Machine reading of a shared document, shown beside the original file — never

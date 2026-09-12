@@ -2,10 +2,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import dummy_verify, hash_password, verify_password
+from app.db.base import utcnow
 from app.models import DoctorProfile, PatientProfile, User
-from app.models.enums import UserRole
+from app.models.enums import DoctorApproval, UserRole
 from app.schemas.auth import PatientRegisterRequest
-from app.schemas.doctor import DoctorCreate
+from app.schemas.doctor import DoctorApplication, DoctorCreate
 from app.services import audit
 from app.services.audit import RequestContext
 from app.services.errors import AuthenticationFailed, Conflict
@@ -65,13 +66,13 @@ def register_patient(db: Session, data: PatientRegisterRequest, ctx: RequestCont
     return user
 
 
-def create_doctor(db: Session, data: DoctorCreate, actor: User | None, ctx: RequestContext | None = None) -> DoctorProfile:
+def _new_doctor(db: Session, data: DoctorCreate | DoctorApplication, approval: DoctorApproval) -> DoctorProfile:
     _ensure_email_free(db, data.email)
     user = User(role=UserRole.DOCTOR, email=_normalise_email(data.email), password_hash=hash_password(data.password))
     db.add(user)
     db.flush()
     doctor = DoctorProfile(
-        user_id=user.id,
+        user=user,
         name=data.name,
         specialization=data.specialization,
         qualification=data.qualification,
@@ -79,10 +80,28 @@ def create_doctor(db: Session, data: DoctorCreate, actor: User | None, ctx: Requ
         clinic_name=data.clinic_name,
         clinic_address=data.clinic_address,
         phone=data.phone,
+        approval_status=approval,
+        reviewed_at=utcnow() if approval == DoctorApproval.APPROVED else None,
     )
     doctor.set_languages(data.languages)
     db.add(doctor)
     db.flush()
+    return doctor
+
+
+def create_doctor(db: Session, data: DoctorCreate, actor: User | None, ctx: RequestContext | None = None) -> DoctorProfile:
+    """Admin onboarding (and the seed). Approved at once: the admin is the check."""
+    doctor = _new_doctor(db, data, DoctorApproval.APPROVED)
     audit.record(db, actor=actor, action="doctor.created", resource_type="doctor", resource_id=doctor.id, ctx=ctx)
     db.commit()
     return doctor
+
+
+def apply_as_doctor(db: Session, data: DoctorApplication, ctx: RequestContext | None = None) -> User:
+    """Doctor self sign-up. The account can sign in but reaches no patient data until approved."""
+    doctor = _new_doctor(db, data, DoctorApproval.PENDING)
+    audit.record(
+        db, actor=doctor.user, action="doctor.applied", resource_type="doctor", resource_id=doctor.id, ctx=ctx
+    )
+    db.commit()
+    return doctor.user

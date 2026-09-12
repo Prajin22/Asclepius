@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithI18n } from "@/test/utils";
+import { renderClinician } from "@/test/utils";
 import { PrescriptionForm, validateItems } from "./PrescriptionForm";
 
 describe("validateItems", () => {
@@ -18,7 +18,7 @@ describe("validateItems", () => {
 describe("PrescriptionForm", () => {
   it("does not submit incomplete items", async () => {
     const onSubmit = vi.fn();
-    renderWithI18n(<PrescriptionForm onSubmit={onSubmit} />);
+    renderClinician(<PrescriptionForm onSubmit={onSubmit} />);
     await userEvent.click(screen.getByRole("button", { name: "Issue prescription" }));
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.getAllByText("Required")).toHaveLength(4);
@@ -26,7 +26,7 @@ describe("PrescriptionForm", () => {
 
   it("submits exactly what the doctor typed, for multiple medicines", async () => {
     const onSubmit = vi.fn(async () => {});
-    renderWithI18n(<PrescriptionForm onSubmit={onSubmit} />);
+    renderClinician(<PrescriptionForm onSubmit={onSubmit} />);
     const fill = async (index: number, values: string[]) => {
       const labels = ["Medication", "Dosage", "Frequency", "Duration"];
       for (const [i, label] of labels.entries()) {
@@ -50,7 +50,7 @@ describe("PrescriptionForm", () => {
   });
 
   it("can remove an added medicine", async () => {
-    renderWithI18n(<PrescriptionForm onSubmit={vi.fn()} />);
+    renderClinician(<PrescriptionForm onSubmit={vi.fn()} />);
     await userEvent.click(screen.getByRole("button", { name: "Add another medicine" }));
     expect(screen.getByText("Medicine 2")).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: "Remove" })[1]);

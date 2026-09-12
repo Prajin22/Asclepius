@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # documented comma-separated form works (pydantic-settings would otherwise
     # try to JSON-decode it and fail at startup).
     cors_origins: Annotated[list[str], NoDecode] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://localhost:3001"]
+        default_factory=lambda: ["http://localhost:3000"]
     )
 
     storage_provider: str = "local"

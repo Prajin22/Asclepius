@@ -78,6 +78,32 @@ describe("api client", () => {
     await expect(api.auth.login("a@b.c", "x")).rejects.toMatchObject({ status: 0, code: "network" });
   });
 
+  it("signs doctors up and sends reviews to the admin endpoints", async () => {
+    const fetchImpl = fakeFetch(200, {});
+    const api = createApiClient({ baseUrl: "http://api.test", getToken: () => "t", fetchImpl });
+    await api.auth.applyAsDoctor({
+      email: "d@example.com",
+      password: "password1",
+      name: "Dr. D",
+      specialization: "Pediatrics",
+      qualification: "MBBS",
+      registration_identifier: "R-1",
+      clinic_name: null,
+      clinic_address: null,
+      phone: null,
+      languages: ["en"],
+    });
+    await api.admin.doctors("pending");
+    await api.admin.rejectDoctor("d 1", "Not on the register");
+    const calls = fetchImpl.mock.calls as unknown as FetchCall[];
+    expect(calls.map(([url, init]) => `${init.method} ${url}`)).toEqual([
+      "POST http://api.test/api/v1/auth/register-doctor",
+      "GET http://api.test/api/v1/admin/doctors?status=pending",
+      "POST http://api.test/api/v1/admin/doctors/d%201/reject",
+    ]);
+    expect(JSON.parse(calls[2][1].body as string)).toEqual({ reason: "Not on the register" });
+  });
+
   it("uploads documents as multipart form data without a JSON content type", async () => {
     const fetchImpl = fakeFetch(201, { id: "d1" });
     const api = createApiClient({ baseUrl: "http://api.test", getToken: () => "t", fetchImpl });

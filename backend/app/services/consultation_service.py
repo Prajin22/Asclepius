@@ -102,7 +102,7 @@ def request_consultation(
     db: Session, patient: PatientProfile, actor: User, data: ConsultationRequestCreate, ctx: RequestContext | None = None
 ) -> Consultation:
     doctor = db.get(DoctorProfile, data.doctor_id)
-    if doctor is None:
+    if doctor is None or not doctor.is_approved:
         raise NotFound("Doctor not found")
     if not doctor.is_accepting_consultations:
         raise Conflict("This doctor is not accepting consultations", code="doctor_unavailable")

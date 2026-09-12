@@ -42,6 +42,13 @@ class AuthenticationFailed(DomainError):
     code = "authentication_failed"
 
 
+class DoctorNotApproved(DomainError):
+    """The doctor account exists but an admin has not approved it. It sees no patient data."""
+
+    status_code = 403
+    code = "doctor_not_approved"
+
+
 class AIConsentRequired(DomainError):
     """No AI processing happens until the patient has explicitly opted in."""
 
