@@ -39,6 +39,7 @@ def fact_summary(f) -> AIFactSummary:
         evidence_quote=f.evidence_quote,
         validation_status=f.validation_status,
         review_state=f.review_state,
+        evidence_document_id=f.evidence_document_id,
         evidence_page_number=f.evidence_page_number,
         evidence_bbox=f.evidence_bbox,
     )

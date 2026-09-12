@@ -132,7 +132,11 @@ def image_of_lines(lines: list[str], *, width: int = 1240, font_size: int = 36) 
 
 
 def scanned_pdf(pages: list[list[str]]) -> bytes:
-    """Image-only PDF: no text layer, so reading requires OCR."""
+    """Image-only PDF: no text layer, so reading requires OCR.
+
+    Pillow stamps a creation time into the file, so two calls do not return the
+    same bytes — keep the bytes you uploaded if you need to compare them.
+    """
     images = [image_of_lines(lines) for lines in pages]
     buffer = io.BytesIO()
     images[0].save(buffer, format="PDF", save_all=True, append_images=images[1:], resolution=150.0)

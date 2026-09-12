@@ -31,7 +31,7 @@ diagnosis category, and no capability to suggest, choose or alter treatment.
 | Read | a PDF text layer is copied exactly; a scan or photo is transcribed by OCR (local) or a vision model | not a reading of results — no value is marked normal, abnormal, high or low |
 | Label | every page shows how its text was obtained: *copied exactly* or *machine transcription, can misread*, with engine, OCR confidence and warnings | never presented as the document itself |
 | Extract | the Phase 2 extractor runs on each page's text, with every Phase 2 rule | no diagnosis, no treatment suggestion, no inference beyond the page |
-| Evidence | each fact quotes the page text, names its page, and — when the reader measured line positions — the region on the page | no region is guessed: vision transcriptions get a page number and no box |
+| Evidence | each fact quotes the page text; the application locates the quote and records its position, page, document and — when the reader measured line positions — the region on the page | no region is guessed: vision transcriptions get a page number and no box; model offsets are never used |
 | Review | the patient confirms, edits or rejects each item; rejected items never reach a doctor | nothing enters the health record unconfirmed |
 | Share | a doctor sees the original file first, then the reading beside it, collapsed by default | the reading never replaces the original |
 
@@ -130,14 +130,30 @@ appears, and always shown next to — never instead of — the original.
 
 ## Evidence grounding
 
-Every extracted fact must quote the source verbatim. The validator:
+Every extracted fact must quote the source verbatim. **The model supplies the
+quote; the application finds it and is the only authority on where it is**
+(D-049). The validator:
 
-* finds the quote in the source, tolerating whitespace, case, Unicode
-  normalisation form and zero-width characters;
-* verifies claimed character offsets when the provider supplies them;
-* rejects a quote that is not in the source (`unsupported` → not stored);
-* marks weak cases `needs_review` rather than accepting them;
-* requires an explicit statement before any "no allergies" claim.
+* looks for the quote in the source text — the patient's words, or the text read
+  from a document page — exactly, allowing only layout differences (runs of
+  whitespace, line breaks, zero-width marks);
+* stores the position it found and **ignores character offsets reported by the
+  provider**, however wrong (models quote reliably but count characters badly);
+  a note records when a provider's position was ignored;
+* holds a quote that matches only when letter case or Unicode character forms
+  are ignored as `needs_review` — "×109/L" is not "×10⁹/L";
+* rejects a quote it cannot find (`unsupported` → not stored), whatever position
+  the provider claims;
+* never rewrites a quote to make it match, and never treats a position alone as
+  evidence;
+* resolves a quote that appears more than once to its first occurrence, so the
+  result is deterministic;
+* marks low provider confidence `needs_review`, and requires an explicit
+  statement before any "no allergies" claim.
+
+Stored evidence: `evidence_quote` (as supplied), `evidence_start` /
+`evidence_end` (the validated position), and for documents
+`evidence_page_number`, `evidence_document_id` and `evidence_bbox`.
 
 Measured on the synthetic set, evidence validity is 1.0 and the
 unsupported-fact rate is 0.0 for the local provider — because unsupported
@@ -251,17 +267,18 @@ text pipeline, and one synthetic scanned page through the vision input.
 | provider · model | text pipeline | vision page | evidence | tokens in/out · estimated cost |
 |---|---|---|---|---|
 | OpenAI · `gpt-6-astra` | Tamil detected, English rendering, 3 facts | transcribed exactly (1.000) | every fact validated | text 1,303/545 · page 1,680/297 · cost unknown (model not in the price table) |
-| Anthropic · `claude-opus-5` | after the D-047 fix: Tamil detected, English rendering, 3 facts | transcribed exactly (1.000) | every quote verbatim, but the reported character offsets were 1–5 characters off, so every fact was marked `needs_review` | text 3,627/516 ≈ $0.031 · page 3,369/≈600 ≈ $0.032 |
+| Anthropic · `claude-opus-5` | after the D-047 fix: Tamil detected, English rendering, 3 facts | transcribed exactly (1.000) | every quote verbatim, but the reported character offsets were 1–5 characters off, so under the rule at the time every fact was `needs_review`; since D-049 these validate | text 3,627/516 ≈ $0.031 · page 3,369/≈600 ≈ $0.032 |
 
 What the runs showed:
 
 * OpenAI produced a loose duration value ("Headache and fever for 2 days")
   quoting the whole sentence — valid evidence, imprecise value — and its English
   rendering appended the source text in parentheses.
-* Anthropic's offset drift is caught by the Phase 2 rule that a mismatched
-  offset needs review (D-048). The item is stored, shown with *Needs review*, and
-  its page outline still lands on the right line, because outlines always use
-  the position the validator found, never the model's offsets.
+* Anthropic's offset drift made every fact `needs_review` under the original
+  rule (D-048). Since D-049 the application locates each quote itself and
+  ignores provider offsets, so those facts validate. The live run has not been
+  repeated; its exact quotes and drifted offsets are replayed as regression tests
+  (`tests/test_evidence_positions.py`).
 * One clean synthetic page per provider is a wiring check, not a vision
   evaluation.
 
@@ -301,6 +318,8 @@ What the runs showed:
   schema cannot express a treatment course.
 * Vision transcription has no line positions, so its evidence cannot be outlined
   on the page. Vision reading quality has not been evaluated on this dataset.
+* A quote that appears more than once on a page is located, and outlined, at its
+  first occurrence — even if the model meant a later one.
 * Only the first `DOCUMENT_PROCESSING_MAX_PAGES` (10) pages are read; the rest
   are reported as not read.
 

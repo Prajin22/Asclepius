@@ -1,9 +1,15 @@
 """Evidence validation — the safety gate between an AI claim and stored data.
 
-A fact is only as good as the quote backing it. This module checks that the
-quote really occurs in the original source, tolerating harmless differences
-(whitespace, case, Unicode normalisation form, zero-width marks) and nothing
-else. Anything unverifiable is marked, never silently accepted.
+A fact is only as good as the quote backing it. The provider supplies a
+verbatim quote; this module finds it in the authoritative source text and is the
+only authority on where it is (D-049). Character offsets reported by a provider
+are never used: models quote reliably but count characters badly.
+
+A quote is verbatim when it matches the source character for character, allowing
+only layout differences — runs of whitespace, line breaks, zero-width marks. A
+quote that matches only when letter case or Unicode character forms are ignored
+is kept for review. A quote that cannot be found is not evidence. The quote is
+never rewritten to make it match.
 """
 
 import re
@@ -38,24 +44,33 @@ def canonical(text: str) -> str:
     return _WS.sub(" ", text).strip().casefold()
 
 
+PROVIDER_POSITION_IGNORED = "provider position ignored; quote located by the application"
+NOT_VERBATIM = "quote matches the source only when letter case or character forms are ignored"
+
+
 @dataclass(frozen=True)
 class ValidationOutcome:
     status: FactValidation
     note: str | None = None
+    # Where the application found the quote in the source — never the provider's offsets.
     start: int | None = None
     end: int | None = None
 
 
-def _canonical_with_offsets(source: str) -> tuple[str, list[int]]:
-    """Canonical form of `source` plus, for each canonical character, its index
-    in the original string — so a match can be reported as original offsets."""
+def _comparable_with_offsets(source: str, *, fold: bool) -> tuple[str, list[int]]:
+    """Comparison form of `source` plus, for each character, its index in the
+    original string — so a match can be reported as original offsets.
+
+    Zero-width marks are dropped and whitespace runs collapse to one space.
+    With `fold`, letter case and Unicode compatibility forms are ignored too.
+    """
     buf: list[str] = []
     mapping: list[int] = []
     previous_space = True
     for index, ch in enumerate(source):
         if ord(ch) in _ZERO_WIDTH:
             continue
-        normalised = unicodedata.normalize("NFKC", ch)
+        normalised = unicodedata.normalize("NFKC", ch) if fold else ch
         if not normalised:
             continue
         if normalised.isspace():
@@ -66,7 +81,7 @@ def _canonical_with_offsets(source: str) -> tuple[str, list[int]]:
             previous_space = True
             continue
         previous_space = False
-        for piece in normalised.casefold():
+        for piece in normalised.casefold() if fold else normalised:
             buf.append(piece)
             mapping.append(index)
     while buf and buf[-1] == " ":
@@ -75,42 +90,42 @@ def _canonical_with_offsets(source: str) -> tuple[str, list[int]]:
     return "".join(buf), mapping
 
 
-def _locate(source: str, quote: str) -> tuple[int, int] | None:
-    """Find the quote in the source, first exactly then in canonical form."""
+def _locate(source: str, quote: str) -> tuple[int, int, bool] | None:
+    """Find the quote in the source: exactly, then allowing layout differences,
+    then ignoring case and character forms. Returns (start, end, verbatim).
+
+    The first occurrence wins, so the same input always yields the same position.
+    """
     if not quote:
         return None
     direct = source.find(quote)
     if direct >= 0:
-        return direct, direct + len(quote)
+        return direct, direct + len(quote), True
 
-    canon_quote = canonical(quote)
-    if not canon_quote:
-        return None
-    canon_source, mapping = _canonical_with_offsets(source)
-    pos = canon_source.find(canon_quote)
-    if pos < 0:
-        return None
-    start = mapping[pos]
-    end_index = min(pos + len(canon_quote) - 1, len(mapping) - 1)
-    return start, mapping[end_index] + 1
+    for fold in (False, True):
+        needle = canonical(quote) if fold else _comparable_with_offsets(quote, fold=False)[0]
+        if not needle:
+            continue
+        haystack, mapping = _comparable_with_offsets(source, fold=fold)
+        pos = haystack.find(needle)
+        if pos >= 0:
+            end_index = min(pos + len(needle) - 1, len(mapping) - 1)
+            return mapping[pos], mapping[end_index] + 1, not fold
+    return None
 
 
 def validate_fact(fact: ExtractedFact, source_text: str) -> ValidationOutcome:
     """Check one fact's evidence against the source it claims to come from."""
     quote = (fact.evidence.quote or "").strip()
     if not quote:
+        # A position without a quote is not evidence.
         return ValidationOutcome(FactValidation.UNSUPPORTED, "no evidence quote")
 
     location = _locate(source_text, quote)
     if location is None:
-        # The model produced a quote that is not in the source: reject it.
+        # The model produced a quote that is not in the source: reject it, whatever position it claims.
         return ValidationOutcome(FactValidation.UNSUPPORTED, "evidence not found in source")
-
-    start, end = location
-    if fact.evidence.start is not None and fact.evidence.end is not None:
-        claimed = source_text[fact.evidence.start : fact.evidence.end]
-        if canonical(claimed) != canonical(quote):
-            return ValidationOutcome(FactValidation.NEEDS_REVIEW, "evidence offsets do not match", start, end)
+    start, end, verbatim = location
 
     if fact.category == FactCategory.ALLERGY and _claims_absence(fact.value):
         if not any(cue in canonical(source_text) for cue in map(canonical, _EXPLICIT_ABSENCE_CUES)):
@@ -118,10 +133,15 @@ def validate_fact(fact: ExtractedFact, source_text: str) -> ValidationOutcome:
                 FactValidation.UNSUPPORTED, "absence of allergy not explicitly stated", start, end
             )
 
+    if not verbatim:
+        return ValidationOutcome(FactValidation.NEEDS_REVIEW, NOT_VERBATIM, start, end)
+
     if fact.confidence is not None and fact.confidence < 0.5:
         return ValidationOutcome(FactValidation.NEEDS_REVIEW, "low provider confidence", start, end)
 
-    return ValidationOutcome(FactValidation.VALIDATED, None, start, end)
+    claimed = (fact.evidence.start, fact.evidence.end)
+    note = PROVIDER_POSITION_IGNORED if claimed != (None, None) and claimed != (start, end) else None
+    return ValidationOutcome(FactValidation.VALIDATED, note, start, end)
 
 
 def _claims_absence(value: str) -> bool:

@@ -36,7 +36,8 @@ class AIConsentUpdate(BaseModel):
 class AIFactOut(ORMModel):
     id: uuid.UUID
     source_type: str = "medical_record"
-    #: Documents: the page the evidence is on and its region [x0, y0, x1, y1] as page fractions.
+    #: Documents: the document and page the evidence is on, and its region [x0, y0, x1, y1] as page fractions.
+    evidence_document_id: uuid.UUID | None = None
     evidence_page_number: int | None = None
     evidence_bbox: list[float] | None = None
     category: FactCategory
@@ -47,7 +48,8 @@ class AIFactOut(ORMModel):
     value: str
     effective_value: str
     original_text: str | None
-    evidence_quote: str
+    evidence_quote: str  # exactly as the provider supplied it
+    #: Where the application found the quote in the source (never the provider's offsets).
     evidence_start: int | None
     evidence_end: int | None
     confidence: float | None

@@ -414,7 +414,8 @@ export interface AIFact {
   medical_record_id: UUID | null;
   /** "medical_record" or "document_page". */
   source_type?: string;
-  /** Documents only: the page the evidence is on, and where on it. */
+  /** Documents only: the document and page the evidence is on, and where on it. */
+  evidence_document_id?: UUID | null;
   evidence_page_number?: number | null;
   evidence_bbox?: PageBBox | null;
 }
@@ -474,6 +475,7 @@ export interface AIFactSummary {
   evidence_quote: string;
   validation_status: FactValidation;
   review_state: FactReviewState;
+  evidence_document_id?: UUID | null;
   evidence_page_number?: number | null;
   evidence_bbox?: PageBBox | null;
 }

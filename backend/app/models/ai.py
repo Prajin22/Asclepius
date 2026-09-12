@@ -121,11 +121,13 @@ class AIExtractedFact(UUIDPrimaryKey, Base):
     subject_evidence: Mapped[str | None] = mapped_column(sa.String(200))
     value: Mapped[str] = mapped_column(sa.String(300), nullable=False)  # English, machine-produced
     original_text: Mapped[str | None] = mapped_column(sa.Text)  # the patient's own words
-    evidence_quote: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    evidence_quote: Mapped[str] = mapped_column(sa.Text, nullable=False)  # as the provider supplied it
+    # Where the application located the quote in the source (D-049) — never provider offsets.
     evidence_start: Mapped[int | None] = mapped_column(sa.Integer)
     evidence_end: Mapped[int | None] = mapped_column(sa.Integer)
-    # Documents: the page the evidence is on and where, as fractions of the page
-    # [x0, y0, x1, y1]. Frozen at extraction time so provenance cannot drift.
+    # Documents: the document and page the evidence is on and where, as fractions
+    # of the page [x0, y0, x1, y1]. Frozen at extraction time so provenance cannot drift.
+    evidence_document_id: Mapped[uuid.UUID | None] = mapped_column(sa.Uuid)
     evidence_page_number: Mapped[int | None] = mapped_column(sa.Integer)
     evidence_bbox: Mapped[list[float] | None] = mapped_column(JSONType)
     confidence: Mapped[float | None] = mapped_column(sa.Float)

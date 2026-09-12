@@ -474,8 +474,8 @@ def _store_facts(
             continue  # the AI cannot create evidence that is not in the source
         seen.add(key)
         position += 1
-        start = outcome.start if outcome.start is not None else fact.evidence.start
-        end = outcome.end if outcome.end is not None else fact.evidence.end
+        # The validator's located position is the only position (D-049); provider offsets are ignored.
+        start, end = outcome.start, outcome.end
         bbox = source.span_to_bbox(start, end) if source.span_to_bbox else None
         db.add(
             AIExtractedFact(
@@ -493,6 +493,7 @@ def _store_facts(
                 evidence_start=start,
                 evidence_end=end,
                 evidence_page_number=source.page_number,
+                evidence_document_id=source.document_id,
                 evidence_bbox=list(bbox) if bbox else None,
                 confidence=fact.confidence,
                 validation_status=outcome.status,

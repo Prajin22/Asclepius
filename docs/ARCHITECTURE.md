@@ -198,7 +198,9 @@ original record (source of truth, never modified)
    ai_artifacts (provenance: status, prompt version, latency, tokens, cost)
                                                     │
                                       evidence validation (services/evidence.py)
-                                        · quote must exist in the source
+                                        · quote must exist in the source (verbatim)
+                                        · position located by the application;
+                                          provider offsets ignored
                                         · unsupported → dropped
                                         · weak → needs_review
                                                     ▼
@@ -285,7 +287,7 @@ no positions, so those facts carry a page number and no box.
 |---|---|
 | `document_extractions` | one row per reading attempt: status (succeeded / partial / failed), error code, `source_sha256`, page count, pages processed, truncated, methods, engines, warnings, latency, requester |
 | `document_pages` | verbatim page text, `text_sha256`, method, engine, confidence, size, line blocks, warnings, detected language; unique on `(document_id, page_number, text_sha256)`; `superseded_at` |
-| `ai_extracted_facts.evidence_page_number` / `evidence_bbox` | which page, and where on it, a fact's evidence is |
+| `ai_extracted_facts.evidence_document_id` / `evidence_page_number` / `evidence_bbox` | which document and page a fact's evidence is on, and where (`evidence_start`/`evidence_end` are always the validator's located position) |
 | `ai_artifacts` (`document_transcription`) | vision transcriptions, with prompt version, tokens and cost |
 
 **Endpoints**: `POST /patients/me/documents/{id}/process` ·

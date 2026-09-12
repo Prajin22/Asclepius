@@ -41,10 +41,12 @@ def test_empty_evidence_is_unsupported():
     assert validate_fact(fact(""), SOURCE).status == FactValidation.UNSUPPORTED
 
 
-def test_wrong_offsets_need_review():
+def test_wrong_offsets_are_ignored_in_favour_of_the_located_quote():
+    """Changed deliberately (D-049): the application, not the model, locates evidence."""
     outcome = validate_fact(fact("headache", start=0, end=4), SOURCE)
-    assert outcome.status == FactValidation.NEEDS_REVIEW
-    assert "offset" in outcome.note
+    assert outcome.status == FactValidation.VALIDATED
+    assert SOURCE[outcome.start : outcome.end] == "headache"
+    assert "position ignored" in outcome.note
 
 
 def test_low_confidence_needs_review():

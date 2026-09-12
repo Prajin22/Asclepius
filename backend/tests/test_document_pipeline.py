@@ -322,7 +322,10 @@ def test_vision_failure_degrades_to_the_original_document(client, db, consented_
     class _Broken(MockAIProvider):
         supports_vision = True  # claims vision but the call fails
 
-    scanned = _upload(client, consented_patient, sd.scanned_pdf(sd.SCANNED_LAB), name="scan.pdf")
+    # Keep the uploaded bytes: an image-only PDF carries a creation timestamp, so
+    # regenerating it does not produce the same file.
+    data = sd.scanned_pdf(sd.SCANNED_LAB)
+    scanned = _upload(client, consented_patient, data, name="scan.pdf")
     outcome = run_async(
         document_pipeline.process_document(db, *_service_objects(db, consented_patient, scanned["id"]), provider=_Broken())
     )
@@ -330,7 +333,7 @@ def test_vision_failure_degrades_to_the_original_document(client, db, consented_
     assert any(w.startswith("vision_failed:") for w in outcome.pages[0].page.warnings)
     assert outcome.pages[0].ai.facts == []
     file = client.get(f"{API}/patients/me/documents/{scanned['id']}/file", headers=consented_patient.h)
-    assert file.status_code == 200 and file.content == sd.scanned_pdf(sd.SCANNED_LAB)
+    assert file.status_code == 200 and file.content == data
 
 
 def test_demo_mode_never_sends_a_page_image_anywhere():
@@ -402,3 +405,25 @@ def test_doctor_sees_original_reading_and_evidence_for_shared_documents_only(cli
     assert client.get(f"{base}/{shared['id']}/pages/1/image", headers=case.doctor.h).status_code == 200
     assert client.get(f"{base}/{private['id']}/pages/1/image", headers=case.doctor.h).status_code == 404
     assert db.scalar(select(AuditEvent).where(AuditEvent.action == "document.page_viewed_by_doctor")) is not None
+
+
+# ---------- evidence positions: the application locates the quote (D-049) ----------
+
+
+@pytest.mark.parametrize("shift", [1, 5, None], ids=["off-by-1", "off-by-5", "completely-wrong"])
+def test_document_evidence_uses_the_application_position_page_and_document(client, consented_patient, monkeypatch, shift):
+    from tests.test_evidence_positions import DriftingProvider
+
+    monkeypatch.setattr("app.services.document_pipeline.get_ai_provider", lambda: DriftingProvider(shift))
+    doc, body = _processed(client, consented_patient, sd.text_pdf(sd.DISCHARGE_SUMMARY), document_type="discharge_summary")
+    page = body["pages"][0]
+
+    assert len(page["facts"]) == 4
+    for stored in page["facts"]:
+        assert stored["validation_status"] == "validated"
+        assert page["text"][stored["evidence_start"] : stored["evidence_end"]] == stored["evidence_quote"]
+        # The outline sits on the quote's own line, not where the drifted offsets point.
+        line = next(b for b in page["blocks"] if stored["evidence_quote"] in b["text"])
+        assert stored["evidence_bbox"] == line["bbox"]
+        assert stored["evidence_page_number"] == 1
+        assert stored["evidence_document_id"] == doc["id"]

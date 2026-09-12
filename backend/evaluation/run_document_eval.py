@@ -123,8 +123,7 @@ async def run_document(provider: AIProvider, spec: dict[str, Any], reader: str) 
 
 def _score_fact(fact, page: PageText, truth_pages: list[list[str]]) -> dict[str, Any]:
     outcome = validate_fact(fact, page.text)
-    start = outcome.start if outcome.start is not None else fact.evidence.start
-    end = outcome.end if outcome.end is not None else fact.evidence.end
+    start, end = outcome.start, outcome.end  # the application's position, never the provider's
     quote = squash(fact.evidence.quote)
     stated_on = [i + 1 for i, lines in enumerate(truth_pages) if quote and quote in squash(" ".join(lines))]
     bbox = page.bbox_for_span(start, end)

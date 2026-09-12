@@ -349,7 +349,7 @@ structured `ai_malformed_output`, not an unhandled error. Stub transports and
 the emulator could not reveal this; only a live call did (see D-032). This is a
 fix to a Phase 2 adapter, made in Phase 3 because Phase 3 exposed it.
 
-## D-048 — Offset drift from a live model stays `needs_review` (open question)
+## D-048 — Offset drift from a live model stays `needs_review` (superseded by D-049)
 
 The first live runs (Phase 3) superseded D-032's emulator-only status. Anthropic
 quoted evidence verbatim with high confidence, but its character offsets were
@@ -360,6 +360,39 @@ validator locates. Options for review: (a) accept a verbatim quote and replace
 the model's offsets with the located span, keeping `needs_review` for
 non-verbatim matches; (b) instruct models to return null offsets (prompt version
 bump); (c) keep the current rule.
+
+## D-049 — The application, not the model, locates evidence
+
+Resolves D-048 with option (a), as a deliberate change to Phase 2 behaviour.
+The provider supplies a verbatim quote; the validator finds it in the
+authoritative source text (the patient's record, or the text read from a
+document page) and stores **that** position. Character offsets reported by the
+provider are never used, so offset drift no longer causes `needs_review`, and a
+wrong offset can never move a stored position or a page outline.
+
+* **Verbatim** means character for character, allowing only layout
+  differences: whitespace runs, line breaks and zero-width marks.
+* A quote that matches only when letter case or Unicode character forms are
+  ignored is `needs_review` (previously `validated`): "×109/L" is not "×10⁹/L".
+* A quote that cannot be found is `unsupported` and dropped, whatever position
+  was claimed. The quote is never rewritten, and a position alone is never
+  evidence.
+* A quote that appears more than once resolves to its first occurrence — the
+  existing deterministic behaviour; no provider hint is used to disambiguate.
+* An unstated "no allergies" claim is rejected before any other check
+  (previously a mismatched offset could turn it into `needs_review`).
+* A validated fact whose provider offsets disagreed carries the note
+  "provider position ignored; quote located by the application", so offset
+  drift stays measurable.
+* Stored evidence names its quote (as supplied), validated start/end
+  (`evidence_start`/`evidence_end`), page (`evidence_page_number`) and document
+  (`evidence_document_id`, new; migration `0005`).
+
+No prompt or schema change is needed: models may still return offsets, and
+every run — including a cache hit — is validated under the new rule. Facts
+already stored keep their status until their source is processed again. The
+Phase 2 test asserting that wrong offsets need review now asserts they are
+ignored.
 
 ## D-018 — Doctor UI is English-only in Phase 1
 

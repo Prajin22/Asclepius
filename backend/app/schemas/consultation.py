@@ -174,6 +174,7 @@ class AIFactSummary(BaseModel):
     evidence_quote: str
     validation_status: str
     review_state: str
+    evidence_document_id: uuid.UUID | None = None
     evidence_page_number: int | None = None
     evidence_bbox: list[float] | None = None
 
