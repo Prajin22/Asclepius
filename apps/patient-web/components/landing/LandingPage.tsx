@@ -24,24 +24,44 @@ function useReveal() {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Strict Mode mounts effects twice, and the cleanup runs before this dynamic
+    // import resolves — so a late arrival must not build a second set of tweens
+    // on top of the first. Two overlapping `from` tweens would capture the
+    // already-hidden state as the end state and leave the page blank.
+    let cancelled = false;
     let context: { revert: () => void } | undefined;
     void (async () => {
-      const { gsap } = await import("gsap");
-      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+      if (cancelled) return;
       gsap.registerPlugin(ScrollTrigger);
       context = gsap.context(() => {
         gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
-          gsap.from(element, {
-            opacity: 0,
-            y: 20,
-            duration: 0.65,
-            ease: "power2.out",
-            scrollTrigger: { trigger: element, start: "top 88%", once: true },
-          });
+          // fromTo, not from: the visible end state is stated outright, so it can
+          // never be inferred from whatever the element happens to look like now.
+          gsap.fromTo(
+            element,
+            { opacity: 0, y: 20 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.65,
+              ease: "power2.out",
+              overwrite: "auto",
+              scrollTrigger: { trigger: element, start: "top 88%", once: true },
+            },
+          );
         });
       }, root);
+      // Webfonts swap in after the triggers are measured and shift everything
+      // down; re-measure once they have settled.
+      void document.fonts?.ready.then(() => {
+        if (!cancelled) ScrollTrigger.refresh();
+      });
     })();
-    return () => context?.revert();
+    return () => {
+      cancelled = true;
+      context?.revert();
+    };
   }, []);
   return root;
 }
