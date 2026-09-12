@@ -7,6 +7,8 @@ const config: NextConfig = {
   agentRules: false, // don't generate AGENTS.md / CLAUDE.md in the app folder
   transpilePackages: ["@carebridge/ui", "@carebridge/i18n", "@carebridge/api-client", "@carebridge/shared-types"],
   turbopack: { root: path.resolve(process.cwd(), "../..") },
+  // The workspace packages live above this app; hosted builds must trace them too.
+  outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   async headers() {
     return [
       {

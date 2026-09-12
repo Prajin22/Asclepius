@@ -1,0 +1,66 @@
+# Asclepius — Render blueprint: the API and its PostgreSQL database.
+#
+# Deploy: Render Dashboard → New → Blueprint → select this repository.
+# Then set CORS_ORIGINS to your Vercel URLs (see docs/DEPLOYMENT.md).
+#
+# This is a synthetic-data demo. DEMO_MODE keeps every AI step on the server
+# itself, so no provider key is needed — and none is exposed to public traffic.
+
+databases:
+  - name: asclepius-db
+    databaseName: asclepius
+    user: asclepius
+    region: singapore
+    # Free databases are deleted 30 days after creation — see docs/DEPLOYMENT.md.
+    plan: free
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: asclepius-api
+    runtime: python
+    region: singapore
+    # Free instances sleep after 15 minutes idle and lose uploaded files when they
+    # restart. For a judged demo, use `starter` and the disk block at the bottom.
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Migrations first, then seed (a no-op once data exists), then serve.
+    startCommand: alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: asclepius-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      # Set after the frontends deploy: the two Vercel URLs, comma separated.
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DEMO_MODE
+        value: "true"
+      - key: AI_PROVIDER
+        value: mock
+      # Offline OCR loads ~400 MB of models. If the service restarts while reading
+      # a scanned page on the free instance, set this to `none` (text-layer PDFs
+      # still read) or move to a paid instance.
+      - key: OCR_ENGINE
+        value: local
+      - key: STORAGE_PROVIDER
+        value: local
+      # /tmp is writable but ephemeral. With a disk, point this at /var/data/storage.
+      - key: STORAGE_LOCAL_ROOT
+        value: /tmp/asclepius-storage
+      - key: MAX_UPLOAD_BYTES
+        value: "10485760"
+    # Uploads survive restarts only with a disk, which needs a paid instance type:
+    # plan: starter
+    # disk:
+    #   name: asclepius-storage
+    #   mountPath: /var/data
+    #   sizeGB: 1

@@ -88,6 +88,19 @@ class Settings(BaseSettings):
     ai_price_input_per_mtok: float | None = None
     ai_price_output_per_mtok: float | None = None
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _psycopg_driver(cls, v: object) -> object:
+        """Managed hosts hand out `postgres://` URLs; this project uses psycopg 3.
+
+        Without this, SQLAlchemy would look for psycopg2, which is not installed.
+        """
+        if isinstance(v, str):
+            for prefix in ("postgres://", "postgresql://"):
+                if v.startswith(prefix):
+                    return "postgresql+psycopg://" + v[len(prefix) :]
+        return v
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:

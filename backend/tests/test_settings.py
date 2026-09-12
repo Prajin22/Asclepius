@@ -8,9 +8,10 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _file_values_win(monkeypatch):
-    # conftest pins CORS_ORIGINS in the process environment, which would
-    # otherwise take precedence over the file under test.
-    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+    # conftest pins these in the process environment, which would otherwise take
+    # precedence over the file under test.
+    for name in ("CORS_ORIGINS", "DATABASE_URL"):
+        monkeypatch.delenv(name, raising=False)
 
 
 def test_env_example_loads():
@@ -30,6 +31,26 @@ def test_json_list_origins(tmp_path):
     env = tmp_path / ".env"
     env.write_text('CORS_ORIGINS=["http://a.test"]\n', encoding="utf-8")
     assert Settings(_env_file=env).cors_origins == ["http://a.test"]
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        "postgres://user:pw@host.render.com:5432/asclepius",
+        "postgresql://user:pw@host.render.com:5432/asclepius",
+    ],
+)
+def test_managed_database_urls_get_the_psycopg_driver(tmp_path, given):
+    """Render and similar hosts hand out postgres:// URLs; psycopg2 is not installed."""
+    env = tmp_path / ".env"
+    env.write_text(f"DATABASE_URL={given}\n", encoding="utf-8")
+    assert Settings(_env_file=env).database_url.startswith("postgresql+psycopg://")
+
+
+def test_an_explicit_driver_is_left_alone(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text("DATABASE_URL=postgresql+psycopg://u:p@localhost:5432/db\n", encoding="utf-8")
+    assert Settings(_env_file=env).database_url == "postgresql+psycopg://u:p@localhost:5432/db"
 
 
 def test_blank_values_mean_not_configured(tmp_path):

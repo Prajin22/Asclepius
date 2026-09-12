@@ -225,9 +225,29 @@ npm test
 npm run typecheck
 ```
 
+## Deploy
+
+Two Next.js apps on Vercel, the API and its database on Render. The repository
+carries [`render.yaml`](render.yaml), so Render creates both from a blueprint.
+
+1. **Render** → New → Blueprint → this repository. Creates `asclepius-api` and
+   its PostgreSQL database, runs migrations and seeds the demo data.
+2. **Vercel** → two projects from the same repository, root directories
+   `apps/patient-web` and `apps/doctor-web`, each with
+   `NEXT_PUBLIC_API_BASE_URL` set to the Render URL.
+3. **Render** → set `CORS_ORIGINS` to the two Vercel URLs and redeploy.
+
+The deployed demo keeps `DEMO_MODE=true`, so no AI provider key is involved and
+nothing leaves the server. The walkthrough, including the free-plan caveats
+(instances that sleep, a database that expires after 30 days, ephemeral uploads,
+OCR memory) and how to avoid them, is in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Documentation
 
 * [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — structure, domain model, API surface, providers
+* [docs/DESIGN.md](docs/DESIGN.md) — design system: provenance rules, tokens, components, motion and 3D limits
+* [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — deploying to Vercel and Render
 * [docs/AI_POLICY.md](docs/AI_POLICY.md) — what the AI may and may not do
 * [docs/SECURITY.md](docs/SECURITY.md) — controls and known limitations
 * [docs/DECISIONS.md](docs/DECISIONS.md) — decision log
