@@ -84,10 +84,14 @@ Notes:
 
 - If you created a second project for `apps/doctor-web` earlier, delete it. That
   directory no longer exists, so its builds fail.
-- Leave the build and install commands on their defaults. Vercel detects the npm
-  workspace and installs from the repository root, which is what the shared
-  `packages/*` need. "Include source files outside of the Root Directory" must
-  stay enabled.
+- [`apps/patient-web/vercel.json`](../apps/patient-web/vercel.json) sets the
+  install command to `cd ../.. && npm install`, so dependencies install from the
+  repository root, as they do locally. Vercel's default runs `npm install` inside
+  the Root Directory, which installs only the app's own dependencies and leaves
+  out TypeScript and the type packages the build checks with ("It looks like
+  you're trying to use TypeScript but do not have the required package(s)
+  installed"). Leave the dashboard's Install Command empty; the file overrides it
+  anyway. "Include source files outside of the Root Directory" must stay enabled.
 - `NEXT_PUBLIC_API_BASE_URL` is read at **build** time, so set it before the
   first build. Changing it later requires a redeploy.
 - The build downloads Geist and Noto fonts from Google Fonts, so the build

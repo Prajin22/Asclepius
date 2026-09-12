@@ -258,6 +258,7 @@ carries [`render.yaml`](render.yaml), so Render creates both from a blueprint.
    its PostgreSQL database, runs migrations and seeds the demo data.
 2. **Vercel** → one project from the repository, root directory
    `apps/patient-web`, with `NEXT_PUBLIC_API_BASE_URL` set to the Render URL.
+   Its `vercel.json` installs dependencies from the repository root; keep it.
 3. **Render** → set `CORS_ORIGINS` to the Vercel URL and redeploy.
 
 The deployed demo keeps `DEMO_MODE=true`, so no AI provider key is involved and
