@@ -5,18 +5,21 @@ import { errorMessage, useI18n } from "@carebridge/i18n";
 import type { CaseView } from "@carebridge/shared-types";
 import {
   Alert,
+  Avatar,
   Badge,
   Button,
   Card,
   CardHeader,
   ErrorState,
   Field,
-  LoadingState,
   MessageThread,
   PrescriptionCard,
+  ProvenanceChip,
+  SkeletonCard,
   StatusBadge,
   TextArea,
 } from "@carebridge/ui";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -50,13 +53,14 @@ function AssessmentEditor({ view, onSave }: { view: CaseView; onSave: (text: str
         }
       }}
     >
-      <Field label={t("case.assessment")} hint={t("case.assessmentHint")}>
+      <Field label={t("case.assessment")} hint={t("case.assessmentHint")} className="[&>label]:sr-only">
         {(p) => (
           <TextArea
             {...p}
-            rows={5}
+            rows={6}
             maxLength={10000}
             value={text}
+            placeholder={t("case.assessmentHint")}
             onChange={(e) => {
               setSaved(false);
               setText(e.target.value);
@@ -67,7 +71,7 @@ function AssessmentEditor({ view, onSave }: { view: CaseView; onSave: (text: str
       {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
       {saved ? <Alert tone="success">{t("case.notesSaved")}</Alert> : null}
       <div>
-        <Button type="submit" variant="secondary" disabled={busy}>
+        <Button type="submit" variant="secondary" loading={busy}>
           {busy ? t("actions.saving") : t("case.saveNotes")}
         </Button>
       </div>
@@ -93,20 +97,21 @@ export default function CasePage() {
   const [reason, setReason] = useState("");
 
   const back = (
-    <Link href="/" className="font-medium text-brand hover:underline">
-      ← {t("case.back")}
+    <Link href="/" className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+      <ArrowLeft size={16} aria-hidden />
+      {t("case.back")}
     </Link>
   );
 
   if (q.error && !q.data) {
     return (
       <>
-        {back}
+        <div className="mb-4">{back}</div>
         <ErrorState error={q.error} onRetry={q.reload} />
       </>
     );
   }
-  if (!q.data) return <LoadingState />;
+  if (!q.data) return <SkeletonCard />;
   const v = q.data;
 
   async function run(action: () => Promise<void>) {
@@ -136,33 +141,25 @@ export default function CasePage() {
     <>
       <div className="mb-4">{back}</div>
 
-      <section aria-label={v.patient.display_name} className="rounded-xl border border-line bg-surface p-5">
+      {/* Who this is, what they shared, and what the doctor can do next. */}
+      <section aria-label={v.patient.display_name} className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight">{v.patient.display_name}</h1>
-            <p className="mt-1 text-muted">{patientMeta(v.patient, t)}</p>
-            <p className="mt-1 flex flex-wrap gap-x-4 text-sm text-muted">
-              <span>{t("case.requestedOn", { date: formatDateTime(v.created_at) })}</span>
-              {v.started_at ? <span>{t("case.startedOn", { date: formatDateTime(v.started_at) })}</span> : null}
-              {v.completed_at ? <span>{t("case.completedOn", { date: formatDateTime(v.completed_at) })}</span> : null}
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-muted">{t("case.sharedScope")}:</span>
-              {v.shared_categories.length === 0 ? (
-                <Badge>{t("case.identityOnly")}</Badge>
-              ) : (
-                v.shared_categories.map((c) => (
-                  <Badge key={c} tone="brand">
-                    {t(`case.categories.${c}`)}
-                  </Badge>
-                ))
-              )}
+          <div className="flex min-w-0 gap-4">
+            <Avatar name={v.patient.display_name} size="lg" />
+            <div className="min-w-0">
+              <h1 className="text-heading tracking-tight text-ink">{v.patient.display_name}</h1>
+              <p className="mt-0.5 text-muted">{patientMeta(v.patient, t)}</p>
+              <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-small text-muted">
+                <span>{t("case.requestedOn", { date: formatDateTime(v.created_at) })}</span>
+                {v.started_at ? <span>{t("case.startedOn", { date: formatDateTime(v.started_at) })}</span> : null}
+                {v.completed_at ? <span>{t("case.completedOn", { date: formatDateTime(v.completed_at) })}</span> : null}
+              </p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-col items-start gap-3 sm:items-end">
             <StatusBadge status={v.status} />
             {v.status === "requested" ? (
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={accept} disabled={busy}>
                   {t("case.accept")}
                 </Button>
@@ -178,9 +175,23 @@ export default function CasePage() {
             ) : null}
           </div>
         </div>
-        {v.status === "requested" ? <p className="mt-3 text-sm text-muted">{t("case.reviewBeforeAccept")}</p> : null}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+          <span className="text-label uppercase text-subtle">{t("case.sharedScope")}</span>
+          {v.shared_categories.length === 0 ? (
+            <Badge>{t("case.identityOnly")}</Badge>
+          ) : (
+            v.shared_categories.map((c) => (
+              <Badge key={c} tone="brand">
+                {t(`case.categories.${c}`)}
+              </Badge>
+            ))
+          )}
+        </div>
+
+        {v.status === "requested" ? <p className="mt-3 text-small text-muted">{t("case.reviewBeforeAccept")}</p> : null}
         {declining ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-danger/30 bg-danger-soft/50 p-4">
+          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-danger/30 bg-danger-soft/60 p-4">
             <Field label={t("case.declineReason")}>
               {(p) => <TextArea {...p} rows={2} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />}
             </Field>
@@ -198,19 +209,25 @@ export default function CasePage() {
         ) : null}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+        {/* What the patient shared. */}
         <SharedClinicalInfo
           view={v}
           loadDocument={(docId) => api.doctor.documentFile(v.id, docId)}
           loadPage={(docId, page) => api.doctor.documentPageImage(v.id, docId, page)}
         />
 
+        {/* The doctor's own work, ruled in ink so it is never mistaken for machine output. */}
         <div className="flex min-w-0 flex-col gap-5">
           {v.status === "requested" ? <Alert tone="warning">{t("case.acceptFirst")}</Alert> : null}
           {v.status === "completed" ? <Alert tone="info">{t("case.readOnly")}</Alert> : null}
 
-          <Card>
-            <CardHeader title={t("case.assessment")} />
+          <Card className="border-l-[3px] border-l-ink" aria-labelledby="assessment-heading">
+            <CardHeader
+              id="assessment-heading"
+              title={t("case.assessment")}
+              action={<ProvenanceChip kind="doctor" />}
+            />
             {canWork ? (
               <AssessmentEditor
                 view={v}
@@ -226,19 +243,26 @@ export default function CasePage() {
           </Card>
 
           <section aria-labelledby="rx-heading" className="flex flex-col gap-3">
-            <h2 id="rx-heading" className="text-lg font-semibold">
+            <h2 id="rx-heading" className="text-subheading text-ink">
               {t("case.prescriptions")}
             </h2>
             {v.prescriptions.length === 0 ? (
-              <p className="rounded-xl border border-line bg-surface p-4 text-muted">{t("case.noPrescriptions")}</p>
+              <p className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-small text-muted">
+                {t("case.noPrescriptions")}
+              </p>
             ) : (
               v.prescriptions.map((rx) => <PrescriptionCard key={rx.id} prescription={rx} />)
             )}
           </section>
 
           {v.status === "active" ? (
-            <Card>
-              <CardHeader title={t("case.newPrescription")} />
+            <Card className="border-l-[3px] border-l-ink" aria-labelledby="new-rx-heading">
+              <CardHeader
+                id="new-rx-heading"
+                title={t("case.newPrescription")}
+                description={t("case.authorNotice")}
+                action={<ProvenanceChip kind="doctor" />}
+              />
               <PrescriptionForm
                 onSubmit={async (data) => {
                   await api.doctor.createPrescription(v.id, data);
@@ -248,8 +272,8 @@ export default function CasePage() {
             </Card>
           ) : null}
 
-          <Card>
-            <CardHeader title={t("messages.title")} />
+          <Card aria-labelledby="messages-heading">
+            <CardHeader id="messages-heading" title={t("messages.title")} />
             <MessageThread
               messages={messages.data ?? v.messages}
               viewerRole="doctor"

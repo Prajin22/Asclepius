@@ -1,59 +1,166 @@
 /*
- * CareBridge design tokens (Tailwind v4 @theme).
- * Calm clinical palette: deep teal brand, warm off-white canvas, ink text.
- * Status and source colours are paired (text on soft background) and meet
- * WCAG AA contrast for normal text.
+ * Asclepius design tokens (Tailwind v4 @theme).
+ *
+ * The palette carries meaning, not decoration:
+ *   jade    — human action: the patient's decisions, the doctor's authorship, primary actions
+ *   paper   — anything original: the patient's own words, the uploaded document
+ *   steel   — anything a machine produced: read text, extracted items, transcriptions
+ *   ink     — structure and reading text
+ * Status colours are always paired with an icon and a label; colour never carries
+ * a state on its own. Every text/background pair below meets WCAG AA.
  */
 @theme {
-  --font-sans: "Segoe UI", "Nirmala UI", "Noto Sans", "Noto Sans Tamil", "Noto Sans Devanagari", system-ui,
-    -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* ---------- type ---------- */
+  /* Latin from Geist, Tamil and Devanagari from Noto so Indic scripts are
+     first-class rather than a system fallback. Set by next/font in each app. */
+  --font-sans: var(--font-geist), var(--font-noto-tamil), var(--font-noto-devanagari), "Nirmala UI", "Segoe UI",
+    system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
 
-  --color-ink: #14232e;
-  --color-muted: #4f5f6c;
-  --color-subtle: #6f7d88;
-  --color-line: #d8e0e5;
-  --color-line-strong: #b4c2cb;
-  --color-canvas: #f4f6f4;
+  --text-display: clamp(2.75rem, 1.9rem + 3.4vw, 4.75rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 600;
+
+  --text-title: clamp(2rem, 1.5rem + 1.9vw, 3rem);
+  --text-title--line-height: 1.08;
+  --text-title--letter-spacing: -0.028em;
+  --text-title--font-weight: 600;
+
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.02em;
+  --text-heading--font-weight: 600;
+
+  --text-subheading: 1.125rem;
+  --text-subheading--line-height: 1.35;
+  --text-subheading--letter-spacing: -0.011em;
+  --text-subheading--font-weight: 600;
+
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.6;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.5;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.45;
+
+  /* Section labels: small, uppercase, wide. Used sparingly. */
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.09em;
+  --text-label--font-weight: 600;
+
+  /* Measured values — lab results, dosages, page numbers. */
+  --text-value: 1.375rem;
+  --text-value--line-height: 1.15;
+  --text-value--letter-spacing: -0.02em;
+  --text-value--font-weight: 500;
+
+  /* ---------- colour ---------- */
+  --color-ink: #0b1a22;
+  --color-muted: #51626d;
+  --color-subtle: #6b7a84;
+  --color-line: #e2e8ea;
+  --color-line-strong: #c6d1d5;
+  --color-canvas: #f5f8f7;
   --color-surface: #ffffff;
-  --color-sunken: #eef2f1;
+  --color-sunken: #edf2f1;
 
-  --color-brand: #0e5a61;
-  --color-brand-strong: #0a444a;
-  --color-brand-soft: #e1eeed;
-  --color-focus: #1a7d87;
+  /* Jade — the product's one accent. Human action and identity. */
+  --color-brand: #0a5c52;
+  --color-brand-strong: #074a42;
+  --color-brand-soft: #e0efea;
+  --color-brand-tint: #f1f8f5;
+  --color-focus: #0e8874;
 
-  --color-info: #1f4f86;
-  --color-info-soft: #e6eef8;
-  --color-success: #1c6737;
-  --color-success-soft: #e2f2e7;
-  --color-warning: #7f4f00;
-  --color-warning-soft: #fbefd5;
-  --color-danger: #972828;
-  --color-danger-soft: #fae6e6;
-  --color-ai: #5a3a8a;
-  --color-ai-soft: #efe8f9;
+  /* Paper — original material: the patient's words, the uploaded file. */
+  --color-paper: #fbf9f4;
+  --color-paper-line: #e7e0d2;
+  --color-paper-ink: #3b3327;
+
+  /* Steel — machine output. Deliberately the quietest layer on screen. */
+  --color-ai: #47606e;
+  --color-ai-strong: #334956;
+  --color-ai-soft: #eef2f5;
+  --color-ai-line: #c9d6de;
+
+  --color-info: #1c5a87;
+  --color-info-soft: #e6eff6;
+  --color-success: #16683e;
+  --color-success-soft: #e3f1e8;
+  --color-warning: #8a5200;
+  --color-warning-soft: #fbefd8;
+  --color-danger: #a22222;
+  --color-danger-soft: #fbe8e8;
+
+  /* ---------- shape ---------- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  /* ---------- elevation (tinted with ink, never pure black) ---------- */
+  --shadow-xs: 0 1px 2px rgba(11, 26, 34, 0.05);
+  --shadow-sm: 0 1px 3px rgba(11, 26, 34, 0.06), 0 1px 2px rgba(11, 26, 34, 0.04);
+  --shadow-md: 0 6px 16px -6px rgba(11, 26, 34, 0.12), 0 2px 6px -2px rgba(11, 26, 34, 0.06);
+  --shadow-lg: 0 20px 44px -20px rgba(11, 26, 34, 0.22), 0 6px 14px -8px rgba(11, 26, 34, 0.1);
+  --shadow-ring: 0 0 0 1px rgba(11, 26, 34, 0.06);
+
+  /* ---------- motion ---------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
+  --duration-slow: 420ms;
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    line-height: 1.55;
+    font-size: var(--text-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-brand-soft);
+    color: var(--color-brand-strong);
+  }
+  ::placeholder {
+    color: var(--color-subtle);
   }
   :focus-visible {
-    outline: 3px solid var(--color-focus);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  /* Numbers that are compared down a column should line up. */
+  .tabular,
+  [data-value] {
+    font-variant-numeric: tabular-nums;
   }
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
     }
   }
 }

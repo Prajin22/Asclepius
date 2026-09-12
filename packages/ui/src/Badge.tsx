@@ -2,8 +2,10 @@
 
 import { useT } from "@carebridge/i18n";
 import { languageInfo, type ConsultationStatus, type LanguageCode, type RecordSource } from "@carebridge/shared-types";
+import { CalendarCheck, CheckCircle, Clock, Prohibit, Pulse } from "@phosphor-icons/react/dist/ssr";
 import type { ReactNode } from "react";
 import { cn } from "./cn";
+import { ProvenanceChip, type ProvenanceKind } from "./Provenance";
 
 export type Tone = "neutral" | "brand" | "info" | "success" | "warning" | "danger" | "ai";
 
@@ -39,44 +41,35 @@ const statusTone: Record<ConsultationStatus, Tone> = {
   cancelled: "danger",
 };
 
+const statusIcon: Record<ConsultationStatus, typeof Clock> = {
+  requested: Clock,
+  accepted: CalendarCheck,
+  active: Pulse,
+  completed: CheckCircle,
+  cancelled: Prohibit,
+};
+
 export function StatusBadge({ status }: { status: ConsultationStatus }) {
   const t = useT();
-  return <Badge tone={statusTone[status]}>{t(`status.${status}`)}</Badge>;
-}
-
-const sourceTone: Record<RecordSource, Tone> = { patient: "info", ai_extracted: "ai", doctor: "brand" };
-
-function SourceIcon({ source }: { source: RecordSource }) {
-  const common = { width: 12, height: 12, viewBox: "0 0 12 12", "aria-hidden": true, focusable: false } as const;
-  if (source === "doctor")
-    return (
-      <svg {...common}>
-        <path d="M4.5 1h3v3.5H11v3H7.5V11h-3V7.5H1v-3h3.5z" fill="currentColor" />
-      </svg>
-    );
-  if (source === "ai_extracted")
-    return (
-      <svg {...common}>
-        <path d="M6 0.8 7.4 4.6 11.2 6 7.4 7.4 6 11.2 4.6 7.4 0.8 6 4.6 4.6z" fill="currentColor" />
-      </svg>
-    );
+  const Glyph = statusIcon[status];
   return (
-    <svg {...common}>
-      <circle cx="6" cy="3.6" r="2.4" fill="currentColor" />
-      <path d="M1.5 11c0-2.6 2-4.2 4.5-4.2s4.5 1.6 4.5 4.2z" fill="currentColor" />
-    </svg>
-  );
-}
-
-/** Makes the origin of every piece of health information explicit. */
-export function SourceBadge({ source }: { source: RecordSource }) {
-  const t = useT();
-  return (
-    <Badge tone={sourceTone[source]}>
-      <SourceIcon source={source} />
-      {t(`source.${source}`)}
+    <Badge tone={statusTone[status]}>
+      <Glyph size={13} weight="bold" aria-hidden />
+      {t(`status.${status}`)}
     </Badge>
   );
+}
+
+/** Where a record came from, in the shared provenance language. */
+const sourceKind: Record<RecordSource, ProvenanceKind> = {
+  patient: "original",
+  ai_extracted: "machine",
+  doctor: "doctor",
+};
+
+export function SourceBadge({ source }: { source: RecordSource }) {
+  const t = useT();
+  return <ProvenanceChip kind={sourceKind[source]} label={t(`source.${source}`)} />;
 }
 
 /** Language autonym, tagged with `lang` so screen readers pronounce it correctly. */

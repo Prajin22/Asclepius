@@ -1,6 +1,11 @@
+export { Avatar } from "./Avatar";
 export { Badge, LanguageTag, SourceBadge, StatusBadge, type Tone } from "./Badge";
 export { Button, buttonClasses, type ButtonSize, type ButtonVariant } from "./Button";
-export { Card, CardHeader } from "./Card";
+export { Card, CardHeader, type SurfaceTone } from "./Card";
+export { ProvenanceBlock, ProvenanceChip, ProvenanceLegend, type ProvenanceKind } from "./Provenance";
+export { Sheet } from "./Sheet";
+export { Skeleton, SkeletonCard, SkeletonText } from "./Skeleton";
+export { SegmentedTabs, type SegmentItem } from "./Tabs";
 export { cn } from "./cn";
 export { DocumentViewer } from "./DocumentViewer";
 export { Alert, EmptyState, ErrorState, LoadingState, PageHeader, Spinner } from "./Feedback";

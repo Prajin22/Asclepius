@@ -4,7 +4,7 @@
     "profile": "Profile",
     "main": "Main navigation",
     "clinician": "Clinician workspace",
-    "policy": "CareBridge organises patient-provided information. It does not diagnose or prescribe; clinical decisions remain yours."
+    "policy": "Asclepius organises patient-provided information. It does not diagnose or prescribe; clinical decisions remain yours."
   },
   "login": {
     "title": "Clinician sign in",
@@ -69,7 +69,7 @@
     "prescriptions": "Prescriptions in this consultation",
     "noPrescriptions": "No prescriptions issued yet.",
     "newPrescription": "Write a prescription",
-    "authorNotice": "You are the author. CareBridge does not suggest, check or alter medications.",
+    "authorNotice": "You are the author. Asclepius does not suggest, check or alter medications.",
     "item": "Medicine {n}",
     "addItem": "Add another medicine",
     "removeItem": "Remove",

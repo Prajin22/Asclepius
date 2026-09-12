@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "CareBridge",
+    "name": "Asclepius",
     "tagline": "Health information, organised and shared on your terms."
   },
   "a11y": {
@@ -124,13 +124,13 @@
     "writtenIn": "Written in {language}"
   },
   "safety": {
-    "notDiagnosis": "CareBridge organises your information. It does not diagnose or give treatment advice — only your doctor can.",
+    "notDiagnosis": "Asclepius organises your information. It does not diagnose or give treatment advice — only your doctor can.",
     "emergency": "In an emergency, call 108 or 112 now."
   },
   "ai": {
     "label": "AI",
     "machineGenerated": "Machine-generated",
-    "notDiagnosis": "CareBridge AI organises and translates information. It does not diagnose or prescribe.",
+    "notDiagnosis": "Asclepius AI organises and translates information. It does not diagnose or prescribe.",
     "original": "Original — the patient's own words",
     "normalized": "AI-normalised English",
     "extracted": "Extracted information",
@@ -181,6 +181,18 @@
     "openNewTab": "Open in new tab",
     "previewUnavailable": "Preview is not available for this file type.",
     "loadingFile": "Loading file…"
+  },
+  "provenance": {
+    "original": "Original",
+    "document": "Original document",
+    "machine": "AI extracted",
+    "machineNote": "Machine-generated. Check it against the original.",
+    "confirmed": "Patient confirmed",
+    "doctor": "Doctor",
+    "needsReview": "Needs review",
+    "pending": "Pending review",
+    "rejected": "Rejected",
+    "legend": "Where this information comes from"
   },
   "reading": {
     "method": {

@@ -1,27 +1,33 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "onDark";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white hover:bg-brand-strong disabled:bg-line-strong disabled:text-white",
-  secondary: "border border-brand/35 bg-surface text-brand hover:bg-brand-soft disabled:text-subtle",
+  primary:
+    "bg-brand text-white shadow-xs hover:bg-brand-strong disabled:bg-line-strong disabled:text-white disabled:shadow-none",
+  secondary:
+    "border border-line-strong bg-surface text-ink hover:border-brand/45 hover:bg-brand-tint disabled:text-subtle",
   ghost: "text-brand hover:bg-brand-soft disabled:text-subtle",
-  danger: "border border-danger/35 bg-surface text-danger hover:bg-danger-soft disabled:text-subtle",
+  danger: "border border-danger/30 bg-surface text-danger hover:bg-danger-soft disabled:text-subtle",
+  // For jade/ink headers, where a light surface would punch a hole in the bar.
+  onDark: "border border-white/25 bg-white/10 text-white hover:bg-white/20 disabled:text-white/50",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "min-h-9 px-3 text-sm",
-  md: "min-h-11 px-4 text-[0.95rem]",
-  lg: "min-h-13 px-6 text-base",
+  sm: "min-h-9 gap-1.5 px-3 text-small",
+  md: "min-h-11 gap-2 px-4 text-body",
+  lg: "min-h-13 gap-2 px-6 text-body-lg",
 };
 
 /** Class string for links styled as buttons (framework-agnostic). */
 export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md", className?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors",
-    "disabled:cursor-not-allowed",
+    "inline-flex items-center justify-center rounded-md font-semibold",
+    // The press is felt, not watched: 1px down, no bounce.
+    "transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out-soft active:translate-y-px",
+    "disabled:cursor-not-allowed disabled:active:translate-y-0",
     variants[variant],
     sizes[size],
     className,
@@ -33,7 +39,31 @@ export function Button({
   size = "md",
   className,
   type = "button",
+  loading = false,
+  disabled,
+  children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize }) {
-  return <button type={type} className={buttonClasses(variant, size, className)} {...props} />;
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Shows progress in place and blocks repeat submits. */
+  loading?: boolean;
+}) {
+  return (
+    <button
+      type={type}
+      className={buttonClasses(variant, size, className)}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...props}
+    >
+      {loading ? (
+        <span
+          aria-hidden
+          className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent opacity-70"
+        />
+      ) : null}
+      {children}
+    </button>
+  );
 }

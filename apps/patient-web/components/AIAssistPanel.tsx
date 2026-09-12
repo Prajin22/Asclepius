@@ -8,7 +8,19 @@ import {
   type AIProcessing,
   type NormalizationCheck,
 } from "@carebridge/shared-types";
-import { Alert, Badge, Button, Card, CardHeader, Field, TextInput, cn } from "@carebridge/ui";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  Field,
+  ProvenanceBlock,
+  ProvenanceChip,
+  TextInput,
+  cn,
+} from "@carebridge/ui";
+import { ArrowDown, CheckCircle, Lock, PencilSimple, Prohibit, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 
 /**
@@ -16,8 +28,8 @@ import { useState } from "react";
  *
  * The three layers stay visibly separate — 1 the patient's own words (never
  * changed), 2 the English version, 3 the structured items with their evidence —
- * plus whether layer 2 still means what layer 1 said. Nothing reaches the
- * health record until the patient confirms it.
+ * plus whether layer 2 still means what layer 1 said. Nothing reaches the health
+ * record until the patient confirms it.
  */
 export function AIAssistPanel({
   originalText,
@@ -68,33 +80,38 @@ export function AIAssistPanel({
   const facts = state ? [...state.facts].sort((a, b) => Number(a.subject !== "self") - Number(b.subject !== "self")) : [];
 
   return (
-    <Card>
-      <CardHeader title={t("ai.title")} description={t("ai.subtitle")} />
+    <Card aria-labelledby="ai-panel-heading">
+      <CardHeader id="ai-panel-heading" title={t("ai.title")} description={t("ai.subtitle")} />
       <Alert tone="info" className="mb-4">
         {t("ai.notDiagnosis")}
       </Alert>
 
       {!hasConsent ? (
-        <div className="rounded-lg border border-dashed border-line-strong bg-sunken p-4">
-          <p className="font-semibold">{t("ai.consentTitle")}</p>
-          <p className="mt-1 text-muted">{t("ai.consentBody")}</p>
-          <p className="mt-1 text-sm text-muted">{t("ai.consentExternalNote")}</p>
+        <div className="rounded-xl border border-dashed border-line-strong bg-sunken/70 p-5">
+          <Lock size={22} weight="regular" aria-hidden className="text-brand" />
+          <p className="mt-2 text-subheading text-ink">{t("ai.consentTitle")}</p>
+          <p className="mt-1 text-body text-muted">{t("ai.consentBody")}</p>
+          <p className="mt-1 text-small text-subtle">{t("ai.consentExternalNote")}</p>
           {error ? (
             <Alert tone="error" className="mt-3">
               {errorMessage(t, error)}
             </Alert>
           ) : null}
-          <Button className="mt-3" size="lg" disabled={busy} onClick={grant}>
+          <Button className="mt-4" size="lg" loading={busy} onClick={grant}>
             {t("ai.enable")}
           </Button>
         </div>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <Button size="lg" disabled={busy} onClick={process}>
+            <Button size="lg" loading={busy} onClick={process}>
+              <Sparkle size={18} weight="regular" aria-hidden />
               {busy ? t("ai.processing") : state ? t("ai.reprocess") : t("ai.process")}
             </Button>
-            <Badge tone="success">{t("ai.consentOn")}</Badge>
+            <Badge tone="success">
+              <CheckCircle size={13} weight="bold" aria-hidden />
+              {t("ai.consentOn")}
+            </Badge>
           </div>
           {error ? (
             <Alert tone="error" className="mt-3">
@@ -109,52 +126,54 @@ export function AIAssistPanel({
           ) : null}
 
           {state?.status === "ok" ? (
-            <div className="mt-5 flex flex-col gap-5">
+            <div className="mt-5 flex flex-col gap-4">
               <section aria-label={t("ai.layers.original")}>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("ai.layers.original")}</h3>
-                <p
-                  lang={state.detected_language ?? undefined}
-                  className="mt-1 whitespace-pre-line rounded-lg bg-sunken px-3.5 py-2.5"
-                >
-                  {state.original_text ?? originalText}
-                </p>
+                <LayerLabel step="1" label={t("ai.layers.original")} />
+                <ProvenanceBlock kind="original" lang={state.detected_language ?? undefined} className="mt-2">
+                  <p className="whitespace-pre-line text-body-lg">{state.original_text ?? originalText}</p>
+                </ProvenanceBlock>
               </section>
+
+              <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
 
               <section aria-label={t("ai.layers.normalized")}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                    {t("ai.layers.normalized")}
-                  </h3>
-                  <Badge tone="ai">{t("ai.machineGenerated")}</Badge>
-                  {state.detected_language ? (
-                    <span className="text-sm text-muted">
-                      {t("ai.detectedLanguage", {
-                        language: languageInfo(state.detected_language)?.nativeName ?? state.detected_language,
-                      })}
-                    </span>
+                <LayerLabel step="2" label={t("ai.layers.normalized")} />
+                <ProvenanceBlock
+                  kind="machine"
+                  className="mt-2"
+                  meta={
+                    state.detected_language
+                      ? t("ai.detectedLanguage", {
+                          language: languageInfo(state.detected_language)?.nativeName ?? state.detected_language,
+                        })
+                      : undefined
+                  }
+                  label={t("ai.machineGenerated")}
+                >
+                  <p className="whitespace-pre-line">{state.normalized_english}</p>
+                  {state.unparsed.length > 0 ? (
+                    <p className="mt-2 text-small text-muted">
+                      {t("ai.unparsed")}: {state.unparsed.join(" · ")}
+                    </p>
                   ) : null}
-                </div>
-                <p className="mt-1 whitespace-pre-line rounded-lg border border-ai/30 bg-ai-soft/40 px-3.5 py-2.5">
-                  {state.normalized_english}
-                </p>
-                {state.unparsed.length > 0 ? (
-                  <p className="mt-2 text-sm text-muted">
-                    {t("ai.unparsed")}: {state.unparsed.join(" · ")}
-                  </p>
-                ) : null}
-                <div className="mt-2">
-                  <MeaningCheck check={state.normalization_check} />
-                </div>
+                  <div className="mt-3">
+                    <MeaningCheck check={state.normalization_check} />
+                  </div>
+                </ProvenanceBlock>
               </section>
 
+              <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
+
               <section aria-label={t("ai.layers.facts")}>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t("ai.layers.facts")}</h3>
-                <p className="mt-1 font-semibold">{t("ai.reviewTitle")}</p>
-                <p className="text-sm text-muted">{t("ai.reviewSubtitle")}</p>
+                <LayerLabel step="3" label={t("ai.layers.facts")} />
+                <p className="mt-2 text-subheading text-ink">{t("ai.reviewTitle")}</p>
+                <p className="text-small text-muted">{t("ai.reviewSubtitle")}</p>
                 {facts.length === 0 ? (
-                  <p className="mt-3 text-muted">{t("ai.noFacts")}</p>
+                  <p className="mt-3 rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-muted">
+                    {t("ai.noFacts")}
+                  </p>
                 ) : (
-                  <ul className="mt-3 flex flex-col gap-2">
+                  <ul className="mt-3 flex flex-col gap-2.5">
                     {facts.map((fact) => (
                       <FactRow key={fact.id} fact={fact} busy={busy} onReview={review} />
                     ))}
@@ -162,7 +181,7 @@ export function AIAssistPanel({
                 )}
               </section>
 
-              <p className="text-xs text-subtle">
+              <p className="text-caption text-subtle">
                 {t("ai.provenance", { provider: state.provider ?? "", model: state.model ?? "" })}
                 {state.generated_at ? ` · ${t("ai.generatedOn", { date: formatDateTime(state.generated_at) })}` : ""}
                 {state.runs.some((r) => r.cached) ? ` · ${t("ai.cached")}` : ""}
@@ -175,11 +194,29 @@ export function AIAssistPanel({
   );
 }
 
+/** The step number carries the order; the label carries the meaning. */
+function LayerLabel({ step, label }: { step: string; label: string }) {
+  return (
+    <p className="flex items-center gap-2">
+      <span className="tabular inline-flex size-6 items-center justify-center rounded-full bg-ink/[0.06] text-caption font-semibold text-ink">
+        {step}
+      </span>
+      <span className="text-label uppercase text-subtle">{label}</span>
+    </p>
+  );
+}
+
 /** Whether the English version still means what the patient wrote. */
 export function MeaningCheck({ check }: { check: NormalizationCheck | null }) {
   const { t } = useI18n();
   if (!check) return null;
-  if (check.status === "ok") return <Badge tone="success">{t("ai.check.ok")}</Badge>;
+  if (check.status === "ok")
+    return (
+      <Badge tone="success">
+        <CheckCircle size={13} weight="bold" aria-hidden />
+        {t("ai.check.ok")}
+      </Badge>
+    );
   return (
     <Alert tone="warning" title={t("ai.check.review")}>
       {check.added_terms.length > 0 ? (
@@ -196,6 +233,13 @@ export function MeaningCheck({ check }: { check: NormalizationCheck | null }) {
     </Alert>
   );
 }
+
+const REVIEW_RULE: Record<AIFact["review_state"], string> = {
+  pending: "border-l-line-strong",
+  confirmed: "border-l-brand",
+  edited: "border-l-brand",
+  rejected: "border-l-line",
+};
 
 export function FactRow({
   fact,
@@ -216,49 +260,52 @@ export function FactRow({
   const [draft, setDraft] = useState(fact.effective_value);
   const aboutSomeoneElse = fact.subject !== "self";
   const page = fact.evidence_page_number ?? null;
+  const rejected = fact.review_state === "rejected";
 
-  const stateBadge = {
-    pending: <Badge tone="warning">{t("ai.pendingReview")}</Badge>,
-    confirmed: <Badge tone="success">{t("ai.confirmedByPatient")}</Badge>,
-    edited: <Badge tone="success">{t("ai.editedByPatient")}</Badge>,
-    rejected: <Badge tone="danger">{t("ai.reject")}</Badge>,
+  const stateChip = {
+    pending: <ProvenanceChip kind="pending" label={t("ai.pendingReview")} />,
+    confirmed: <ProvenanceChip kind="confirmed" label={t("ai.confirmedByPatient")} />,
+    edited: <ProvenanceChip kind="confirmed" label={t("ai.editedByPatient")} />,
+    rejected: <ProvenanceChip kind="rejected" label={t("ai.reject")} />,
   }[fact.review_state];
 
   return (
     <li
       className={cn(
-        "rounded-lg border px-3.5 py-3",
-        highlighted && "ring-2 ring-ai",
-        fact.review_state === "rejected"
-          ? "border-line bg-sunken opacity-60"
-          : aboutSomeoneElse
-            ? "border-warning/40 bg-warning-soft/40"
-            : "border-line bg-surface",
+        "rounded-lg border border-l-[3px] bg-surface px-4 py-3.5 transition-shadow duration-150",
+        REVIEW_RULE[fact.review_state],
+        rejected ? "border-line bg-sunken/70 opacity-70" : "border-line",
+        aboutSomeoneElse && !rejected && "border-warning/40",
+        highlighted && "shadow-md ring-2 ring-brand/40",
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              {t(`ai.category.${fact.category}`)}
-            </p>
+            <span className="text-label uppercase text-subtle">{t(`ai.category.${fact.category}`)}</span>
             <Badge tone={aboutSomeoneElse ? "warning" : "neutral"}>{t(`ai.subject.${fact.subject}`)}</Badge>
           </div>
           {editing ? (
-            <Field label={t("ai.editLabel")} className="mt-1">
-              {(p) => (
-                <TextInput {...p} value={draft} maxLength={300} onChange={(e) => setDraft(e.target.value)} />
-              )}
+            <Field label={t("ai.editLabel")} className="mt-2">
+              {(p) => <TextInput {...p} value={draft} maxLength={300} onChange={(e) => setDraft(e.target.value)} />}
             </Field>
           ) : (
-            <p className="font-semibold">{fact.effective_value}</p>
+            <p className={cn("mt-1 text-subheading text-ink", rejected && "line-through decoration-line-strong")}>
+              {fact.effective_value}
+            </p>
           )}
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1.5 text-small text-muted">
             <span className="font-medium">{t("ai.evidenceFrom")}: </span>
-            <q>{fact.evidence_quote}</q>
+            <q className="rounded-sm bg-paper px-1 py-0.5 text-paper-ink">{fact.evidence_quote}</q>
           </p>
+          {fact.subject_evidence ? (
+            <p className="mt-1 text-small text-muted">{t("ai.attributedTo", { cue: fact.subject_evidence })}</p>
+          ) : null}
+          {fact.subject === "family" ? (
+            <p className="mt-1 text-small font-medium text-warning">{t("ai.familyNotYours")}</p>
+          ) : null}
           {page !== null ? (
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <p className="mt-1.5 flex flex-wrap items-center gap-2 text-small text-muted">
               <span>{t("docAi.onPage", { page })}</span>
               {onShowEvidence && fact.evidence_bbox ? (
                 <Button variant="ghost" size="sm" aria-pressed={highlighted} onClick={() => onShowEvidence(fact)}>
@@ -267,19 +314,16 @@ export function FactRow({
               ) : null}
             </p>
           ) : null}
-          {fact.subject_evidence ? (
-            <p className="mt-0.5 text-sm text-muted">{t("ai.attributedTo", { cue: fact.subject_evidence })}</p>
-          ) : null}
-          {fact.subject === "family" ? (
-            <p className="mt-1 text-sm font-medium text-warning">{t("ai.familyNotYours")}</p>
-          ) : null}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {stateBadge}
-            {fact.validation_status === "needs_review" ? <Badge tone="warning">{t("ai.needsReview")}</Badge> : null}
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {stateChip}
+            {fact.validation_status === "needs_review" ? (
+              <ProvenanceChip kind="needsReview" label={t("ai.needsReview")} />
+            ) : null}
             {fact.medical_record_id ? <Badge tone="info">{t("ai.addedToRecord")}</Badge> : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-1">
+
+        <div className="flex w-full flex-wrap gap-1.5 sm:w-auto sm:justify-end">
           {editing ? (
             <>
               <Button
@@ -304,18 +348,21 @@ export function FactRow({
                 disabled={busy || fact.review_state === "confirmed"}
                 onClick={() => onReview(fact.id, { action: "confirm" })}
               >
+                <CheckCircle size={15} weight="bold" aria-hidden />
                 {t("ai.confirm")}
               </Button>
               <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditing(true)}>
+                <PencilSimple size={15} aria-hidden />
                 {t("ai.edit")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-danger hover:bg-danger-soft"
-                disabled={busy || fact.review_state === "rejected"}
+                disabled={busy || rejected}
                 onClick={() => onReview(fact.id, { action: "reject" })}
               >
+                <Prohibit size={15} aria-hidden />
                 {t("ai.reject")}
               </Button>
             </>

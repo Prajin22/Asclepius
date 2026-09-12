@@ -12,7 +12,7 @@
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Welcome to CareBridge.",
+    "subtitle": "Welcome to Asclepius.",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
@@ -46,7 +46,7 @@
   },
   "health": {
     "title": "My Health",
-    "subtitle": "Health information you have given CareBridge. You can edit anything marked “Patient provided”.",
+    "subtitle": "Health information you have given Asclepius. You can edit anything marked “Patient provided”.",
     "sections": {
       "conditions": "Conditions",
       "allergies": "Allergies",
@@ -196,7 +196,7 @@
     "title": "AI assistance",
     "subtitle": "Optional. It organises what you wrote and translates it for your doctor — it does not diagnose.",
     "consentTitle": "Allow AI processing",
-    "consentBody": "CareBridge can detect the language you wrote in, translate it into English for your doctor, and pull out items such as symptoms, durations and medicines. Your original words are always kept, and nothing is added to your health record until you confirm it.",
+    "consentBody": "Asclepius can detect the language you wrote in, translate it into English for your doctor, and pull out items such as symptoms, durations and medicines. Your original words are always kept, and nothing is added to your health record until you confirm it.",
     "consentExternalNote": "When an external AI provider is configured, your text is sent to that provider for processing.",
     "consentOn": "AI processing is on",
     "consentOff": "AI processing is off",
@@ -219,7 +219,7 @@
   },
   "docAi": {
     "title": "Read this document",
-    "subtitle": "Optional. CareBridge reads the text on each page and lists items for you to check. It does not interpret results or diagnose.",
+    "subtitle": "Optional. Asclepius reads the text on each page and lists items for you to check. It does not interpret results or diagnose.",
     "originalStays": "Your original file is never changed. It stays available above, exactly as you uploaded it.",
     "consentBody": "Reading a document uses AI processing. The text on each page is read, translated into English where needed, and items such as medicines, allergies and measurements are listed for you to check. Nothing is added to your health record until you confirm it.",
     "read": "Read document",
@@ -242,6 +242,57 @@
     "noItems": "No items on this page could be supported by its text.",
     "reviewTitle": "Check what was found",
     "reviewSubtitle": "Confirm, correct or reject each item. Nothing is added to your health record until you confirm it."
+  },
+  "landing": {
+    "hero": {
+      "title": "Your health information, connected.",
+      "subtitle": "Keep your records in your own words, have your documents read, and share exactly what you choose.",
+      "primary": "Get started",
+      "secondary": "How it works"
+    },
+    "how": {
+      "title": "How Asclepius works",
+      "step1": {
+        "title": "You describe it",
+        "body": "Write what you are experiencing in your own language. Your words are stored exactly as you wrote them."
+      },
+      "step2": {
+        "title": "Asclepius organises it",
+        "body": "It renders your words in English for your doctor and pulls out symptoms, medicines and measurements — each one carrying the words it came from."
+      },
+      "step3": {
+        "title": "Your doctor decides",
+        "body": "They read your original beside the organised version, then write their own assessment and prescription."
+      }
+    },
+    "evidence": {
+      "title": "Every item points back at your words",
+      "body": "Nothing reaches your health record until you confirm it. If Asclepius cannot show where something came from, it does not keep it."
+    },
+    "documents": {
+      "title": "Documents, read page by page",
+      "body": "Upload a lab report or a discharge summary. Each page is read — copied from the PDF, or transcribed from a scan — and every value shows the line it came from."
+    },
+    "languages": {
+      "title": "Write in the language you think in",
+      "body": "Your doctor reads it in theirs. The original always stays beside the translation."
+    },
+    "doctor": {
+      "title": "What your doctor sees",
+      "body": "Only what you shared, with its source visible: your original document, what was read from it, and what you confirmed. The clinical decision stays theirs."
+    },
+    "trust": {
+      "title": "What Asclepius will not do",
+      "consent": "Nothing is processed without your consent.",
+      "original": "Your original words and files are never changed.",
+      "decision": "It never diagnoses, prescribes, or chooses between doctors."
+    },
+    "cta": {
+      "title": "Bring your health information together.",
+      "body": "A demonstration prototype using synthetic data only.",
+      "action": "Get started"
+    },
+    "footerNote": "Prototype for demonstration. Not a medical device, and not for real patient data."
   },
   "profile": {
     "title": "Profile",
