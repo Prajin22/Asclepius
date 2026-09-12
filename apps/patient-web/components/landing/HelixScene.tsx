@@ -183,11 +183,14 @@ export function HelixScene({ className }: { className?: string }) {
           {Array.from({ length: 26 }, (_, i) => {
             const p = i / 25;
             const angle = p * Math.PI * 5;
+            // Rounded: Math.cos can differ by one ULP between Node and the
+            // browser, and the raw float would then hydrate as a mismatch.
+            const round = (n: number) => Math.round(n * 100) / 100;
             return (
               <circle
                 key={i}
-                cx={160 + Math.cos(angle) * 74}
-                cy={34 + p * 312}
+                cx={round(160 + Math.cos(angle) * 74)}
+                cy={round(34 + p * 312)}
                 r={i % 3 === 0 ? 5.5 : 4}
                 fill={i % 3 === 0 ? "#0a5c52" : "#47606e"}
                 opacity={i % 3 === 0 ? 0.85 : 0.45}
