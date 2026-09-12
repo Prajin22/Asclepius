@@ -12,7 +12,8 @@ __pycache__/
 .mypy_cache/
 *.egg-info/
 backend/storage/
-storage/
+# Uploaded files only. Anchored, so it never hides source such as app/providers/storage/.
+/storage/
 *.sqlite3
 *.db
 
