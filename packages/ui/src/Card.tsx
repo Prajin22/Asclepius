@@ -65,7 +65,8 @@ export function CardHeader({
 }) {
   const Heading = level === 2 ? "h2" : "h3";
   return (
-    <div className={cn("mb-4 flex flex-wrap items-start justify-between gap-3", className)}>
+    // No wrap: an action stays on the title's line instead of dropping under it with an odd indent.
+    <div className={cn("mb-4 flex items-start justify-between gap-3", className)}>
       <div className="min-w-0">
         {eyebrow ? <p className="mb-1 text-label uppercase text-subtle">{eyebrow}</p> : null}
         <Heading id={id} className="text-subheading text-ink">

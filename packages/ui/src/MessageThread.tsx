@@ -55,7 +55,7 @@ export function MessageThread({
   return (
     <div className="flex flex-col gap-3">
       {messages.length === 0 ? (
-        <p className="text-sm text-muted">{t("messages.empty")}</p>
+        <p className="text-small text-muted">{t("messages.empty")}</p>
       ) : (
         <ol ref={listRef} aria-live="polite" className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto pr-1">
           {messages.map((m) => {
@@ -71,7 +71,7 @@ export function MessageThread({
                 >
                   {m.body}
                 </div>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-caption text-muted">
                   {senderLabel(m.sender_role)} · <time dateTime={m.created_at}>{formatDateTime(m.created_at)}</time>
                 </p>
               </li>
@@ -102,7 +102,7 @@ export function MessageThread({
           </div>
         </form>
       ) : (
-        <p className="rounded-lg bg-sunken px-3 py-2 text-sm text-muted">{t("messages.closed")}</p>
+        <p className="rounded-lg bg-sunken px-3 py-2 text-small text-muted">{t("messages.closed")}</p>
       )}
     </div>
   );

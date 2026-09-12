@@ -317,6 +317,11 @@
   },
   "landing": {
     "forDoctors": "For doctors",
+    "doctorView": {
+      "documents": "The documents you chose to share",
+      "confirmed": "The items you confirmed",
+      "assessment": "Their own notes and prescription"
+    },
     "hero": {
       "title": "Your health information, connected.",
       "subtitle": "Keep your records in your own words, have your documents read, and share exactly what you choose.",

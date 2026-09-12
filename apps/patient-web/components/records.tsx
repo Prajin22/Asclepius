@@ -34,7 +34,7 @@ export interface RecordFormValues {
 export function SourceLegend() {
   const { t } = useI18n();
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-small">
       <span className="font-semibold text-muted">{t("source.legend")}:</span>
       {RECORD_SOURCES.map((s: RecordSource) => (
         <SourceBadge key={s} source={s} />
@@ -136,23 +136,20 @@ function RecordItem({
   const editable = record.source === "patient";
   return (
     <li className="py-4 first:pt-0 last:pb-0">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-ink">{title}</p>
-          {record.content ? (
-            <p lang={record.source_language} className="mt-0.5 whitespace-pre-line">
-              {record.content}
-            </p>
-          ) : null}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <SourceBadge source={record.source} />
-            {record.status === "resolved" ? <Badge>{t("recordStatus.resolved")}</Badge> : null}
-            <LanguageTag code={record.source_language} />
-            <span className="text-xs text-muted">{t("health.recorded", { date: formatDate(record.created_at) })}</span>
-          </div>
-        </div>
+      <p className="font-semibold text-ink">{title}</p>
+      {record.content ? (
+        <p lang={record.source_language} className="mt-0.5 whitespace-pre-line">
+          {record.content}
+        </p>
+      ) : null}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <SourceBadge source={record.source} />
+        {record.status === "resolved" ? <Badge>{t("recordStatus.resolved")}</Badge> : null}
+        <LanguageTag code={record.source_language} />
+        <span className="text-caption text-muted">{t("health.recorded", { date: formatDate(record.created_at) })}</span>
+        {/* Actions share the metadata row, so they never squeeze the patient's own words. */}
         {editable && !editing ? (
-          <div className="flex gap-1">
+          <span className="-mr-2 ml-auto flex gap-1">
             <Button variant="ghost" size="sm" aria-label={`${t("actions.edit")}: ${title}`} onClick={onEdit}>
               {t("actions.edit")}
             </Button>
@@ -165,7 +162,7 @@ function RecordItem({
             >
               {t("actions.delete")}
             </Button>
-          </div>
+          </span>
         ) : null}
       </div>
       {editing ? editor : null}

@@ -83,18 +83,19 @@ function CategoryBlock({
           disabled={items.length === 0}
           onChange={(e) => onChange(e.target.checked ? items.map((i) => i.id) : [])}
         />
-        <span id={`${id}-label`} className="flex-1 text-base font-semibold text-ink">
+        <span id={`${id}-label`} className="flex-1 text-body font-semibold text-ink">
           {t(`shareCategories.${category}`)}
         </span>
         <Badge tone={selected.length > 0 ? "brand" : "neutral"}>{t("request.selected", { count: selected.length })}</Badge>
       </label>
       {items.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-muted">{t("request.noItems")}</p>
+        <p className="px-4 py-3 text-small text-muted">{t("request.noItems")}</p>
       ) : (
-        <ul className="flex flex-col gap-2 p-3">
+        <ul className="flex flex-col gap-0.5 p-2">
           {items.map((item) => (
             <li key={item.id}>
               <Checkbox
+                variant="row"
                 label={<span lang={item.lang ?? undefined}>{item.label}</span>}
                 description={item.description}
                 checked={selected.includes(item.id)}

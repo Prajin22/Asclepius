@@ -37,13 +37,13 @@ export function ReadingProvenance({
   const messages = Array.from(new Set(warnings.map(readingWarningKey).filter((key): key is string => key !== null)));
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
+      <p className="flex flex-wrap items-center gap-2 text-small text-muted">
         <Badge tone={exact ? "neutral" : "warning"}>{t(`reading.method.${method}`)}</Badge>
         {confidence !== null ? <span>{t("reading.confidence", { percent: Math.round(confidence * 100) })}</span> : null}
-        <span className="text-xs text-subtle">{t("reading.engine", { engine })}</span>
+        <span className="text-caption text-subtle">{t("reading.engine", { engine })}</span>
       </p>
       {messages.map((key) => (
-        <p key={key} className="text-sm font-medium text-warning">
+        <p key={key} className="text-small font-medium text-warning">
           {t(key)}
         </p>
       ))}

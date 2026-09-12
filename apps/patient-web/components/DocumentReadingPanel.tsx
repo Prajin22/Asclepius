@@ -22,7 +22,7 @@ import {
 } from "@carebridge/ui";
 import { BookOpenText, CheckCircle, Lock } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
-import { FactRow, MeaningCheck } from "./AIAssistPanel";
+import { FactRow, LayerLabel, MeaningCheck } from "./AIAssistPanel";
 
 /**
  * Reading an uploaded document, page by page.
@@ -169,7 +169,7 @@ export function DocumentReadingPanel({
                         aria-pressed={selected}
                         onClick={() => showPage(p.page_number)}
                         className={cn(
-                          "inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 text-small font-semibold transition-colors duration-150",
+                          "inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-small font-semibold transition-colors duration-150 sm:min-h-10",
                           selected
                             ? "border-brand bg-brand text-white"
                             : "border-line bg-surface text-muted hover:border-brand/40 hover:text-ink",
@@ -243,7 +243,7 @@ function PageView({
 
       <div className="flex min-w-0 flex-col gap-4">
         <section aria-label={t("docAi.layers.read")}>
-          <p className="text-label uppercase text-subtle">{t("docAi.layers.read")}</p>
+          <LayerLabel label={t("docAi.layers.read")} />
           <div className="mt-1.5">
             <ReadingProvenance
               method={page.method}
@@ -272,7 +272,7 @@ function PageView({
         {page.ai_status === "ok" ? (
           <>
             <section aria-label={t("docAi.layers.english")}>
-              <p className="text-label uppercase text-subtle">{t("docAi.layers.english")}</p>
+              <LayerLabel label={t("docAi.layers.english")} />
               <ProvenanceBlock
                 kind="machine"
                 className="mt-1.5"
@@ -293,7 +293,7 @@ function PageView({
             </section>
 
             <section aria-label={t("docAi.layers.items")}>
-              <p className="text-label uppercase text-subtle">{t("docAi.layers.items")}</p>
+              <LayerLabel label={t("docAi.layers.items")} />
               <p className="mt-1.5 text-subheading text-ink">{t("docAi.reviewTitle")}</p>
               <p className="text-small text-muted">{t("docAi.reviewSubtitle")}</p>
               {facts.length === 0 ? (

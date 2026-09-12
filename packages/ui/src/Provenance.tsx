@@ -91,12 +91,12 @@ export function ProvenanceChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-caption font-semibold",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-caption font-semibold",
         chip,
         className,
       )}
     >
-      <Glyph size={13} weight="bold" aria-hidden />
+      <Glyph size={13} weight="bold" aria-hidden className="shrink-0" />
       {label ?? t(labelKey)}
     </span>
   );

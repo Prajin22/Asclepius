@@ -6,7 +6,7 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-white shadow-xs hover:bg-brand-strong disabled:bg-line-strong disabled:text-white disabled:shadow-none",
+    "bg-brand text-white shadow-xs hover:bg-brand-strong disabled:bg-line disabled:text-subtle disabled:shadow-none",
   secondary:
     "border border-line-strong bg-surface text-ink hover:border-brand/45 hover:bg-brand-tint disabled:text-subtle",
   ghost: "text-brand hover:bg-brand-soft disabled:text-subtle",
@@ -16,7 +16,8 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "min-h-9 gap-1.5 px-3 text-small",
+  // On a phone no target is under 44px (DESIGN.md §7); the compact height is for pointers.
+  sm: "min-h-11 gap-1.5 px-3 text-small sm:min-h-9",
   md: "min-h-11 gap-2 px-4 text-body",
   lg: "min-h-13 gap-2 px-6 text-body-lg",
 };

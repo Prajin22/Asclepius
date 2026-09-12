@@ -23,7 +23,8 @@ export function Badge({ tone = "neutral", children, className }: { tone?: Tone; 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+        // Wraps rather than overflowing its container on a narrow screen.
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-caption font-semibold",
         tones[tone],
         className,
       )}

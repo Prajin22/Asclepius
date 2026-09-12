@@ -28,7 +28,7 @@ export function Alert({
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={cn("rounded-lg border px-4 py-3 text-sm", alertTones[tone], className)}
+      className={cn("rounded-lg border px-4 py-3 text-small", alertTones[tone], className)}
     >
       {title ? <p className="font-semibold">{title}</p> : null}
       {children ? <div className={cn(title ? "mt-0.5" : undefined)}>{children}</div> : null}
@@ -94,8 +94,8 @@ export function PageHeader({
   return (
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0 max-w-3xl">
-        {eyebrow ? <div className="mb-2 text-sm">{eyebrow}</div> : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[1.75rem]">{title}</h1>
+        {eyebrow ? <div className="mb-2 text-small">{eyebrow}</div> : null}
+        <h1 className="text-heading text-balance text-ink sm:text-page">{title}</h1>
         {description ? <p className="mt-1.5 text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}

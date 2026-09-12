@@ -58,10 +58,13 @@ export default function MyHealthPage() {
           </Link>
         }
       />
-      <SourceLegend />
-      <p className="-mt-2 mb-5 text-sm text-muted">{t("health.doctorLocked")}</p>
+      <div className="mb-6 rounded-xl border border-line bg-surface px-4 py-3.5">
+        <SourceLegend />
+        <p className="mt-2 text-small text-muted">{t("health.doctorLocked")}</p>
+      </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      {/* Two balanced columns of sections on a wide screen; cards of different lengths leave no holes. */}
+      <div className="gap-5 xl:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
         {SECTIONS.map((s) => (
           <RecordSection
             key={s.key}
@@ -99,7 +102,7 @@ export default function MyHealthPage() {
                     <SourceBadge source={p.source} />
                     {p.status === "resolved" ? <Badge>{t("recordStatus.resolved")}</Badge> : null}
                     <LanguageTag code={p.source_language} />
-                    <span className="text-xs text-muted">{t("health.recorded", { date: formatDate(p.created_at) })}</span>
+                    <span className="text-caption text-muted">{t("health.recorded", { date: formatDate(p.created_at) })}</span>
                   </div>
                 </li>
               ))}

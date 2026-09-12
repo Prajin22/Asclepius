@@ -35,8 +35,10 @@ Nothing in the apps should hard-code a colour, radius or duration.
 **Type** — Geist for interface, Geist Mono for measured values (lab results,
 dosages, page numbers), Noto Sans Tamil and Devanagari inside the same stack so
 Indic scripts are first-class rather than a system fallback. Scale: `display`,
-`title`, `heading`, `subheading`, `body-lg`, `body`, `small`, `caption`,
-`label` (the only uppercase style), `value`.
+`title`, `page` (product page titles, fixed rather than fluid), `heading`,
+`subheading`, `body-lg`, `body`, `small`, `caption`, `label`, `value`. Section
+and field labels are sentence case in `small` semibold. `label` is uppercase
+and kept for rare metadata — never as a kicker above a heading.
 
 **Colour** — ink, muted, subtle, line, line-strong, canvas, surface, sunken;
 jade (`brand`, `brand-strong`, `brand-soft`, `brand-tint`, `focus`); paper
@@ -50,6 +52,10 @@ pair). Every text/background pair meets WCAG AA.
 **Motion** — `--ease-out-soft` for entrances, `--ease-in-out-soft` for state,
 durations 150 / 240 / 420 ms. Everything collapses under
 `prefers-reduced-motion`, which `theme.css` enforces globally.
+
+**Browser surfaces** — selection, caret, native checkbox and radio accent,
+scrollbars and link underline offset come from the palette in `theme.css`, not
+from browser defaults.
 
 ## 3. Components
 
@@ -77,8 +83,11 @@ doctor's case view separates patient-shared material from the doctor's own work
 
 ## 5. Motion and 3D
 
-GSAP drives the landing page's scroll reveals and the hero's assembly. In the
-product, motion is only state: a button press, a loading state, a confirmation.
+GSAP drives the hero's assembly and the landing page's one scroll moment: the
+evidence sequence, where the patient's words, the machine's reading and the
+confirmed items arrive in that order (`expo.out`, staggered). Other sections do
+not animate in. In the product, motion is only state: a button press, a loading
+state, a confirmation.
 
 There is exactly one WebGL scene — the landing hero
 (`components/landing/HelixScene.tsx`), where scattered information draws itself
@@ -101,4 +110,5 @@ wording is never replaced by a translation; both are shown, labelled.
 3. The original is always reachable from wherever its interpretation is shown.
 4. Nothing implies a clinical decision has been made by the software.
 5. Every interactive element has a visible focus state and a touch target of at
-   least 44px on a phone.
+   least 44px on a phone. Small buttons, tabs and the language switcher grow to
+   44px below the `sm` breakpoint.

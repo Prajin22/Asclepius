@@ -19,7 +19,7 @@ export function LanguageSwitcher() {
         id={id}
         value={locale}
         onChange={(e) => setLocale(e.target.value as LanguageCode)}
-        className="min-h-10 rounded-lg border border-line-strong bg-surface px-2.5 text-sm font-medium text-ink"
+        className="min-h-11 rounded-lg border border-line-strong bg-surface px-2.5 text-small font-medium text-ink sm:min-h-10"
       >
         {UI_LANGUAGES.map((code) => (
           <option key={code} value={code} lang={code}>

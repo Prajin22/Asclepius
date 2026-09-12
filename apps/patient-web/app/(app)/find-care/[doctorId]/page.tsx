@@ -130,8 +130,9 @@ export default function RequestConsultationPage() {
           </Card>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-5">
-          <Card>
+        {/* On a phone this column dissolves into the page: the doctor first, the decision pinned above the tab bar. */}
+        <div className="flex min-w-0 flex-col gap-5 max-lg:contents">
+          <Card className="max-lg:order-first">
             <div className="flex items-start gap-3.5">
               <Avatar name={doctor.name} size="lg" />
               <div className="min-w-0">
@@ -152,28 +153,33 @@ export default function RequestConsultationPage() {
 
           {/* The decision to share sits within reach on a phone, and beside the choices on a desktop. */}
           <Card className="max-lg:sticky max-lg:bottom-20 max-lg:z-20 max-lg:shadow-lg lg:sticky lg:top-24">
-            <CardHeader title={t("request.reviewTitle")} />
-            {selectedCategories.length === 0 ? (
-              <p className="text-muted">{t("request.nothingSelected")}</p>
-            ) : (
-              <ul className="flex flex-col gap-1.5">
-                {selectedCategories.map((cat) => (
-                  <li key={cat} className="flex items-center justify-between gap-3">
-                    <span>{t(`shareCategories.${cat}`)}</span>
-                    <span className="text-sm text-muted">{t("request.selected", { count: selection[cat].length })}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* Beside the choices on a wide screen. On a phone the ticked categories above are the summary. */}
+            <div className="max-lg:hidden">
+              <CardHeader title={t("request.reviewTitle")} />
+              {selectedCategories.length === 0 ? (
+                <p className="text-muted">{t("request.nothingSelected")}</p>
+              ) : (
+                <ul className="flex flex-col gap-1.5">
+                  {selectedCategories.map((cat) => (
+                    <li key={cat} className="flex items-center justify-between gap-3">
+                      <span>{t(`shareCategories.${cat}`)}</span>
+                      <span className="tabular text-small text-muted">
+                        {t("request.selected", { count: selection[cat].length })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {error ? (
-              <Alert tone="error" className="mt-4">
+              <Alert tone="error" className="max-lg:mb-3 lg:mt-4">
                 {errorMessage(t, error)}
               </Alert>
             ) : null}
-            <Button size="lg" className="mt-5 w-full" disabled={busy} onClick={submit}>
+            <Button size="lg" className="w-full lg:mt-5" loading={busy} onClick={submit}>
               {busy ? t("request.submitting") : t("request.submit")}
             </Button>
-            <Link href="/find-care" className={buttonClasses("ghost", "md", "mt-2 w-full")}>
+            <Link href="/find-care" className={buttonClasses("ghost", "md", "mt-2 w-full max-lg:hidden")}>
               {t("actions.cancel")}
             </Link>
           </Card>

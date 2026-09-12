@@ -26,8 +26,7 @@ export function PrescriptionCard({
     <article className={cn("overflow-hidden rounded-xl border border-line border-l-[3px] border-l-ink bg-surface", className)}>
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-sunken/70 px-4 py-3.5 sm:px-5">
         <div className="min-w-0">
-          <p className="text-label uppercase text-subtle">{t("prescription.title")}</p>
-          <p className="mt-1 text-subheading text-ink">{doctor.name}</p>
+          <p className="text-subheading text-ink">{doctor.name}</p>
           <p className="text-small text-muted">
             {doctor.specialization} · {t("prescription.registration", { id: doctor.registration_identifier })}
           </p>
@@ -49,7 +48,7 @@ export function PrescriptionCard({
             <dl className="mt-2.5 grid grid-cols-1 gap-x-6 gap-y-2 text-small sm:grid-cols-3">
               {(["dosage", "frequency", "duration"] as const).map((field) => (
                 <div key={field} className="flex gap-2 sm:block">
-                  <dt className="text-label uppercase text-subtle">{t(`prescription.${field}`)}</dt>
+                  <dt className="text-caption font-medium text-muted">{t(`prescription.${field}`)}</dt>
                   <dd className="font-medium text-ink">{item[field]}</dd>
                 </div>
               ))}
@@ -65,7 +64,7 @@ export function PrescriptionCard({
       </ol>
       {prescription.instructions ? (
         <div className="border-t border-line px-4 py-3.5 sm:px-5">
-          <p className="text-label uppercase text-subtle">{t("prescription.generalAdvice")}</p>
+          <p className="text-small font-semibold text-muted">{t("prescription.generalAdvice")}</p>
           <p className="mt-1 whitespace-pre-line text-body">{prescription.instructions}</p>
         </div>
       ) : null}

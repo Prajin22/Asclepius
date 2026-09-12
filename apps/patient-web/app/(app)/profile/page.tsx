@@ -40,6 +40,8 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [saved, setSaved] = useState(false);
+  const [consentBusy, setConsentBusy] = useState(false);
+  const [consentError, setConsentError] = useState<unknown>(null);
 
   useEffect(() => {
     if (q.data && !form) setForm(toForm(q.data));
@@ -182,29 +184,43 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader title={t("ai.consentTitle")} description={t("ai.subtitle")} />
-          <p className="mb-3 text-muted">{t("ai.consentBody")}</p>
-          <p className="mb-3 text-sm text-muted">{t("ai.consentExternalNote")}</p>
+          <p className="mb-3 max-w-prose text-muted">{t("ai.consentBody")}</p>
+          <p className="mb-4 text-small text-muted">{t("ai.consentExternalNote")}</p>
           <Checkbox
             label={q.data.ai_processing_consent ? t("ai.consentOn") : t("ai.consentOff")}
             description={t("ai.notDiagnosis")}
             checked={q.data.ai_processing_consent}
+            disabled={consentBusy}
             onChange={async (granted) => {
               setSaved(false);
-              q.setData(await api.ai.setConsent(granted));
+              setConsentBusy(true);
+              setConsentError(null);
+              try {
+                q.setData(await api.ai.setConsent(granted));
+              } catch (err) {
+                setConsentError(err);
+              } finally {
+                setConsentBusy(false);
+              }
             }}
           />
+          {consentError ? (
+            <Alert tone="error" className="mt-3">
+              {errorMessage(t, consentError)}
+            </Alert>
+          ) : null}
         </Card>
 
         <Card>
           <CardHeader title={t("profile.account")} />
-          <p className="text-sm text-muted">{t("profile.email")}</p>
+          <p className="text-small text-muted">{t("profile.email")}</p>
           <p className="font-medium">{session?.user.email}</p>
         </Card>
 
         {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
         {saved ? <Alert tone="success">{t("profile.saved")}</Alert> : null}
         <div>
-          <Button type="submit" size="lg" disabled={busy}>
+          <Button type="submit" size="lg" loading={busy}>
             {busy ? t("actions.saving") : t("actions.save")}
           </Button>
         </div>

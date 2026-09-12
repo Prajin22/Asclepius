@@ -55,13 +55,13 @@ function HealthColumn({ title, records }: { title: string; records: MedicalRecor
   const { t } = useI18n();
   return (
     <div>
-      <h3 className="text-label uppercase text-subtle">{title}</h3>
+      <h3 className="text-small font-semibold text-muted">{title}</h3>
       {records.length === 0 ? (
         <p className="mt-2 text-small text-muted">{t("dashboard.noneRecorded")}</p>
       ) : (
-        <ul className="mt-2 flex flex-col gap-2">
+        <ul className="mt-2 flex flex-col gap-3">
           {records.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <li key={r.id} className="flex flex-col items-start gap-1">
               <span className="font-medium leading-snug text-ink">{r.title ?? t(`recordType.${r.type}`)}</span>
               <SourceBadge source={r.source} />
             </li>
@@ -96,154 +96,167 @@ export default function DashboardPage() {
 
       <QuickActions />
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
-        <Card className="lg:col-span-2" aria-labelledby="problem-heading">
-          <CardHeader
-            id="problem-heading"
-            title={t("dashboard.currentProblem")}
-            action={
-              <Link href="/health/current-problem" className={buttonClasses("secondary", "sm")}>
-                {d.latest_current_problem ? t("actions.edit") : t("dashboard.describeProblem")}
-              </Link>
-            }
-          />
-          {d.latest_current_problem ? (
-            <ProvenanceBlock
-              kind="original"
-              lang={d.latest_current_problem.source_language}
-              meta={
-                <span className="flex flex-wrap items-center gap-2">
-                  <LanguageTag code={d.latest_current_problem.source_language} />
-                  <span>{formatDate(d.latest_current_problem.created_at)}</span>
-                </span>
+      {/* Two independent stacks on a wide screen, so each card keeps its own height without
+          leaving a gap beside a taller neighbour. On a phone the stacks dissolve and the
+          cards interleave in order of what a patient checks first. */}
+      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="flex min-w-0 flex-col gap-5 max-lg:contents">
+          <Card className="max-lg:order-1" aria-labelledby="problem-heading">
+            <CardHeader
+              id="problem-heading"
+              title={t("dashboard.currentProblem")}
+              action={
+                <Link href="/health/current-problem" className={buttonClasses("secondary", "sm")}>
+                  {d.latest_current_problem ? t("actions.edit") : t("dashboard.describeProblem")}
+                </Link>
               }
-            >
-              <p className="whitespace-pre-line text-body-lg leading-relaxed">{d.latest_current_problem.content}</p>
-            </ProvenanceBlock>
-          ) : (
-            <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-6 text-center">
-              <p className="text-muted">{t("dashboard.noProblem")}</p>
-              <Link href="/health/current-problem" className={buttonClasses("primary", "md", "mt-3")}>
-                {t("dashboard.describeProblem")}
-              </Link>
+            />
+            {d.latest_current_problem ? (
+              <ProvenanceBlock
+                kind="original"
+                lang={d.latest_current_problem.source_language}
+                meta={
+                  <span className="flex flex-wrap items-center gap-2">
+                    <LanguageTag code={d.latest_current_problem.source_language} />
+                    <span>{formatDate(d.latest_current_problem.created_at)}</span>
+                  </span>
+                }
+              >
+                <p className="whitespace-pre-line text-body-lg leading-relaxed">{d.latest_current_problem.content}</p>
+              </ProvenanceBlock>
+            ) : (
+              <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-6 text-center">
+                <p className="text-muted">{t("dashboard.noProblem")}</p>
+                <Link href="/health/current-problem" className={buttonClasses("primary", "md", "mt-3")}>
+                  {t("dashboard.describeProblem")}
+                </Link>
+              </div>
+            )}
+          </Card>
+
+          <Card className="max-lg:order-3" aria-labelledby="health-heading">
+            <CardHeader
+              id="health-heading"
+              title={t("dashboard.currentHealth")}
+              action={
+                <Link href="/health" className={buttonClasses("ghost", "sm")}>
+                  {t("dashboard.manageHealth")}
+                </Link>
+              }
+            />
+            {/* Columns follow the card's own width, so source badges never squeeze onto two lines. */}
+            <div className="@container">
+              <div className="grid gap-5 @sm:grid-cols-2 @xl:grid-cols-3">
+                <HealthColumn title={t("dashboard.conditions")} records={d.conditions} />
+                <HealthColumn title={t("dashboard.allergies")} records={d.allergies} />
+                <HealthColumn title={t("dashboard.medications")} records={d.medications} />
+              </div>
             </div>
-          )}
-        </Card>
+          </Card>
 
-        <Card aria-labelledby="consultations-heading">
-          <CardHeader
-            id="consultations-heading"
-            title={t("dashboard.activeConsultations")}
-            action={
-              <Link href="/consultations" className={buttonClasses("ghost", "sm")}>
-                {t("dashboard.viewAll")}
-              </Link>
-            }
-          />
-          {d.open_consultations.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-small text-muted">
-              <ChatCircleDots size={22} aria-hidden className="mx-auto mb-1.5 text-subtle" />
-              {t("dashboard.noConsultations")}
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {d.open_consultations.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/consultations/${c.id}`}
-                    className="flex items-center gap-3 rounded-lg border border-line px-3 py-2.5 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint"
-                  >
-                    <Avatar name={c.doctor.name} size="sm" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-ink">{c.doctor.name}</span>
-                      <span className="block truncate text-small text-muted">{c.doctor.specialization}</span>
-                    </span>
-                    <StatusBadge status={c.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card className="lg:col-span-2" aria-labelledby="health-heading">
-          <CardHeader
-            id="health-heading"
-            title={t("dashboard.currentHealth")}
-            action={
-              <Link href="/health" className={buttonClasses("ghost", "sm")}>
-                {t("dashboard.manageHealth")}
-              </Link>
-            }
-          />
-          <div className="grid gap-5 sm:grid-cols-3">
-            <HealthColumn title={t("dashboard.conditions")} records={d.conditions} />
-            <HealthColumn title={t("dashboard.allergies")} records={d.allergies} />
-            <HealthColumn title={t("dashboard.medications")} records={d.medications} />
-          </div>
-        </Card>
-
-        <Card aria-labelledby="documents-heading">
-          <CardHeader
-            id="documents-heading"
-            title={t("dashboard.recentDocuments")}
-            action={
-              <Link href="/documents" className={buttonClasses("ghost", "sm")}>
-                {t("dashboard.viewAll")}
-              </Link>
-            }
-          />
-          {d.recent_documents.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-small text-muted">
-              {t("dashboard.noDocuments")}
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-2.5">
-              {d.recent_documents.map((doc) => (
-                <li key={doc.id}>
-                  <Link href={`/documents/${doc.id}`} className="group block">
-                    <span className="block truncate font-medium text-ink group-hover:underline">
-                      {doc.title || doc.file_name}
-                    </span>
-                    <span className="mt-1 flex flex-wrap items-center gap-2 text-small text-muted">
-                      <ProvenanceChip kind="document" label={t(`documentType.${doc.document_type}`)} />
-                      {formatDate(doc.uploaded_at)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link href="/documents" className={buttonClasses("secondary", "md", "mt-4 w-full")}>
-            {t("dashboard.uploadDocument")}
-          </Link>
-        </Card>
-
-        <Card className="lg:col-span-3" aria-labelledby="prescriptions-heading">
-          <CardHeader id="prescriptions-heading" title={t("dashboard.recentPrescriptions")} />
-          {d.recent_prescriptions.length === 0 ? (
-            <p className="text-small text-muted">{t("dashboard.noPrescriptions")}</p>
-          ) : (
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {d.recent_prescriptions.map((rx) => (
-                <li key={rx.id}>
-                  <Link
-                    href={`/consultations/${rx.consultation_id}`}
-                    className="flex h-full flex-col rounded-lg border-l-[3px] border border-line border-l-ink bg-surface px-4 py-3 transition-colors duration-150 hover:bg-sunken"
-                  >
-                    <span className="flex flex-wrap items-center justify-between gap-2">
-                      <ProvenanceChip kind="doctor" label={rx.authored_by.name} />
-                      <span className="text-small text-muted">
-                        {t("prescription.issuedOn", { date: formatDate(rx.created_at) })}
+          <Card className="max-lg:order-5" aria-labelledby="prescriptions-heading">
+            <CardHeader id="prescriptions-heading" title={t("dashboard.recentPrescriptions")} />
+            {d.recent_prescriptions.length === 0 ? (
+              <p className="text-small text-muted">{t("dashboard.noPrescriptions")}</p>
+            ) : (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {d.recent_prescriptions.map((rx) => (
+                  <li key={rx.id}>
+                    <Link
+                      href={`/consultations/${rx.consultation_id}`}
+                      className="flex h-full flex-col rounded-lg border-l-[3px] border border-line border-l-ink bg-surface px-4 py-3 transition-colors duration-150 hover:bg-sunken"
+                    >
+                      <span className="flex flex-wrap items-center justify-between gap-2">
+                        <ProvenanceChip kind="doctor" label={rx.authored_by.name} />
+                        <span className="text-small text-muted">
+                          {t("prescription.issuedOn", { date: formatDate(rx.created_at) })}
+                        </span>
                       </span>
-                    </span>
-                    <span className="mt-2 text-body text-ink">{rx.items.map((i) => i.medication).join(" · ")}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                      <span className="mt-2 text-body text-ink">{rx.items.map((i) => i.medication).join(" · ")}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-5 max-lg:contents">
+          <Card className="max-lg:order-2" aria-labelledby="consultations-heading">
+            <CardHeader
+              id="consultations-heading"
+              title={t("dashboard.activeConsultations")}
+              action={
+                <Link href="/consultations" className={buttonClasses("ghost", "sm")}>
+                  {t("dashboard.viewAll")}
+                </Link>
+              }
+            />
+            {d.open_consultations.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-small text-muted">
+                <ChatCircleDots size={22} aria-hidden className="mx-auto mb-1.5 text-subtle" />
+                {t("dashboard.noConsultations")}
+              </div>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {d.open_consultations.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      href={`/consultations/${c.id}`}
+                      className="flex items-start gap-3 rounded-lg border border-line px-3 py-3 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint"
+                    >
+                      <Avatar name={c.doctor.name} size="sm" />
+                      {/* The status sits under the name, so a narrow column never truncates who the doctor is. */}
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold leading-snug text-ink">{c.doctor.name}</span>
+                        <span className="block text-small text-muted">{c.doctor.specialization}</span>
+                        <span className="mt-2 block">
+                          <StatusBadge status={c.status} />
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="max-lg:order-4" aria-labelledby="documents-heading">
+            <CardHeader
+              id="documents-heading"
+              title={t("dashboard.recentDocuments")}
+              action={
+                <Link href="/documents" className={buttonClasses("ghost", "sm")}>
+                  {t("dashboard.viewAll")}
+                </Link>
+              }
+            />
+            {d.recent_documents.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-small text-muted">
+                {t("dashboard.noDocuments")}
+              </div>
+            ) : (
+              <ul className="flex flex-col gap-2.5">
+                {d.recent_documents.map((doc) => (
+                  <li key={doc.id}>
+                    <Link href={`/documents/${doc.id}`} className="group block">
+                      <span className="block truncate font-medium text-ink group-hover:underline">
+                        {doc.title || doc.file_name}
+                      </span>
+                      <span className="mt-1 flex flex-wrap items-center gap-2 text-small text-muted">
+                        <ProvenanceChip kind="document" label={t(`documentType.${doc.document_type}`)} />
+                        {formatDate(doc.uploaded_at)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/documents" className={buttonClasses("secondary", "md", "mt-4 w-full")}>
+              {t("dashboard.uploadDocument")}
+            </Link>
+          </Card>
+        </div>
       </div>
     </>
   );

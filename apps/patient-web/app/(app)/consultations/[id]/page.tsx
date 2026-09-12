@@ -160,10 +160,10 @@ export default function ConsultationDetailPage() {
                 </Badge>
               ))}
             </p>
-            <dl className="mt-3 flex flex-col gap-1 text-small text-muted">
-              {c.started_at ? <dd>{t("consultations.startedOn", { date: formatDateTime(c.started_at) })}</dd> : null}
-              {c.completed_at ? <dd>{t("consultations.completedOn", { date: formatDateTime(c.completed_at) })}</dd> : null}
-            </dl>
+            <div className="mt-3 flex flex-col gap-1 text-small text-muted">
+              {c.started_at ? <p>{t("consultations.startedOn", { date: formatDateTime(c.started_at) })}</p> : null}
+              {c.completed_at ? <p>{t("consultations.completedOn", { date: formatDateTime(c.completed_at) })}</p> : null}
+            </div>
           </Card>
 
           <Card aria-labelledby="shared-heading">
@@ -181,7 +181,7 @@ export default function ConsultationDetailPage() {
             )}
             {c.request_message ? (
               <div className="mt-4">
-                <p className="text-label uppercase text-subtle">{t("consultations.yourNote")}</p>
+                <p className="text-small font-semibold text-muted">{t("consultations.yourNote")}</p>
                 <ProvenanceBlock
                   kind="original"
                   className="mt-1.5"

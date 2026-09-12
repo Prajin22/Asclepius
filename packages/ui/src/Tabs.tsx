@@ -49,7 +49,8 @@ export function SegmentedTabs<T extends string>({
             onClick={() => onChange(item.value)}
             className={cn(
               "inline-flex shrink-0 items-center gap-2 rounded-full border font-semibold transition-colors duration-150",
-              size === "sm" ? "min-h-9 px-3.5 text-small" : "min-h-10 px-4 text-body",
+              // 44px on a phone, compact where there is a pointer.
+              size === "sm" ? "min-h-11 px-3.5 text-small sm:min-h-9" : "min-h-11 px-4 text-body sm:min-h-10",
               selected
                 ? "border-brand bg-brand text-white"
                 : "border-line bg-surface text-muted hover:border-brand/40 hover:text-ink",

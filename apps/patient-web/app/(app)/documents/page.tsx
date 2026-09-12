@@ -10,7 +10,7 @@ import {
   LanguageTag,
   PageHeader,
   ProvenanceChip,
-  SkeletonCard,
+  SkeletonText,
   formatBytes,
 } from "@carebridge/ui";
 import { ArrowRight, FilePlus } from "@phosphor-icons/react/dist/ssr";
@@ -46,7 +46,7 @@ export default function DocumentsPage() {
           {q.error && !q.data ? (
             <ErrorState error={q.error} onRetry={q.reload} />
           ) : !q.data ? (
-            <SkeletonCard className="border-0 p-0" />
+            <SkeletonText lines={4} className="py-2" />
           ) : q.data.length === 0 ? (
             <div className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-10 text-center">
               <FilePlus size={26} aria-hidden className="mx-auto text-subtle" />

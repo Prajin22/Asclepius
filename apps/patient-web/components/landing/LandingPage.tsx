@@ -16,18 +16,18 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HelixScene } from "./HelixScene";
 
 /**
- * Sections arrive as the reader reaches them — the only motion on the page, and
- * only when the reader has not asked for less of it. Without JavaScript, or with
- * reduced motion, everything is simply already there.
+ * The page's one scroll moment, and it tells the product's story in order: the
+ * patient's own words, then what the machine read from them, then the items the
+ * patient confirmed. Every other section is simply there. Without JavaScript, or
+ * with reduced motion, so is this one.
  */
-function useReveal() {
-  const root = useRef<HTMLDivElement>(null);
+function useProvenanceSequence() {
+  const stage = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const node = stage.current;
+    if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // Strict Mode mounts effects twice, and the cleanup runs before this dynamic
-    // import resolves — so a late arrival must not build a second set of tweens
-    // on top of the first. Two overlapping `from` tweens would capture the
-    // already-hidden state as the end state and leave the page blank.
+    // import resolves — a late arrival must not build a second timeline over the first.
     let cancelled = false;
     let context: { revert: () => void } | undefined;
     void (async () => {
@@ -35,25 +35,22 @@ function useReveal() {
       if (cancelled) return;
       gsap.registerPlugin(ScrollTrigger);
       context = gsap.context(() => {
-        gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
-          // fromTo, not from: the visible end state is stated outright, so it can
-          // never be inferred from whatever the element happens to look like now.
-          gsap.fromTo(
-            element,
-            { opacity: 0, y: 20 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.65,
-              ease: "power2.out",
-              overwrite: "auto",
-              scrollTrigger: { trigger: element, start: "top 88%", once: true },
-            },
-          );
-        });
-      }, root);
-      // Webfonts swap in after the triggers are measured and shift everything
-      // down; re-measure once they have settled.
+        // fromTo, not from: the visible end state is stated outright, so it can
+        // never be inferred from whatever the element happens to look like now.
+        gsap.fromTo(
+          "[data-step]",
+          { autoAlpha: 0, y: 14 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "expo.out",
+            stagger: 0.22,
+            scrollTrigger: { trigger: node, start: "top 72%", once: true },
+          },
+        );
+      }, node);
+      // Webfonts swap in after the trigger is measured and shift the page; re-measure once they settle.
       void document.fonts?.ready.then(() => {
         if (!cancelled) ScrollTrigger.refresh();
       });
@@ -63,7 +60,7 @@ function useReveal() {
       context?.revert();
     };
   }, []);
-  return root;
+  return stage;
 }
 
 function Section({
@@ -86,12 +83,12 @@ function Section({
 
 export function LandingPage() {
   const { t } = useI18n();
-  const root = useReveal();
+  const evidence = useProvenanceSequence();
 
   const steps = [
-    { key: "step1", n: "01" },
-    { key: "step2", n: "02" },
-    { key: "step3", n: "03" },
+    { key: "step1", n: "1" },
+    { key: "step2", n: "2" },
+    { key: "step3", n: "3" },
   ] as const;
 
   const promises = [
@@ -101,7 +98,7 @@ export function LandingPage() {
   ] as const;
 
   return (
-    <div ref={root} className="flex min-h-[100dvh] flex-col bg-canvas">
+    <div className="flex min-h-[100dvh] flex-col bg-canvas">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow-md"
@@ -132,7 +129,7 @@ export function LandingPage() {
         <Section className="grid items-center gap-10 py-12 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-14 lg:py-16">
           <div className="max-w-2xl">
             <h1 className="text-display text-balance text-ink">{t("landing.hero.title")}</h1>
-            <p className="mt-5 max-w-xl text-body-lg text-muted">{t("landing.hero.subtitle")}</p>
+            <p className="mt-5 max-w-xl text-body-lg text-pretty text-muted">{t("landing.hero.subtitle")}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/login" className={buttonClasses("primary", "lg")}>
                 {t("landing.hero.primary")}
@@ -147,17 +144,22 @@ export function LandingPage() {
           <HelixScene className="relative mx-auto aspect-[4/5] w-full max-w-sm lg:max-w-none [&>canvas]:size-full" />
         </Section>
 
-        {/* How it works */}
+        {/* How it works — one joined sequence; the numbers are the order the product works in. */}
         <Section id="how" labelledBy="how-title" className="py-16 lg:py-24">
-          <h2 id="how-title" data-reveal className="max-w-2xl text-title text-ink">
+          <h2 id="how-title" className="max-w-2xl text-title text-balance text-ink">
             {t("landing.how.title")}
           </h2>
           <ol className="mt-10 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3">
             {steps.map(({ key, n }) => (
-              <li key={key} data-reveal className="flex flex-col gap-3 bg-surface p-6 lg:p-8">
-                <span className="text-label uppercase tabular text-brand">{n}</span>
+              <li key={key} className="flex flex-col gap-3 bg-surface p-6 lg:p-8">
+                <span
+                  aria-hidden
+                  className="tabular grid size-8 place-items-center rounded-full bg-brand-soft text-small font-semibold text-brand-strong"
+                >
+                  {n}
+                </span>
                 <h3 className="text-subheading text-ink">{t(`landing.how.${key}.title`)}</h3>
-                <p className="text-body text-muted">{t(`landing.how.${key}.body`)}</p>
+                <p className="text-body text-pretty text-muted">{t(`landing.how.${key}.body`)}</p>
               </li>
             ))}
           </ol>
@@ -166,36 +168,42 @@ export function LandingPage() {
         {/* Evidence — shown with the product's own components, not a mock-up. */}
         <Section labelledBy="evidence-title" className="py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-            <div data-reveal>
+            <div>
               <h2 id="evidence-title" className="text-title text-balance text-ink">
                 {t("landing.evidence.title")}
               </h2>
-              <p className="mt-4 max-w-lg text-body-lg text-muted">{t("landing.evidence.body")}</p>
+              <p className="mt-4 max-w-lg text-body-lg text-pretty text-muted">{t("landing.evidence.body")}</p>
             </div>
-            <div data-reveal className="flex flex-col gap-3">
-              <ProvenanceBlock kind="original" lang="ta" meta="தமிழ்">
-                <p className="text-body-lg">எனக்கு இரண்டு நாட்களாக தலைவலி மற்றும் காய்ச்சல் உள்ளது.</p>
-              </ProvenanceBlock>
-              <ArrowDown size={20} aria-hidden className="mx-auto text-subtle" />
-              <ProvenanceBlock kind="machine" meta={t("provenance.machineNote")}>
-                <p>Patient reports headache and fever. Reported duration: 2 days.</p>
-                <ul className="mt-3 flex flex-col gap-2">
-                  {[
-                    { value: "headache", quote: "தலைவலி" },
-                    { value: "2 days", quote: "இரண்டு நாட்களாக" },
-                  ].map((item) => (
-                    <li key={item.value} className="rounded-md border border-ai-line/70 bg-surface px-3 py-2">
-                      <span className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-semibold text-ink">{item.value}</span>
-                        <ProvenanceChip kind="confirmed" />
-                      </span>
-                      <span className="mt-1 block text-small text-muted">
-                        {t("ai.evidenceFrom")}: <q lang="ta">{item.quote}</q>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </ProvenanceBlock>
+            <div ref={evidence} className="flex flex-col gap-3">
+              <div data-step>
+                <ProvenanceBlock kind="original" lang="ta" meta="தமிழ்">
+                  <p className="text-body-lg">எனக்கு இரண்டு நாட்களாக தலைவலி மற்றும் காய்ச்சல் உள்ளது.</p>
+                </ProvenanceBlock>
+              </div>
+              <span data-step className="flex justify-center">
+                <ArrowDown size={20} aria-hidden className="text-subtle" />
+              </span>
+              <div data-step>
+                <ProvenanceBlock kind="machine" meta={t("provenance.machineNote")}>
+                  <p>Patient reports headache and fever. Reported duration: 2 days.</p>
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {[
+                      { value: "headache", quote: "தலைவலி" },
+                      { value: "2 days", quote: "இரண்டு நாட்களாக" },
+                    ].map((item) => (
+                      <li key={item.value} data-step className="rounded-md border border-ai-line/70 bg-surface px-3 py-2">
+                        <span className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-semibold text-ink">{item.value}</span>
+                          <ProvenanceChip kind="confirmed" />
+                        </span>
+                        <span className="mt-1 block text-small text-muted">
+                          {t("ai.evidenceFrom")}: <q lang="ta">{item.quote}</q>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </ProvenanceBlock>
+              </div>
             </div>
           </div>
         </Section>
@@ -203,7 +211,7 @@ export function LandingPage() {
         {/* Documents */}
         <Section labelledBy="documents-title" className="py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-            <div data-reveal className="order-2 flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 lg:order-1">
+            <div className="order-2 flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 lg:order-1">
               <ReadingProvenance method="ocr" engine="rapidocr-onnxruntime 1.4.4" confidence={0.985} />
               <div className="rounded-lg border border-paper-line bg-paper p-4 font-mono text-small leading-relaxed text-paper-ink">
                 Demo Diagnostics Laboratory
@@ -220,22 +228,22 @@ export function LandingPage() {
                 <ProvenanceChip kind="machine" />
               </div>
             </div>
-            <div data-reveal className="order-1 lg:order-2">
+            <div className="order-1 lg:order-2">
               <h2 id="documents-title" className="text-title text-balance text-ink">
                 {t("landing.documents.title")}
               </h2>
-              <p className="mt-4 max-w-lg text-body-lg text-muted">{t("landing.documents.body")}</p>
+              <p className="mt-4 max-w-lg text-body-lg text-pretty text-muted">{t("landing.documents.body")}</p>
             </div>
           </div>
         </Section>
 
         {/* Languages */}
         <Section labelledBy="languages-title" className="py-16 lg:py-24">
-          <div data-reveal className="rounded-2xl border border-line bg-surface p-6 sm:p-10">
+          <div className="rounded-2xl border border-line bg-surface p-6 sm:p-10">
             <h2 id="languages-title" className="max-w-xl text-title text-balance text-ink">
               {t("landing.languages.title")}
             </h2>
-            <p className="mt-4 max-w-xl text-body-lg text-muted">{t("landing.languages.body")}</p>
+            <p className="mt-4 max-w-xl text-body-lg text-pretty text-muted">{t("landing.languages.body")}</p>
             <ul className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
                 { lang: "ta", text: "மூன்று நாட்களாக தலைவலி" },
@@ -254,21 +262,21 @@ export function LandingPage() {
           </div>
         </Section>
 
-        {/* Doctor — the page's one deliberate dark block, matching the clinician app. */}
+        {/* Doctor — the page's one deliberate dark block, the clinician workspace's own ink. */}
         <Section labelledBy="doctor-title" className="py-16 lg:py-24">
-          <div data-reveal className="overflow-hidden rounded-2xl bg-ink px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-16">
+          <div className="overflow-hidden rounded-2xl bg-ink px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-16">
             <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-14">
               <div>
                 <h2 id="doctor-title" className="text-title text-balance text-white">
                   {t("landing.doctor.title")}
                 </h2>
-                <p className="mt-4 max-w-lg text-body-lg text-white/75">{t("landing.doctor.body")}</p>
+                <p className="mt-4 max-w-lg text-body-lg text-pretty text-white/75">{t("landing.doctor.body")}</p>
               </div>
               <ul className="flex flex-col gap-3">
                 {[
-                  { icon: FileText, label: t("provenance.document"), body: t("case.documents") },
-                  { icon: ShieldCheck, label: t("provenance.confirmed"), body: t("ai.confirmedByPatient") },
-                  { icon: Stethoscope, label: t("provenance.doctor"), body: t("case.assessment") },
+                  { icon: FileText, label: t("provenance.document"), body: t("landing.doctorView.documents") },
+                  { icon: ShieldCheck, label: t("provenance.confirmed"), body: t("landing.doctorView.confirmed") },
+                  { icon: Stethoscope, label: t("provenance.doctor"), body: t("landing.doctorView.assessment") },
                 ].map(({ icon: Icon, label, body }) => (
                   <li key={label} className="flex items-start gap-3 rounded-lg bg-white/[0.07] px-4 py-3">
                     <Icon size={20} weight="regular" aria-hidden className="mt-0.5 shrink-0 text-white/70" />
@@ -283,24 +291,28 @@ export function LandingPage() {
           </div>
         </Section>
 
-        {/* Trust */}
+        {/* Trust — a statement and its three commitments, read as a list rather than three matching cards. */}
         <Section labelledBy="trust-title" className="py-16 lg:py-24">
-          <h2 id="trust-title" data-reveal className="max-w-2xl text-title text-ink">
-            {t("landing.trust.title")}
-          </h2>
-          <ul className="mt-10 grid gap-4 md:grid-cols-3">
-            {promises.map(({ key, Icon }) => (
-              <li key={key} data-reveal className="rounded-xl border border-line bg-surface p-6">
-                <Icon size={24} weight="regular" aria-hidden className="text-brand" />
-                <p className="mt-3 text-body text-ink">{t(`landing.trust.${key}`)}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
+            <h2 id="trust-title" className="max-w-sm text-title text-balance text-ink">
+              {t("landing.trust.title")}
+            </h2>
+            <ul className="divide-y divide-line border-y border-line">
+              {promises.map(({ key, Icon }) => (
+                <li key={key} className="flex items-start gap-4 py-5">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-soft text-brand-strong">
+                    <Icon size={20} weight="regular" aria-hidden />
+                  </span>
+                  <p className="pt-1.5 text-body-lg text-pretty text-ink">{t(`landing.trust.${key}`)}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Section>
 
         {/* Call to action */}
         <Section className="pb-20 pt-4 lg:pb-28">
-          <div data-reveal className="rounded-2xl bg-brand px-6 py-12 text-center text-white sm:px-10 lg:py-16">
+          <div className="rounded-2xl bg-brand px-6 py-12 text-center text-white sm:px-10 lg:py-16">
             <h2 className="mx-auto max-w-2xl text-title text-balance text-white">{t("landing.cta.title")}</h2>
             <p className="mx-auto mt-3 max-w-md text-body text-white/75">{t("landing.cta.body")}</p>
             <Link

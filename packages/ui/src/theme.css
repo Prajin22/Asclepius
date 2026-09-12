@@ -32,6 +32,12 @@
   --text-heading--letter-spacing: -0.02em;
   --text-heading--font-weight: 600;
 
+  /* Page titles in the product: fixed, not fluid (operate surfaces). */
+  --text-page: 1.75rem;
+  --text-page--line-height: 1.15;
+  --text-page--letter-spacing: -0.024em;
+  --text-page--font-weight: 600;
+
   --text-subheading: 1.125rem;
   --text-subheading--line-height: 1.35;
   --text-subheading--letter-spacing: -0.011em;
@@ -126,6 +132,14 @@
     -webkit-text-size-adjust: 100%;
     /* No CSS smooth scrolling: it fights ScrollTrigger's position measurements
        on the landing page, which is the only place that animates on scroll. */
+    /* Browser-drawn surfaces take the palette too, not the platform defaults. */
+    accent-color: var(--color-brand);
+    caret-color: var(--color-brand);
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: from-font;
   }
   body {
     background-color: var(--color-canvas);

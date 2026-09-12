@@ -154,7 +154,7 @@ function AuthPanel() {
           <h1 className="mt-3 text-heading tracking-tight text-ink lg:mt-0">{t("auth.title")}</h1>
 
           <fieldset className="mt-5">
-            <legend className="text-label uppercase text-subtle">{t("auth.roleLabel")}</legend>
+            <legend className="text-small font-semibold text-muted">{t("auth.roleLabel")}</legend>
             <div className="mt-2 grid grid-cols-2 gap-2.5">
               <RoleOption
                 value="patient"
@@ -277,7 +277,7 @@ function AuthPanel() {
 
         {SHOW_DEMO_ACCOUNT && mode === "signIn" ? (
           <div className="mt-4 rounded-xl border border-dashed border-line-strong bg-surface px-4 py-3.5">
-            <p className="text-label uppercase text-subtle">{t("auth.demoTitle")}</p>
+            <p className="text-small font-semibold text-muted">{t("auth.demoTitle")}</p>
             <ul className="mt-2 flex flex-col gap-2.5">
               {DEMOS[role].map((key) => {
                 const account = DEMO_ACCOUNTS[key];
@@ -286,9 +286,9 @@ function AuthPanel() {
                   <li key={key} className="flex items-center justify-between gap-3">
                     <span className="min-w-0">
                       <span className="block text-small font-medium text-ink">{label}</span>
-                      <span className="block break-all font-mono text-caption text-muted">
-                        {account.email} / {account.password}
-                      </span>
+                      {/* One value per line: an address never breaks mid-word on a phone. */}
+                      <span className="block font-mono text-caption text-muted">{account.email}</span>
+                      <span className="block font-mono text-caption text-muted">{account.password}</span>
                     </span>
                     <button
                       type="button"

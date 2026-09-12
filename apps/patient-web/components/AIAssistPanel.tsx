@@ -128,7 +128,7 @@ export function AIAssistPanel({
           {state?.status === "ok" ? (
             <div className="mt-5 flex flex-col gap-4">
               <section aria-label={t("ai.layers.original")}>
-                <LayerLabel step="1" label={t("ai.layers.original")} />
+                <LayerLabel label={t("ai.layers.original")} />
                 <ProvenanceBlock kind="original" lang={state.detected_language ?? undefined} className="mt-2">
                   <p className="whitespace-pre-line text-body-lg">{state.original_text ?? originalText}</p>
                 </ProvenanceBlock>
@@ -137,7 +137,7 @@ export function AIAssistPanel({
               <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
 
               <section aria-label={t("ai.layers.normalized")}>
-                <LayerLabel step="2" label={t("ai.layers.normalized")} />
+                <LayerLabel label={t("ai.layers.normalized")} />
                 <ProvenanceBlock
                   kind="machine"
                   className="mt-2"
@@ -165,7 +165,7 @@ export function AIAssistPanel({
               <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
 
               <section aria-label={t("ai.layers.facts")}>
-                <LayerLabel step="3" label={t("ai.layers.facts")} />
+                <LayerLabel label={t("ai.layers.facts")} />
                 <p className="mt-2 text-subheading text-ink">{t("ai.reviewTitle")}</p>
                 <p className="text-small text-muted">{t("ai.reviewSubtitle")}</p>
                 {facts.length === 0 ? (
@@ -194,16 +194,9 @@ export function AIAssistPanel({
   );
 }
 
-/** The step number carries the order; the label carries the meaning. */
-function LayerLabel({ step, label }: { step: string; label: string }) {
-  return (
-    <p className="flex items-center gap-2">
-      <span className="tabular inline-flex size-6 items-center justify-center rounded-full bg-ink/[0.06] text-caption font-semibold text-ink">
-        {step}
-      </span>
-      <span className="text-label uppercase text-subtle">{label}</span>
-    </p>
-  );
+/** Names one of the three layers. The label already carries its step number, so no badge repeats it. */
+export function LayerLabel({ label }: { label: string }) {
+  return <p className="text-small font-semibold text-muted">{label}</p>;
 }
 
 /** Whether the English version still means what the patient wrote. */
@@ -272,17 +265,18 @@ export function FactRow({
   return (
     <li
       className={cn(
-        "rounded-lg border border-l-[3px] bg-surface px-4 py-3.5 transition-shadow duration-150",
+        // A container, so the row lays itself out by its own width (a document's side column, a phone).
+        "@container rounded-lg border border-l-[3px] bg-surface px-4 py-3.5 transition-shadow duration-150",
         REVIEW_RULE[fact.review_state],
         rejected ? "border-line bg-sunken/70 opacity-70" : "border-line",
         aboutSomeoneElse && !rejected && "border-warning/40",
         highlighted && "shadow-md ring-2 ring-brand/40",
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+      <div className="flex flex-col gap-3 @xl:flex-row @xl:items-start @xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-label uppercase text-subtle">{t(`ai.category.${fact.category}`)}</span>
+            <span className="text-small font-semibold text-muted">{t(`ai.category.${fact.category}`)}</span>
             <Badge tone={aboutSomeoneElse ? "warning" : "neutral"}>{t(`ai.subject.${fact.subject}`)}</Badge>
           </div>
           {editing ? (
@@ -323,7 +317,7 @@ export function FactRow({
           </div>
         </div>
 
-        <div className="flex w-full flex-wrap gap-1.5 sm:w-auto sm:justify-end">
+        <div className="flex flex-wrap gap-1.5 border-t border-line pt-3 @xl:justify-end @xl:border-0 @xl:pt-0">
           {editing ? (
             <>
               <Button
@@ -348,11 +342,12 @@ export function FactRow({
                 disabled={busy || fact.review_state === "confirmed"}
                 onClick={() => onReview(fact.id, { action: "confirm" })}
               >
-                <CheckCircle size={15} weight="bold" aria-hidden />
+                {/* Icons drop out when the row is narrow, so the three actions stay on one line. */}
+                <CheckCircle size={15} weight="bold" aria-hidden className="@max-sm:hidden" />
                 {t("ai.confirm")}
               </Button>
               <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditing(true)}>
-                <PencilSimple size={15} aria-hidden />
+                <PencilSimple size={15} aria-hidden className="@max-sm:hidden" />
                 {t("ai.edit")}
               </Button>
               <Button
@@ -362,7 +357,7 @@ export function FactRow({
                 disabled={busy || rejected}
                 onClick={() => onReview(fact.id, { action: "reject" })}
               >
-                <Prohibit size={15} aria-hidden />
+                <Prohibit size={15} aria-hidden className="@max-sm:hidden" />
                 {t("ai.reject")}
               </Button>
             </>

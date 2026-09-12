@@ -84,7 +84,8 @@ export function UploadForm({
   return (
     <Card>
       <CardHeader title={t("documents.uploadTitle")} />
-      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      {/* Sized by its own width, not the window's: in the narrow upload column the fields stack. */}
+      <form onSubmit={submit} noValidate className="@container flex flex-col gap-4">
         <Field label={t("documents.file")} hint={t("documents.fileHint")} error={fileError ? t(fileError) : undefined}>
           {(p) => (
             <div
@@ -127,7 +128,7 @@ export function UploadForm({
             </div>
           )}
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 @md:grid-cols-2">
           <Field label={t("documents.type")} error={typeError ? t(typeError) : undefined}>
             {(p) => (
               <Select {...p} value={documentType} onChange={(e) => setDocumentType(e.target.value as DocumentType | "")}>
