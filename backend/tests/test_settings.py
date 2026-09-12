@@ -1,0 +1,44 @@
+"""Configuration must load from the documented files, exactly as a new developer uses them."""
+
+from app.core.config import REPO_ROOT, Settings
+
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _file_values_win(monkeypatch):
+    # conftest pins CORS_ORIGINS in the process environment, which would
+    # otherwise take precedence over the file under test.
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+
+
+def test_env_example_loads():
+    """README setup is `cp .env.example .env`; that file must parse."""
+    settings = Settings(_env_file=REPO_ROOT / ".env.example")
+    assert settings.cors_origins == ["http://localhost:3000", "http://localhost:3001"]
+    assert settings.demo_mode is True
+
+
+def test_comma_separated_origins(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text("CORS_ORIGINS=http://a.test, http://b.test\n", encoding="utf-8")
+    assert Settings(_env_file=env).cors_origins == ["http://a.test", "http://b.test"]
+
+
+def test_json_list_origins(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text('CORS_ORIGINS=["http://a.test"]\n', encoding="utf-8")
+    assert Settings(_env_file=env).cors_origins == ["http://a.test"]
+
+
+def test_blank_values_mean_not_configured(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text(
+        "AI_PRICE_INPUT_PER_MTOK=\nAI_PRICE_OUTPUT_PER_MTOK=\nANTHROPIC_API_KEY=\n",
+        encoding="utf-8",
+    )
+    settings = Settings(_env_file=env)
+    assert settings.ai_price_input_per_mtok is None
+    assert settings.ai_price_output_per_mtok is None
+    assert settings.api_key_for("anthropic") is None

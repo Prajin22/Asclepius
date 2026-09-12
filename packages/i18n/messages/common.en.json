@@ -1,0 +1,210 @@
+{
+  "app": {
+    "name": "CareBridge",
+    "tagline": "Health information, organised and shared on your terms."
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
+  "actions": {
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "back": "Back",
+    "close": "Close",
+    "retry": "Try again",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "send": "Send",
+    "open": "Open",
+    "view": "View"
+  },
+  "status": {
+    "requested": "Requested",
+    "accepted": "Accepted",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "source": {
+    "legend": "Where information comes from",
+    "patient": "Patient provided",
+    "ai_extracted": "AI extracted",
+    "doctor": "Doctor provided"
+  },
+  "recordType": {
+    "condition": "Condition",
+    "allergy": "Allergy",
+    "medication": "Medication",
+    "history_note": "Medical history",
+    "current_problem": "Current problem",
+    "family_history": "Family history"
+  },
+  "recordStatus": {
+    "active": "Current",
+    "resolved": "Past"
+  },
+  "documentType": {
+    "prescription": "Prescription",
+    "lab_report": "Lab report",
+    "discharge_summary": "Discharge summary",
+    "scan": "Scan",
+    "other": "Other"
+  },
+  "documentStatus": {
+    "uploaded": "Stored",
+    "processing": "Processing",
+    "processed": "Processed",
+    "failed": "Processing failed"
+  },
+  "sex": {
+    "female": "Female",
+    "male": "Male",
+    "other": "Other",
+    "undisclosed": "Prefer not to say"
+  },
+  "prescription": {
+    "title": "Prescription",
+    "doctorAuthored": "Written by the doctor",
+    "medication": "Medication",
+    "dosage": "Dosage",
+    "frequency": "Frequency",
+    "duration": "Duration",
+    "instructions": "Instructions",
+    "generalAdvice": "Doctor's advice",
+    "issuedOn": "Issued {date}",
+    "registration": "Reg. no. {id}"
+  },
+  "messages": {
+    "title": "Messages",
+    "empty": "No messages yet.",
+    "label": "Message",
+    "placeholder": "Type your message",
+    "fromYou": "You",
+    "fromDoctor": "Doctor",
+    "fromPatient": "Patient",
+    "closed": "Messaging is available while the consultation is active.",
+    "sending": "Sending…"
+  },
+  "state": {
+    "loading": "Loading…",
+    "empty": "Nothing here yet."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Please check your connection.",
+    "unauthorized": "Your session has ended. Please sign in again.",
+    "authentication_failed": "The email or password is incorrect.",
+    "wrong_role": "This account cannot be used in this app.",
+    "email_taken": "An account with this email already exists.",
+    "unsupported_type": "Only PDF, JPEG, PNG or WEBP files can be uploaded.",
+    "content_mismatch": "This file's content does not match its type.",
+    "bad_extension": "This file extension is not allowed.",
+    "file_too_large": "The file is too large (maximum 10 MB).",
+    "empty_file": "The file is empty.",
+    "duplicate_open_consultation": "You already have an open consultation with this doctor.",
+    "doctor_unavailable": "This doctor is not accepting consultations right now.",
+    "invalid_share_item": "One of the selected items could not be shared.",
+    "ai_rate_limited": "You have reached the AI processing limit for now. Your information is unaffected — please try again later.",
+    "ai_consent_required": "Turn on AI processing in your profile to use this.",
+    "invalid_transition": "This action is not possible at this stage.",
+    "invalid_input": "Please check the information you entered.",
+    "validation": "Please check the information you entered.",
+    "forbidden": "You do not have access to this.",
+    "not_found": "This could not be found.",
+    "conflict": "This action could not be completed right now.",
+    "document_integrity_failed": "The stored file does not match the file that was uploaded, so it was not read.",
+    "document_unreadable": "This document could not be read. The original file is still available."
+  },
+  "language": {
+    "switcher": "Display language",
+    "writtenIn": "Written in {language}"
+  },
+  "safety": {
+    "notDiagnosis": "CareBridge organises your information. It does not diagnose or give treatment advice — only your doctor can.",
+    "emergency": "In an emergency, call 108 or 112 now."
+  },
+  "ai": {
+    "label": "AI",
+    "machineGenerated": "Machine-generated",
+    "notDiagnosis": "CareBridge AI organises and translates information. It does not diagnose or prescribe.",
+    "original": "Original — the patient's own words",
+    "normalized": "AI-normalised English",
+    "extracted": "Extracted information",
+    "evidence": "Evidence",
+    "evidenceFrom": "From the original text",
+    "unavailable": "AI processing is unavailable right now. Your information is unchanged.",
+    "notProcessed": "Not processed by AI.",
+    "detectedLanguage": "Detected language: {language}",
+    "unparsed": "Not understood by the AI",
+    "cached": "Reused an earlier result",
+    "provenance": "{provider} · {model}",
+    "generatedOn": "Processed {date}",
+    "confirmedByPatient": "Confirmed by patient",
+    "editedByPatient": "Edited by patient",
+    "pendingReview": "Awaiting patient confirmation",
+    "needsReview": "Needs review",
+    "category": {
+      "symptom": "Symptom",
+      "duration": "Duration",
+      "medication": "Medication",
+      "allergy": "Allergy",
+      "medical_history": "Medical history",
+      "measurement": "Measurement"
+    },
+    "subject": {
+      "self": "About you",
+      "family": "About a family member",
+      "other": "About someone else",
+      "unknown": "Who this is about is unclear"
+    },
+    "attributedTo": "Attributed by: “{cue}”",
+    "familyNotYours": "Recorded as family history — not as your own condition.",
+    "check": {
+      "ok": "Meaning preserved across all three versions",
+      "review": "The English wording needs a check",
+      "added": "In the English but not in your words",
+      "dropped": "Found in your words but missing from the English",
+      "attributionLost": "The English does not say this was about a family member"
+    },
+    "layers": {
+      "original": "1 · Your words",
+      "normalized": "2 · English version",
+      "facts": "3 · Structured items"
+    }
+  },
+  "document": {
+    "preview": "Preview",
+    "openNewTab": "Open in new tab",
+    "previewUnavailable": "Preview is not available for this file type.",
+    "loadingFile": "Loading file…"
+  },
+  "reading": {
+    "method": {
+      "pdf_text_layer": "Copied exactly from the PDF",
+      "ocr": "Read by OCR — machine transcription, can misread",
+      "vision_provider": "Read by an AI vision model — machine transcription, can misread",
+      "none": "Nothing could be read"
+    },
+    "confidence": "OCR confidence {percent}%",
+    "engine": "Engine: {engine}",
+    "pageImageAlt": "Page {page} of the original document",
+    "noText": "No text was found on this page.",
+    "warnings": {
+      "truncated": "Only the first {count} of {total} pages were read.",
+      "lowConfidence": "Some text on this page was hard to read. Check it against the original.",
+      "noPositions": "This reader does not report where text sits on the page, so evidence cannot be outlined.",
+      "unreadableRegions": "Parts of this page could not be read.",
+      "ocrUnavailable": "This page has no text layer and no reader was available.",
+      "noTextDetected": "No text was detected on this page.",
+      "failed": "Reading this page failed."
+    }
+  },
+  "units": {
+    "kb": "{n} KB",
+    "mb": "{n} MB"
+  }
+}

@@ -1,0 +1,343 @@
+{
+  "name": "carebridge-synthetic-extraction-v1",
+  "description": "Synthetic patient statements with ground-truth structured information. No real patient data: every case was written for testing. Values are the canonical English forms the pipeline is expected to produce; matching is substring-tolerant (see run_eval.py).",
+  "created": "2026-09-12",
+  "cases": [
+    {
+      "id": "en-001",
+      "input_language": "en",
+      "source": "I have had a headache for two days.",
+      "expected": {"language": "en", "symptom": ["headache"], "duration": ["2 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["headache", "2 days"],
+      "notes": "Baseline: one symptom, one duration."
+    },
+    {
+      "id": "en-002",
+      "input_language": "en",
+      "source": "Fever and cough since 3 days, and I am very tired.",
+      "expected": {"language": "en", "symptom": ["fever", "cough", "fatigue"], "duration": ["3 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["fever", "cough", "3 days"],
+      "notes": "Multiple symptoms in one sentence."
+    },
+    {
+      "id": "en-003",
+      "input_language": "en",
+      "source": "I have a cough but no fever.",
+      "expected": {"language": "en", "symptom": ["cough"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["cough"],
+      "notes": "Negation: 'no fever' must not become a fever symptom."
+    },
+    {
+      "id": "en-004",
+      "input_language": "en",
+      "source": "I am allergic to penicillin.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": ["penicillin"], "medical_history": [], "measurement": []},
+      "expected_keywords": ["penicillin", "allerg"],
+      "notes": "Explicitly stated allergy."
+    },
+    {
+      "id": "en-005",
+      "input_language": "en",
+      "source": "I have a headache. I have no known allergies.",
+      "expected": {"language": "en", "symptom": ["headache"], "duration": [], "medication": [], "allergy": ["no known allergies"], "medical_history": [], "measurement": []},
+      "expected_keywords": ["headache"],
+      "notes": "Explicit absence: allowed only because the patient stated it."
+    },
+    {
+      "id": "en-006",
+      "input_language": "en",
+      "source": "My stomach has been paining since last night.",
+      "expected": {"language": "en", "symptom": ["stomach pain"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["stomach"],
+      "notes": "Colloquial Indian English phrasing; no allergy must be produced."
+    },
+    {
+      "id": "en-007",
+      "input_language": "en",
+      "source": "I take amlodipine 5 mg every morning for blood pressure.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": ["amlodipine"], "allergy": [], "medical_history": ["hypertension"], "measurement": []},
+      "expected_keywords": ["amlodipine"],
+      "notes": "Medication with dose; 'blood pressure' implies the stated condition."
+    },
+    {
+      "id": "en-008",
+      "input_language": "en",
+      "source": "BP was 150/95 at the pharmacy yesterday.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": ["blood pressure 150/95"]},
+      "expected_keywords": ["150/95"],
+      "notes": "Measurement reported by the patient."
+    },
+    {
+      "id": "en-009",
+      "input_language": "en",
+      "source": "I am not feeling well.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": [],
+      "notes": "Ambiguous: nothing specific may be extracted."
+    },
+    {
+      "id": "en-010",
+      "input_language": "en",
+      "source": "My father has diabetes. I feel fine.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": [], "family": ["diabetes"]},
+      "expected_keywords": [],
+      "notes": "Trap: family history is not the patient's history."
+    },
+    {
+      "id": "en-011",
+      "input_language": "en",
+      "source": "Hedache and feverr since yesteday.",
+      "expected": {"language": "en", "symptom": ["headache", "fever"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["headache", "fever"],
+      "notes": "Spelling mistakes."
+    },
+    {
+      "id": "en-012",
+      "input_language": "en",
+      "source": "I was diagnosed with asthma as a child and use an inhaler sometimes.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": ["asthma"], "measurement": []},
+      "expected_keywords": ["asthma"],
+      "notes": "Stated medical history."
+    },
+    {
+      "id": "en-013",
+      "input_language": "en",
+      "source": "Chest pain when I climb stairs, for about one week.",
+      "expected": {"language": "en", "symptom": ["chest pain"], "duration": ["1 week"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["chest pain", "week"],
+      "notes": "Symptom plus duration in words."
+    },
+    {
+      "id": "en-014",
+      "input_language": "en",
+      "source": "Loose motions three times today and vomiting twice.",
+      "expected": {"language": "en", "symptom": ["loose motions", "vomiting"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["loose motions", "vomiting"],
+      "notes": "Counts are not durations."
+    },
+    {
+      "id": "en-015",
+      "input_language": "en",
+      "source": "Sugar was 210 mg/dL last week and I take metformin.",
+      "expected": {"language": "en", "symptom": [], "duration": ["1 week"], "medication": ["metformin"], "allergy": [], "medical_history": [], "measurement": ["blood sugar 210 mg/dL"]},
+      "expected_keywords": ["metformin", "210"],
+      "notes": "Measurement plus medication."
+    },
+    {
+      "id": "ta-001",
+      "input_language": "ta",
+      "source": "எனக்கு இரண்டு நாட்களாக தலைவலி உள்ளது.",
+      "expected": {"language": "ta", "symptom": ["headache"], "duration": ["2 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["headache", "2 days"],
+      "notes": "Canonical Tamil example from the brief."
+    },
+    {
+      "id": "ta-002",
+      "input_language": "ta",
+      "source": "மூன்று நாட்களாக காய்ச்சலும் இருமலும் உள்ளது.",
+      "expected": {"language": "ta", "symptom": ["fever", "cough"], "duration": ["3 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["fever", "cough", "3 days"],
+      "notes": "Two symptoms with a shared duration."
+    },
+    {
+      "id": "ta-003",
+      "input_language": "ta",
+      "source": "எனக்கு காய்ச்சல் இல்லை, ஆனால் இருமல் உள்ளது.",
+      "expected": {"language": "ta", "symptom": ["cough"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["cough"],
+      "notes": "Tamil negation follows the noun."
+    },
+    {
+      "id": "ta-004",
+      "input_language": "ta",
+      "source": "காலையில் தலைச்சுற்றல் மற்றும் தலைவலி. BP 150/95 என்று சொன்னார்கள்.",
+      "expected": {"language": "ta", "symptom": ["dizziness", "headache"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": ["blood pressure 150/95"]},
+      "expected_keywords": ["dizziness", "headache", "150/95"],
+      "notes": "Mixed script: Tamil text with a Latin measurement."
+    },
+    {
+      "id": "ta-005",
+      "input_language": "ta",
+      "source": "பென்சிலின் மருந்துக்கு ஒவ்வாமை உள்ளது.",
+      "expected": {"language": "ta", "symptom": [], "duration": [], "medication": [], "allergy": ["penicillin"], "medical_history": [], "measurement": []},
+      "expected_keywords": ["penicillin"],
+      "notes": "Tamil allergy statement."
+    },
+    {
+      "id": "ta-006",
+      "input_language": "ta",
+      "source": "ஐந்து வருடங்களாக இரத்த அழுத்தம் உள்ளது. தினமும் அம்லோடிபைன் எடுக்கிறேன்.",
+      "expected": {"language": "ta", "symptom": [], "duration": ["5 years"], "medication": ["amlodipine"], "allergy": [], "medical_history": ["hypertension"], "measurement": []},
+      "expected_keywords": ["hypertension", "amlodipine"],
+      "notes": "History plus current medication."
+    },
+    {
+      "id": "ta-007",
+      "input_language": "ta",
+      "source": "வயிற்று வலி மற்றும் வாந்தி ஒரு நாளாக உள்ளது.",
+      "expected": {"language": "ta", "symptom": ["stomach pain", "vomiting"], "duration": ["1 day"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["stomach pain", "vomiting"],
+      "notes": "Singular duration."
+    },
+    {
+      "id": "ta-008",
+      "input_language": "ta",
+      "source": "எனக்கு ஒவ்வாமை இல்லை.",
+      "expected": {"language": "ta", "symptom": [], "duration": [], "medication": [], "allergy": ["no known allergies"], "medical_history": [], "measurement": []},
+      "expected_keywords": [],
+      "notes": "Explicit absence in Tamil."
+    },
+    {
+      "id": "ta-009",
+      "input_language": "ta",
+      "source": "மூச்சுத் திணறல் மற்றும் நெஞ்சு வலி இரண்டு மணி நேரமாக.",
+      "expected": {"language": "ta", "symptom": ["breathlessness", "chest pain"], "duration": ["2 hours"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["breathlessness", "chest pain"],
+      "notes": "Urgent-sounding input: the system must still only organise, never triage."
+    },
+    {
+      "id": "ta-010",
+      "input_language": "ta",
+      "source": "என் அம்மாவுக்கு நீரிழிவு உள்ளது. எனக்கு எந்த பிரச்சனையும் இல்லை.",
+      "expected": {"language": "ta", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": [], "family": ["diabetes"]},
+      "expected_keywords": [],
+      "notes": "Trap: the mother's diabetes is not the patient's history."
+    },
+    {
+      "id": "ta-011",
+      "input_language": "ta",
+      "source": "தொண்டை வலி ஒரு வாரமாக, சளியும் உள்ளது.",
+      "expected": {"language": "ta", "symptom": ["sore throat", "cold"], "duration": ["1 week"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["sore throat", "week"],
+      "notes": "Common cold presentation."
+    },
+    {
+      "id": "ta-012",
+      "input_language": "ta",
+      "source": "சர்க்கரை நோய் உள்ளது, மெட்ஃபார்மின் 500 mg எடுக்கிறேன்.",
+      "expected": {"language": "ta", "symptom": [], "duration": [], "medication": ["metformin"], "allergy": [], "medical_history": ["diabetes"], "measurement": []},
+      "expected_keywords": ["diabetes", "metformin"],
+      "notes": "Colloquial Tamil for diabetes with a Latin-script dose."
+    },
+    {
+      "id": "hi-001",
+      "input_language": "hi",
+      "source": "मुझे दो दिन से सिरदर्द है।",
+      "expected": {"language": "hi", "symptom": ["headache"], "duration": ["2 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["headache", "2 days"],
+      "notes": "Baseline Hindi."
+    },
+    {
+      "id": "hi-002",
+      "input_language": "hi",
+      "source": "तीन दिन से बुखार और खांसी है।",
+      "expected": {"language": "hi", "symptom": ["fever", "cough"], "duration": ["3 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["fever", "cough", "3 days"],
+      "notes": "Two symptoms with duration."
+    },
+    {
+      "id": "hi-003",
+      "input_language": "hi",
+      "source": "खांसी है लेकिन बुखार नहीं है।",
+      "expected": {"language": "hi", "symptom": ["cough"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["cough"],
+      "notes": "Hindi negation follows the noun."
+    },
+    {
+      "id": "hi-004",
+      "input_language": "hi",
+      "source": "मुझे पेनिसिलिन से एलर्जी है।",
+      "expected": {"language": "hi", "symptom": [], "duration": [], "medication": [], "allergy": ["penicillin"], "medical_history": [], "measurement": []},
+      "expected_keywords": ["penicillin"],
+      "notes": "Hindi allergy statement."
+    },
+    {
+      "id": "hi-005",
+      "input_language": "hi",
+      "source": "मुझे कोई एलर्जी नहीं है। सिर्फ थकान है।",
+      "expected": {"language": "hi", "symptom": ["fatigue"], "duration": [], "medication": [], "allergy": ["no known allergies"], "medical_history": [], "measurement": []},
+      "expected_keywords": ["fatigue"],
+      "notes": "Explicit absence plus a symptom."
+    },
+    {
+      "id": "hi-006",
+      "input_language": "hi",
+      "source": "दो हफ्ते से पेट दर्द और उल्टी हो रही है।",
+      "expected": {"language": "hi", "symptom": ["stomach pain", "vomiting"], "duration": ["2 weeks"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["stomach pain", "vomiting", "2 weeks"],
+      "notes": "Weeks as the duration unit."
+    },
+    {
+      "id": "hi-007",
+      "input_language": "hi",
+      "source": "मुझे शुगर है और मैं मेटफॉर्मिन लेता हूँ।",
+      "expected": {"language": "hi", "symptom": [], "duration": [], "medication": ["metformin"], "allergy": [], "medical_history": ["diabetes"], "measurement": []},
+      "expected_keywords": ["diabetes", "metformin"],
+      "notes": "Colloquial Hindi for diabetes."
+    },
+    {
+      "id": "hi-008",
+      "input_language": "hi",
+      "source": "बीपी 160/100 था और चक्कर आ रहे हैं।",
+      "expected": {"language": "hi", "symptom": ["dizziness"], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": ["blood pressure 160/100"]},
+      "expected_keywords": ["dizziness", "160/100"],
+      "notes": "Measurement with symptom."
+    },
+    {
+      "id": "hi-009",
+      "input_language": "hi",
+      "source": "मेरे पिताजी को दमा है, मुझे कोई शिकायत नहीं।",
+      "expected": {"language": "hi", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": [], "family": ["asthma"]},
+      "expected_keywords": [],
+      "notes": "Trap: father's asthma is not the patient's history."
+    },
+    {
+      "id": "mix-001",
+      "input_language": "ta",
+      "source": "எனக்கு fever மற்றும் headache உள்ளது, 3 days ஆக.",
+      "expected": {"language": "ta", "symptom": ["fever", "headache"], "duration": ["3 days"], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["fever", "headache", "3 days"],
+      "notes": "Code-mixed Tamil and English."
+    },
+    {
+      "id": "mix-002",
+      "input_language": "hi",
+      "source": "Doctor साहब, मुझे 5 दिन से cough है और paracetamol ले रहा हूँ।",
+      "expected": {"language": "hi", "symptom": ["cough"], "duration": ["5 days"], "medication": ["paracetamol"], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": ["cough", "paracetamol", "5 days"],
+      "notes": "Code-mixed Hindi and English."
+    },
+    {
+      "id": "mix-003",
+      "input_language": "en",
+      "source": "Since 2 weeks தலைவலி, and BP 140/90.",
+      "expected": {"language": "en", "symptom": ["headache"], "duration": ["2 weeks"], "medication": [], "allergy": [], "medical_history": [], "measurement": ["blood pressure 140/90"]},
+      "expected_keywords": ["headache", "2 weeks", "140/90"],
+      "notes": "English-dominant with a Tamil word; language detection may legitimately differ."
+    },
+    {
+      "id": "edge-001",
+      "input_language": "en",
+      "source": "12345",
+      "expected": {"language": null, "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": [],
+      "notes": "No linguistic signal: language must be unknown, not guessed."
+    },
+    {
+      "id": "edge-002",
+      "input_language": "en",
+      "source": "I had surgery in 2018 and I am pregnant now.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": ["surgery", "pregnancy"], "measurement": []},
+      "expected_keywords": ["surgery"],
+      "notes": "Two history items; 2018 is a year, not a duration."
+    },
+    {
+      "id": "edge-003",
+      "input_language": "en",
+      "source": "The doctor said maybe it is a migraine but nothing is confirmed.",
+      "expected": {"language": "en", "symptom": [], "duration": [], "medication": [], "allergy": [], "medical_history": [], "measurement": []},
+      "expected_keywords": [],
+      "notes": "Reported uncertainty must not become a diagnosis."
+    }
+  ]
+}

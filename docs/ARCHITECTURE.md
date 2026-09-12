@@ -1,0 +1,340 @@
+# CareBridge — Architecture (Phases 1–3)
+
+CareBridge is a healthcare **communication and information-management** platform.
+It collects patient-provided health information, organises it, keeps it
+understandable across languages, and helps doctors communicate with patients.
+
+It is **not** an AI doctor. It does not diagnose, prescribe, or choose between
+doctors. See [AI_POLICY.md](AI_POLICY.md).
+
+---
+
+## 1. System overview
+
+```text
+┌──────────────────┐        ┌──────────────────┐
+│  patient-web     │        │  doctor-web      │
+│  Next.js :3000   │        │  Next.js :3001   │
+└────────┬─────────┘        └────────┬─────────┘
+         │  HTTPS/JSON + Bearer JWT  │
+         └────────────┬──────────────┘
+                      ▼
+            ┌──────────────────────┐
+            │  FastAPI  :8000      │
+            │  /api/v1/*           │
+            │                      │
+            │  api/       routers  │  ← HTTP only: parse, authorise, call service
+            │  services/  domain   │  ← business rules, state machine, sharing policy
+            │  models/    ORM      │  ← SQLAlchemy 2.0
+            │  providers/ adapters │  ← storage, AI (swappable)
+            └──────┬─────────┬─────┘
+                   │         │
+                   ▼         ▼
+            ┌───────────┐ ┌────────────────────────┐
+            │PostgreSQL │ │ ObjectStorageProvider  │
+            │ (Alembic) │ │ local disk → S3/MinIO  │
+            └───────────┘ └────────────────────────┘
+```
+
+Two separate frontends are deliberate: patient and doctor experiences have
+different density, language, and security expectations, and separate origins
+mean separate browser storage (a patient session can never leak into the doctor
+app on the same machine).
+
+## 2. Layering rules
+
+| Layer | May depend on | Must not |
+|---|---|---|
+| `api/` | `services/`, `schemas/`, `api/deps.py` | contain business rules or raw SQL beyond simple lookups |
+| `services/` | `models/`, `providers/` (via interfaces), `core/` | import FastAPI request objects (only `HTTPException`-free domain errors) |
+| `providers/` | `core/config` | know about HTTP or the ORM |
+| `models/` | `db/base` | import services |
+
+Domain errors (`services/errors.py`) are translated to HTTP status codes in one
+place (`main.py` exception handler). That keeps services testable without HTTP.
+
+## 3. Domain model
+
+```text
+User (role: patient | doctor | admin)
+ ├── PatientProfile ──┬── MedicalRecord*      (condition, allergy, medication,
+ │                    │                        history_note, current_problem)
+ │                    ├── MedicalDocument*    (file in object storage)
+ │                    ├── Consultation* ──┬── ConsultationShare*   (patient grants)
+ │                    │                  ├── ConsultationMessage*
+ │                    │                  └── Prescription* ── PrescriptionItem*
+ │                    └── AIArtifact*         (future AI output, evidence refs)
+ └── DoctorProfile ── DoctorLanguage*
+AuditEvent* (append-only access/change log)
+```
+
+### Key tables
+
+| Table | Purpose | Notes |
+|---|---|---|
+| `users` | identity + role | email unique, bcrypt hash |
+| `patient_profiles` | minimal personal info, preferred language, emergency info | DOB stored, age derived |
+| `doctor_profiles` / `doctor_languages` | public doctor directory | synthetic data only |
+| `medical_records` | patient-owned health facts | `source` = patient / ai_extracted / doctor; `source_language` + original `content` preserved |
+| `medical_documents` | uploaded file metadata | `storage_reference` is opaque; `sha256` of the upload; `status` uploaded → processing → processed / failed (Phase 3) |
+| `consultations` | one patient ↔ one doctor episode | independent; never merged |
+| `consultation_shares` | per-item grants (what this doctor may see) | enforcement source of truth |
+| `consultations.patient_shared_context` | immutable JSON snapshot of the sharing decision (incl. unchecked categories) | record-keeping |
+| `consultation_messages` | text communication | original language kept |
+| `prescriptions` / `prescription_items` | doctor-authored, immutable | `doctor_id` + `consultation_id` attribution |
+| `ai_artifacts` | future AI outputs | `provider`, `model`, `source_references`, `confidence`, `review_status` |
+| `audit_events` | who did what to which patient data | no FK on patient so logs survive deletes |
+
+Enumerations are stored as constrained strings (`VARCHAR + CHECK`) rather than
+native PostgreSQL enums, so adding a value is a simple migration.
+
+### Original language (Principle 3)
+
+`medical_records.content`, `consultations.request_message` and
+`consultation_messages.body` always hold the **original patient wording** with
+its language code. Phase 2 normalisation will write English/structured output
+to `ai_artifacts` with a `source_references` pointer back to the original row —
+never overwrite it.
+
+### Consultation independence (Principle 4)
+
+* A prescription belongs to exactly one consultation and one doctor.
+  `patient_id`/`doctor_id` are taken from the consultation server-side, never
+  from client input.
+* There is no endpoint that merges, compares, or reconciles prescriptions.
+* When a patient shares an earlier consultation or prescription with a new
+  doctor, it is presented read-only with the original doctor's name and date.
+
+### Consultation state machine
+
+```text
+requested ──accept──▶ active ──complete──▶ completed
+    │                   
+    ├──decline (doctor)─▶ cancelled
+    └──cancel (patient)─▶ cancelled
+```
+
+`accepted` exists in the schema for Phase 5 (scheduling); in Phase 1 accepting
+starts the consultation immediately (see DECISIONS D-007).
+
+## 4. Access control
+
+Role check first (`require_role`), then ownership:
+
+* **Patient**: only their own profile, records, documents, consultations,
+  prescriptions.
+* **Doctor**: only consultations where they are the doctor, and inside those
+  only items listed in `consultation_shares` (plus minimal identity: name, age,
+  sex, preferred language, and the doctor's *own* earlier consultations with
+  the patient). Visible while status ∈ {requested, accepted, active, completed};
+  a cancelled consultation grants nothing.
+* **Admin**: create doctors, read the audit log. Admin has no clinical-data
+  endpoints in Phase 1.
+
+Every doctor read of a case or document writes an `audit_event`.
+
+## 5. API boundaries (`/api/v1`)
+
+| Area | Endpoints |
+|---|---|
+| auth | `POST /auth/register` (patient self-signup), `POST /auth/login`, `GET /auth/me` |
+| meta | `GET /meta/languages`, `GET /meta/ai` |
+| patient | `GET/PUT /patients/me/profile`, `GET /patients/me/dashboard`, `GET/POST /patients/me/records`, `PATCH/DELETE /patients/me/records/{id}`, `GET/POST /patients/me/documents`, `GET /patients/me/documents/{id}`, `GET /patients/me/documents/{id}/file`, `GET/POST /patients/me/consultations`, `GET /patients/me/consultations/{id}`, `POST /patients/me/consultations/{id}/cancel`, `GET /patients/me/prescriptions` |
+| directory | `GET /doctors`, `GET /doctors/{id}` |
+| doctor | `GET/PUT /doctors/me/profile`, `GET /doctors/me/consultations`, `GET /doctors/me/consultations/{id}` (case view), `POST …/{id}/accept`, `POST …/{id}/decline`, `POST …/{id}/complete`, `PUT …/{id}/assessment`, `POST …/{id}/prescriptions`, `GET …/{id}/documents/{doc_id}/file` |
+| messages | `GET/POST /consultations/{id}/messages` (either party) |
+| admin | `POST /admin/doctors`, `GET /admin/audit-events` |
+
+OpenAPI docs are served at `http://localhost:8000/docs`.
+
+## 6. Providers
+
+### ObjectStorageProvider (`app/providers/storage`)
+
+```python
+put(key, data, content_type) -> str   # returns storage_reference
+get(reference) -> bytes
+delete(reference) -> None
+exists(reference) -> bool
+```
+
+`LocalStorageProvider` writes under `STORAGE_LOCAL_ROOT` with a path-traversal
+guard. Keys are generated server-side (`patients/<id>/documents/<uuid>.<ext>`);
+user filenames never touch the filesystem. An S3/MinIO provider implements the
+same four methods — no application code changes.
+
+### AIProvider (`app/providers/ai`) — Phase 2
+
+```python
+async detect_language(text) -> LanguageDetection
+async normalize_to_english(text, source_language) -> NormalizationResult
+async extract_medical_information(text, language) -> ExtractionResult
+```
+
+Implementations: `MockAIProvider` (deterministic, local, no credentials),
+`OpenAIProvider` (Responses API, strict `json_schema`), `AnthropicProvider`
+(Messages API, strict tool schema), `GeminiProvider` (`generateContent` with
+`responseSchema`). All three HTTP adapters share `http_base.HttpJSONProvider`,
+which renders the versioned prompt, validates the response against our Pydantic
+schemas, maps transport failures to structured errors, and records latency,
+tokens and estimated cost.
+
+Selection is configuration only (`DEMO_MODE`, `AI_PROVIDER`, `AI_MODEL`);
+`DEMO_MODE=true` pins the local provider so no external call is possible.
+Model names never appear in the domain layer, and there is deliberately no
+diagnose/prescribe capability on the interface.
+
+### AI pipeline (`app/services/ai_pipeline.py`)
+
+```text
+original record (source of truth, never modified)
+        │
+        ├─ consent gate ── no consent → refuse, nothing sent anywhere
+        ├─ cache lookup  ── operation+provider+model+prompt version+language+sha256(text)
+        ▼
+ detect language ──▶ normalise to English ──▶ extract facts
+        │                    │                      │
+        ▼                    ▼                      ▼
+   ai_artifacts (provenance: status, prompt version, latency, tokens, cost)
+                                                    │
+                                      evidence validation (services/evidence.py)
+                                        · quote must exist in the source
+                                        · unsupported → dropped
+                                        · weak → needs_review
+                                                    ▼
+                                        ai_extracted_facts (review_state=pending)
+                                                    ▼
+                                   patient confirms / edits / rejects
+                                                    ▼
+                    confirmed allergy · medication · history → medical_records (source=ai_extracted)
+```
+
+Every provider call is wrapped by `runtime.call_with_resilience` (timeout,
+bounded retry, circuit breaker). Any failure degrades to "original only" with a
+`failed` artifact and an audit event — never to invented content.
+
+**Hardening (pre-Phase 3).** Before any provider work the pipeline enforces the
+patient's AI budget (`services/ai_limits.py`). Every fact carries `subject`
+(self/family/other/unknown) and `subject_evidence`; confirmation maps family
+facts only to `family_history` records (`services/ai_facts.record_type_for`).
+After extraction, `services/normalization_check.py` compares the three layers
+and stores the result on the extraction artifact. The API returns all three
+layers together — `original_text`, `normalized_english`, `facts` — plus
+`normalization_check` and the patient's budget `usage`, both to the patient
+(`GET /patients/me/records/{id}/ai`) and to the doctor (`CaseView.ai_insights`).
+
+### Phase 2 tables
+
+| Table | Purpose |
+|---|---|
+| `ai_artifacts` (extended) | one row per operation: provider, model, `prompt_version`, `status`, `source_hash`, `cache_key`, `latency_ms`, token counts, `estimated_cost_usd`, `error_code` |
+| `ai_extracted_facts` | machine-extracted fact + evidence quote/offsets, `validation_status`, `review_state`, `edited_value`, optional link to the created `medical_record` |
+| `patient_profiles.ai_processing_consent` | explicit opt-in, default false, with `ai_consent_updated_at` |
+
+### Phase 2 endpoints
+
+`PUT /patients/me/ai-consent` · `POST /patients/me/records/{id}/ai-process` ·
+`GET /patients/me/records/{id}/ai` · `POST /patients/me/ai/facts/{id}` ·
+`GET /patients/me/ai/artifacts/{id}` · `GET /meta/ai`.
+The doctor `CaseView` gains `ai_insights` — machine output for **shared**
+records only, shown beside the original.
+
+### Phase 3 — document intelligence
+
+```text
+uploaded file (never modified) ── sha256 must equal the upload hash before every read or render
+        │
+        ├─ consent gate · budget check covering every page to be interpreted
+        ▼
+ providers/documents — reading only, no medical meaning
+   · PDF page with a text layer → copied exactly (pdfplumber), line boxes kept
+   · scanned page / image       → OCR: local RapidOCR (default, offline)
+                                   or the configured provider's vision input
+   · every page: method, engine, confidence, warnings
+        ▼
+ document_pages — verbatim text + line boxes (reused if unchanged, superseded if not)
+        ▼
+ the Phase 2 pipeline, once per page (AISource = document page)
+   detect → normalise → extract → evidence validation → meaning check
+        ▼
+ ai_extracted_facts (+ evidence_page_number, evidence_bbox from the reader's geometry)
+        ▼
+ patient confirms / edits / rejects ─▶ shares with a doctor ─▶ CaseView.document_insights
+```
+
+**Reading** (`app/providers/documents`) returns `PageText` per page: text, page
+size, method (`pdf_text_layer` · `ocr` · `vision_provider`), engine, mean OCR
+confidence, warnings and `TextBlock`s — one per line, with character offsets
+into the page text and a box in page fractions. PDF pages are rendered with
+pypdfium2 for OCR and for page images; images are size-checked before decoding
+and EXIF-rotated. Parser failures surface as `DocumentReadError`, never as a
+crash.
+
+**Orchestration** (`services/document_pipeline.py`): integrity check → consent →
+budget → read (worker thread) → upsert pages → for each page with text,
+`ai_pipeline.interpret` + `ai_pipeline.finish` (the functions records use,
+generalised over `AISource`) → document status → audit. A reading failure
+records a failed `document_extractions` row and leaves the file untouched; an AI
+failure on one page keeps that page's text and marks the page `unavailable`.
+
+**Evidence regions**: a fact's box is `PageText.bbox_for_span(start, end)`, the
+union of the lines its validated evidence touches. Vision transcription reports
+no positions, so those facts carry a page number and no box.
+
+| Table / column | Purpose |
+|---|---|
+| `document_extractions` | one row per reading attempt: status (succeeded / partial / failed), error code, `source_sha256`, page count, pages processed, truncated, methods, engines, warnings, latency, requester |
+| `document_pages` | verbatim page text, `text_sha256`, method, engine, confidence, size, line blocks, warnings, detected language; unique on `(document_id, page_number, text_sha256)`; `superseded_at` |
+| `ai_extracted_facts.evidence_page_number` / `evidence_bbox` | which page, and where on it, a fact's evidence is |
+| `ai_artifacts` (`document_transcription`) | vision transcriptions, with prompt version, tokens and cost |
+
+**Endpoints**: `POST /patients/me/documents/{id}/process` ·
+`GET /patients/me/documents/{id}/extraction` ·
+`GET /patients/me/documents/{id}/pages/{n}/image` ·
+`GET /doctors/me/consultations/{cid}/documents/{doc_id}/pages/{n}/image`
+(share-checked, audited). Fact review reuses `POST /patients/me/ai/facts/{id}`.
+`CaseView.document_insights` carries the reading of **shared** documents only.
+
+**Configuration**: `OCR_ENGINE` (`auto` · `local` · `provider` · `none`),
+`OCR_MIN_TEXT_LAYER_CHARS`, `DOCUMENT_PROCESSING_MAX_PAGES`,
+`DOCUMENT_RENDER_SCALE`, `DOCUMENT_MAX_PIXELS`.
+
+**Frontend**: `DocumentReadingPanel` on the patient document page and
+`DocumentInsight` inside each shared document in the doctor case view (collapsed
+by default). `packages/ui` adds `PageImage` (the original page with evidence
+boxes as an overlay) and `ReadingProvenance` (exact copy vs machine
+transcription, confidence, warnings).
+
+## 7. Localisation
+
+* Language codes: `app/core/languages.py` (backend) and
+  `packages/shared-types` (frontend): en, hi, ta, te, kn, ml, mr, bn, gu, pa,
+  or, as. Each has `ui_available` and `ai_status` flags — we do not claim support
+  we have not built.
+* UI strings live in `packages/i18n/messages/{en,hi,ta}.json`. Components call
+  `t("key")`; there are no language conditionals in components. A unit test
+  enforces key parity across catalogues.
+* Font stack uses system fonts with Indic coverage (Nirmala UI on Windows,
+  Noto Sans elsewhere) so the demo works offline.
+
+## 8. Frontend structure
+
+```text
+apps/patient-web      Next.js App Router, client components, calm/large targets
+apps/doctor-web       Next.js App Router, denser case view
+packages/shared-types API DTO types (hand-written mirror of Pydantic schemas)
+packages/api-client   fetch wrapper + typed endpoint functions
+packages/i18n         message catalogues + I18nProvider/useT
+packages/ui           shared presentational components (Button, Card, SourceBadge…)
+```
+
+Auth token: JWT in `sessionStorage` of each app origin, sent as
+`Authorization: Bearer`. See SECURITY.md for the trade-off.
+
+## 9. Testing
+
+* Backend: pytest against SQLite (fast, default) or PostgreSQL
+  (`TEST_DATABASE_URL`). A migration test runs `alembic upgrade head` /
+  `downgrade base` when PostgreSQL is configured.
+* Frontend: Vitest + Testing Library (jsdom) for components, i18n catalogue
+  parity, and the API client.

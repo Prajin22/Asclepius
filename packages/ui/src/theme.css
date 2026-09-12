@@ -1,0 +1,59 @@
+/*
+ * CareBridge design tokens (Tailwind v4 @theme).
+ * Calm clinical palette: deep teal brand, warm off-white canvas, ink text.
+ * Status and source colours are paired (text on soft background) and meet
+ * WCAG AA contrast for normal text.
+ */
+@theme {
+  --font-sans: "Segoe UI", "Nirmala UI", "Noto Sans", "Noto Sans Tamil", "Noto Sans Devanagari", system-ui,
+    -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  --color-ink: #14232e;
+  --color-muted: #4f5f6c;
+  --color-subtle: #6f7d88;
+  --color-line: #d8e0e5;
+  --color-line-strong: #b4c2cb;
+  --color-canvas: #f4f6f4;
+  --color-surface: #ffffff;
+  --color-sunken: #eef2f1;
+
+  --color-brand: #0e5a61;
+  --color-brand-strong: #0a444a;
+  --color-brand-soft: #e1eeed;
+  --color-focus: #1a7d87;
+
+  --color-info: #1f4f86;
+  --color-info-soft: #e6eef8;
+  --color-success: #1c6737;
+  --color-success-soft: #e2f2e7;
+  --color-warning: #7f4f00;
+  --color-warning-soft: #fbefd5;
+  --color-danger: #972828;
+  --color-danger-soft: #fae6e6;
+  --color-ai: #5a3a8a;
+  --color-ai-soft: #efe8f9;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}

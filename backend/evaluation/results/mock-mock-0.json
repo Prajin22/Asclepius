@@ -1,0 +1,2330 @@
+{
+  "summary": {
+    "cases": 42,
+    "failures": 0,
+    "failure_rate": 0.0,
+    "language_accuracy": 0.976,
+    "extraction_overall": {
+      "precision": 0.944,
+      "recall": 0.882,
+      "f1": 0.912
+    },
+    "extraction_by_category": {
+      "symptom": {
+        "precision": 1.0,
+        "recall": 0.861,
+        "f1": 0.925
+      },
+      "duration": {
+        "precision": 1.0,
+        "recall": 0.938,
+        "f1": 0.968
+      },
+      "medication": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "allergy": {
+        "precision": 0.5,
+        "recall": 0.667,
+        "f1": 0.571
+      },
+      "medical_history": {
+        "precision": 1.0,
+        "recall": 0.857,
+        "f1": 0.923
+      },
+      "measurement": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "family_attribution": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "evidence_validity": 1.0,
+    "unsupported_fact_rate": 0.0,
+    "normalization_keyword_coverage": 0.909,
+    "latency_ms_p50": 0,
+    "latency_ms_p95": 1,
+    "estimated_cost_usd": 0.0,
+    "mean_facts_per_case": 1.76,
+    "provider": "mock",
+    "model": "mock-0",
+    "dataset": "dataset.json"
+  },
+  "cases": [
+    {
+      "case_id": "en-001",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 2,
+      "latency_ms": 3,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Baseline: one symptom, one duration."
+    },
+    {
+      "case_id": "en-002",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 4,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 4,
+      "evidence_valid": 4,
+      "unsupported_facts": 0,
+      "predicted_facts": 4,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Multiple symptoms in one sentence."
+    },
+    {
+      "case_id": "en-003",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Negation: 'no fever' must not become a fever symptom."
+    },
+    {
+      "case_id": "en-004",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Explicitly stated allergy."
+    },
+    {
+      "case_id": "en-005",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Explicit absence: allowed only because the patient stated it."
+    },
+    {
+      "case_id": "en-006",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 0,
+      "evidence_valid": 0,
+      "unsupported_facts": 0,
+      "predicted_facts": 0,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Colloquial Indian English phrasing; no allergy must be produced."
+    },
+    {
+      "case_id": "en-007",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Medication with dose; 'blood pressure' implies the stated condition."
+    },
+    {
+      "case_id": "en-008",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Measurement reported by the patient."
+    },
+    {
+      "case_id": "en-009",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 0,
+      "evidence_valid": 0,
+      "unsupported_facts": 0,
+      "predicted_facts": 0,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Ambiguous: nothing specific may be extracted."
+    },
+    {
+      "case_id": "en-010",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 1,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Trap: family history is not the patient's history."
+    },
+    {
+      "case_id": "en-011",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 2,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 2
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 0,
+      "evidence_valid": 0,
+      "unsupported_facts": 0,
+      "predicted_facts": 0,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Spelling mistakes."
+    },
+    {
+      "case_id": "en-012",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Stated medical history."
+    },
+    {
+      "case_id": "en-013",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Symptom plus duration in words."
+    },
+    {
+      "case_id": "en-014",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Counts are not durations."
+    },
+    {
+      "case_id": "en-015",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Measurement plus medication."
+    },
+    {
+      "case_id": "ta-001",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Canonical Tamil example from the brief."
+    },
+    {
+      "case_id": "ta-002",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 2,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 2
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 3,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Two symptoms with a shared duration."
+    },
+    {
+      "case_id": "ta-003",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Tamil negation follows the noun."
+    },
+    {
+      "case_id": "ta-004",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 1,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Mixed script: Tamil text with a Latin measurement."
+    },
+    {
+      "case_id": "ta-005",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Tamil allergy statement."
+    },
+    {
+      "case_id": "ta-006",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "History plus current medication."
+    },
+    {
+      "case_id": "ta-007",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Singular duration."
+    },
+    {
+      "case_id": "ta-008",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Explicit absence in Tamil."
+    },
+    {
+      "case_id": "ta-009",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Urgent-sounding input: the system must still only organise, never triage."
+    },
+    {
+      "case_id": "ta-010",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 1,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Trap: the mother's diabetes is not the patient's history."
+    },
+    {
+      "case_id": "ta-011",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Common cold presentation."
+    },
+    {
+      "case_id": "ta-012",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Colloquial Tamil for diabetes with a Latin-script dose."
+    },
+    {
+      "case_id": "hi-001",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Baseline Hindi."
+    },
+    {
+      "case_id": "hi-002",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Two symptoms with duration."
+    },
+    {
+      "case_id": "hi-003",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Hindi negation follows the noun."
+    },
+    {
+      "case_id": "hi-004",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Hindi allergy statement."
+    },
+    {
+      "case_id": "hi-005",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 2,
+      "false_positives": 2,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 1,
+          "fp": 2,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 4,
+      "evidence_valid": 4,
+      "unsupported_facts": 0,
+      "predicted_facts": 4,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Explicit absence plus a symptom."
+    },
+    {
+      "case_id": "hi-006",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Weeks as the duration unit."
+    },
+    {
+      "case_id": "hi-007",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Colloquial Hindi for diabetes."
+    },
+    {
+      "case_id": "hi-008",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 2,
+      "keyword_total": 2,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Measurement with symptom."
+    },
+    {
+      "case_id": "hi-009",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 1,
+      "evidence_valid": 1,
+      "unsupported_facts": 0,
+      "predicted_facts": 1,
+      "family_tp": 1,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Trap: father's asthma is not the patient's history."
+    },
+    {
+      "case_id": "mix-001",
+      "language_expected": "ta",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 1,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Code-mixed Tamil and English."
+    },
+    {
+      "case_id": "mix-002",
+      "language_expected": "hi",
+      "language_predicted": "hi",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 1,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Code-mixed Hindi and English."
+    },
+    {
+      "case_id": "mix-003",
+      "language_expected": "en",
+      "language_predicted": "ta",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 3,
+      "evidence_valid": 3,
+      "unsupported_facts": 0,
+      "predicted_facts": 3,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 3,
+      "keyword_total": 3,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "English-dominant with a Tamil word; language detection may legitimately differ."
+    },
+    {
+      "case_id": "edge-001",
+      "language_expected": null,
+      "language_predicted": null,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 0,
+      "evidence_valid": 0,
+      "unsupported_facts": 0,
+      "predicted_facts": 0,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "No linguistic signal: language must be unknown, not guessed."
+    },
+    {
+      "case_id": "edge-002",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 2,
+      "evidence_valid": 2,
+      "unsupported_facts": 0,
+      "predicted_facts": 2,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 1,
+      "keyword_total": 1,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Two history items; 2018 is a year, not a duration."
+    },
+    {
+      "case_id": "edge-003",
+      "language_expected": "en",
+      "language_predicted": "en",
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "per_category": {
+        "symptom": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "duration": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medication": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "allergy": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "medical_history": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "measurement": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "evidence_checked": 0,
+      "evidence_valid": 0,
+      "unsupported_facts": 0,
+      "predicted_facts": 0,
+      "family_tp": 0,
+      "family_fp": 0,
+      "family_fn": 0,
+      "keyword_hits": 0,
+      "keyword_total": 0,
+      "latency_ms": 0,
+      "cost_usd": 0.0,
+      "failed": false,
+      "error": null,
+      "notes": "Reported uncertainty must not become a diagnosis."
+    }
+  ]
+}

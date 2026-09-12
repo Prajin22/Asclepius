@@ -1,0 +1,267 @@
+"use client";
+
+import { useApi, usePolling, useQuery } from "@carebridge/api-client/react";
+import { errorMessage, useI18n } from "@carebridge/i18n";
+import type { CaseView } from "@carebridge/shared-types";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  ErrorState,
+  Field,
+  LoadingState,
+  MessageThread,
+  PrescriptionCard,
+  StatusBadge,
+  TextArea,
+} from "@carebridge/ui";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { PrescriptionForm } from "@/components/PrescriptionForm";
+import { SharedClinicalInfo } from "@/components/SharedClinicalInfo";
+import { patientMeta } from "@/lib/format";
+
+function AssessmentEditor({ view, onSave }: { view: CaseView; onSave: (text: string) => Promise<void> }) {
+  const { t } = useI18n();
+  const [text, setText] = useState(view.doctor_assessment ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => setText(view.doctor_assessment ?? ""), [view.doctor_assessment]);
+
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError(null);
+        setSaved(false);
+        try {
+          await onSave(text);
+          setSaved(true);
+        } catch (err) {
+          setError(err);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <Field label={t("case.assessment")} hint={t("case.assessmentHint")}>
+        {(p) => (
+          <TextArea
+            {...p}
+            rows={5}
+            maxLength={10000}
+            value={text}
+            onChange={(e) => {
+              setSaved(false);
+              setText(e.target.value);
+            }}
+          />
+        )}
+      </Field>
+      {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
+      {saved ? <Alert tone="success">{t("case.notesSaved")}</Alert> : null}
+      <div>
+        <Button type="submit" variant="secondary" disabled={busy}>
+          {busy ? t("actions.saving") : t("case.saveNotes")}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export default function CasePage() {
+  const { id } = useParams<{ id: string }>();
+  const api = useApi();
+  const router = useRouter();
+  const { t, formatDateTime } = useI18n();
+  const q = useQuery((a) => a.doctor.caseView(id), [id]);
+  const status = q.data?.status;
+  const canWork = status === "accepted" || status === "active";
+  // Poll messages only (the case view itself is audited on every read).
+  const messages = useQuery((a) => a.messages.list(id), [id]);
+  usePolling(messages.reload, 5000, canWork);
+
+  const [actionError, setActionError] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
+  const [declining, setDeclining] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const back = (
+    <Link href="/" className="font-medium text-brand hover:underline">
+      ← {t("case.back")}
+    </Link>
+  );
+
+  if (q.error && !q.data) {
+    return (
+      <>
+        {back}
+        <ErrorState error={q.error} onRetry={q.reload} />
+      </>
+    );
+  }
+  if (!q.data) return <LoadingState />;
+  const v = q.data;
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await action();
+    } catch (err) {
+      setActionError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const accept = () => run(async () => q.setData(await api.doctor.accept(v.id)));
+  const complete = () => {
+    if (!window.confirm(t("case.confirmComplete"))) return;
+    void run(async () => q.setData(await api.doctor.complete(v.id)));
+  };
+  const decline = () =>
+    run(async () => {
+      await api.doctor.decline(v.id, reason.trim());
+      router.push("/");
+    });
+
+  return (
+    <>
+      <div className="mb-4">{back}</div>
+
+      <section aria-label={v.patient.display_name} className="rounded-xl border border-line bg-surface p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight">{v.patient.display_name}</h1>
+            <p className="mt-1 text-muted">{patientMeta(v.patient, t)}</p>
+            <p className="mt-1 flex flex-wrap gap-x-4 text-sm text-muted">
+              <span>{t("case.requestedOn", { date: formatDateTime(v.created_at) })}</span>
+              {v.started_at ? <span>{t("case.startedOn", { date: formatDateTime(v.started_at) })}</span> : null}
+              {v.completed_at ? <span>{t("case.completedOn", { date: formatDateTime(v.completed_at) })}</span> : null}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold text-muted">{t("case.sharedScope")}:</span>
+              {v.shared_categories.length === 0 ? (
+                <Badge>{t("case.identityOnly")}</Badge>
+              ) : (
+                v.shared_categories.map((c) => (
+                  <Badge key={c} tone="brand">
+                    {t(`case.categories.${c}`)}
+                  </Badge>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <StatusBadge status={v.status} />
+            {v.status === "requested" ? (
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button onClick={accept} disabled={busy}>
+                  {t("case.accept")}
+                </Button>
+                <Button variant="danger" onClick={() => setDeclining((d) => !d)} disabled={busy} aria-expanded={declining}>
+                  {t("case.decline")}
+                </Button>
+              </div>
+            ) : null}
+            {canWork ? (
+              <Button variant="secondary" onClick={complete} disabled={busy}>
+                {t("case.complete")}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        {v.status === "requested" ? <p className="mt-3 text-sm text-muted">{t("case.reviewBeforeAccept")}</p> : null}
+        {declining ? (
+          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-danger/30 bg-danger-soft/50 p-4">
+            <Field label={t("case.declineReason")}>
+              {(p) => <TextArea {...p} rows={2} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />}
+            </Field>
+            <div>
+              <Button variant="danger" onClick={decline} disabled={busy}>
+                {t("case.confirmDecline")}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        {actionError ? (
+          <Alert tone="error" className="mt-3">
+            {errorMessage(t, actionError)}
+          </Alert>
+        ) : null}
+      </section>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+        <SharedClinicalInfo
+          view={v}
+          loadDocument={(docId) => api.doctor.documentFile(v.id, docId)}
+          loadPage={(docId, page) => api.doctor.documentPageImage(v.id, docId, page)}
+        />
+
+        <div className="flex min-w-0 flex-col gap-5">
+          {v.status === "requested" ? <Alert tone="warning">{t("case.acceptFirst")}</Alert> : null}
+          {v.status === "completed" ? <Alert tone="info">{t("case.readOnly")}</Alert> : null}
+
+          <Card>
+            <CardHeader title={t("case.assessment")} />
+            {canWork ? (
+              <AssessmentEditor
+                view={v}
+                onSave={async (text) => {
+                  q.setData(await api.doctor.setAssessment(v.id, text));
+                }}
+              />
+            ) : v.doctor_assessment ? (
+              <p className="whitespace-pre-line">{v.doctor_assessment}</p>
+            ) : (
+              <p className="text-muted">{t("case.noNotes")}</p>
+            )}
+          </Card>
+
+          <section aria-labelledby="rx-heading" className="flex flex-col gap-3">
+            <h2 id="rx-heading" className="text-lg font-semibold">
+              {t("case.prescriptions")}
+            </h2>
+            {v.prescriptions.length === 0 ? (
+              <p className="rounded-xl border border-line bg-surface p-4 text-muted">{t("case.noPrescriptions")}</p>
+            ) : (
+              v.prescriptions.map((rx) => <PrescriptionCard key={rx.id} prescription={rx} />)
+            )}
+          </section>
+
+          {v.status === "active" ? (
+            <Card>
+              <CardHeader title={t("case.newPrescription")} />
+              <PrescriptionForm
+                onSubmit={async (data) => {
+                  await api.doctor.createPrescription(v.id, data);
+                  await q.reload();
+                }}
+              />
+            </Card>
+          ) : null}
+
+          <Card>
+            <CardHeader title={t("messages.title")} />
+            <MessageThread
+              messages={messages.data ?? v.messages}
+              viewerRole="doctor"
+              canSend={canWork}
+              onSend={async (body) => {
+                await api.messages.send(v.id, body, null);
+                await messages.reload();
+              }}
+            />
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}

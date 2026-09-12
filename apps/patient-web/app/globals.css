@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "../../../packages/ui/src/theme.css";
+@source "../../../packages/ui/src";
+
+/* Patient app: slightly larger base size for readability. */
+html {
+  font-size: 106.25%;
+}
