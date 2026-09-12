@@ -5,13 +5,15 @@ import { errorMessage, useI18n } from "@carebridge/i18n";
 import { SHARE_CATEGORIES, languageInfo, type LanguageCode } from "@carebridge/shared-types";
 import {
   Alert,
+  Avatar,
+  Badge,
   Button,
   Card,
   CardHeader,
   ErrorState,
   Field,
-  LoadingState,
   PageHeader,
+  SkeletonCard,
   TextArea,
   buttonClasses,
 } from "@carebridge/ui";
@@ -70,7 +72,7 @@ export default function RequestConsultationPage() {
       </>
     );
   }
-  if (!q.data || !items) return <LoadingState />;
+  if (!q.data || !items) return <SkeletonCard />;
   const { doctor } = q.data;
   const selectedCategories = SHARE_CATEGORIES.filter((c) => selection[c].length > 0);
 
@@ -130,18 +132,26 @@ export default function RequestConsultationPage() {
 
         <div className="flex min-w-0 flex-col gap-5">
           <Card>
-            <p className="text-lg font-semibold">{doctor.name}</p>
-            <p className="font-medium text-brand-strong">{doctor.specialization}</p>
-            <p className="text-sm text-muted">{doctor.qualification}</p>
-            {doctor.clinic_name ? <p className="mt-2">{doctor.clinic_name}</p> : null}
-            <p className="mt-2 text-sm">
-              {t("findCare.speaks", {
-                languages: doctor.languages.map((c) => languageInfo(c)?.nativeName ?? c).join(" · "),
-              })}
+            <div className="flex items-start gap-3.5">
+              <Avatar name={doctor.name} size="lg" />
+              <div className="min-w-0">
+                <p className="text-subheading text-ink">{doctor.name}</p>
+                <p className="font-medium text-brand-strong">{doctor.specialization}</p>
+                <p className="text-small text-muted">{doctor.qualification}</p>
+              </div>
+            </div>
+            {doctor.clinic_name ? <p className="mt-3 text-body">{doctor.clinic_name}</p> : null}
+            <p className="mt-2.5 flex flex-wrap gap-1.5">
+              {doctor.languages.map((code) => (
+                <Badge key={code} tone="neutral">
+                  <span lang={code}>{languageInfo(code)?.nativeName ?? code}</span>
+                </Badge>
+              ))}
             </p>
           </Card>
 
-          <Card className="lg:sticky lg:top-24">
+          {/* The decision to share sits within reach on a phone, and beside the choices on a desktop. */}
+          <Card className="max-lg:sticky max-lg:bottom-20 max-lg:z-20 max-lg:shadow-lg lg:sticky lg:top-24">
             <CardHeader title={t("request.reviewTitle")} />
             {selectedCategories.length === 0 ? (
               <p className="text-muted">{t("request.nothingSelected")}</p>

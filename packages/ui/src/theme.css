@@ -64,7 +64,8 @@
   /* ---------- colour ---------- */
   --color-ink: #0b1a22;
   --color-muted: #51626d;
-  --color-subtle: #6b7a84;
+  /* Captions and labels are small: this stays above 4.5:1 on every light surface. */
+  --color-subtle: #5f6e78;
   --color-line: #e2e8ea;
   --color-line-strong: #c6d1d5;
   --color-canvas: #f5f8f7;

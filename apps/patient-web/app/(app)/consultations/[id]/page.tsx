@@ -6,15 +6,19 @@ import type { ConsultationStatus, LanguageCode } from "@carebridge/shared-types"
 import { languageInfo } from "@carebridge/shared-types";
 import {
   Alert,
+  Avatar,
+  Badge,
   Button,
   Card,
   CardHeader,
   ErrorState,
   LanguageTag,
-  LoadingState,
   MessageThread,
   PageHeader,
   PrescriptionCard,
+  ProvenanceBlock,
+  ProvenanceChip,
+  SkeletonCard,
   StatusBadge,
 } from "@carebridge/ui";
 import Link from "next/link";
@@ -47,7 +51,7 @@ export default function ConsultationDetailPage() {
       </>
     );
   }
-  if (!q.data) return <LoadingState />;
+  if (!q.data) return <SkeletonCard />;
   const c = q.data;
   const canMessage = c.status === "accepted" || c.status === "active";
   const canCancel = c.status === "requested" || c.status === "accepted";
@@ -86,15 +90,21 @@ export default function ConsultationDetailPage() {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex min-w-0 flex-col gap-5">
-          <Card>
+          {/* Written by the doctor — ruled in ink, attributed, never machine-touched. */}
+          <Card className="border-l-[3px] border-l-ink" aria-labelledby="notes-heading">
             <CardHeader
+              id="notes-heading"
               title={t("consultations.doctorNotes")}
               description={t("consultations.independent")}
+              action={<ProvenanceChip kind="doctor" />}
             />
             {c.doctor_assessment ? (
               <div>
-                <p className="whitespace-pre-line leading-relaxed">{c.doctor_assessment}</p>
-                <p className="mt-2 text-sm text-muted">— {c.doctor.name}</p>
+                <p className="whitespace-pre-line text-body-lg leading-relaxed">{c.doctor_assessment}</p>
+                <p className="mt-3 flex items-center gap-2 text-small text-muted">
+                  <Avatar name={c.doctor.name} size="sm" tone="ink" />
+                  {c.doctor.name} · {c.doctor.specialization}
+                </p>
               </div>
             ) : (
               <p className="text-muted">{t("consultations.noNotes")}</p>
@@ -102,18 +112,20 @@ export default function ConsultationDetailPage() {
           </Card>
 
           <section aria-labelledby="rx-heading" className="flex flex-col gap-3">
-            <h2 id="rx-heading" className="text-lg font-semibold">
+            <h2 id="rx-heading" className="text-subheading text-ink">
               {t("consultations.prescriptionsTitle")}
             </h2>
             {c.prescriptions.length === 0 ? (
-              <p className="rounded-xl border border-line bg-surface p-5 text-muted">{t("consultations.noPrescriptions")}</p>
+              <p className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-6 text-center text-muted">
+                {t("consultations.noPrescriptions")}
+              </p>
             ) : (
               c.prescriptions.map((rx) => <PrescriptionCard key={rx.id} prescription={rx} />)
             )}
           </section>
 
-          <Card>
-            <CardHeader title={t("messages.title")} />
+          <Card aria-labelledby="messages-heading">
+            <CardHeader id="messages-heading" title={t("messages.title")} />
             <MessageThread
               messages={c.messages}
               viewerRole="patient"
@@ -128,60 +140,71 @@ export default function ConsultationDetailPage() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
-          <Card>
-            <p className="font-semibold">{c.doctor.name}</p>
-            <p className="text-muted">{c.doctor.qualification}</p>
-            <p className="text-muted">{c.doctor.specialization}</p>
-            {c.doctor.clinic_name ? <p className="mt-2">{c.doctor.clinic_name}</p> : null}
-            {c.doctor.clinic_address ? <p className="text-sm text-muted">{c.doctor.clinic_address}</p> : null}
-            <p className="mt-2 text-sm text-muted">
-              {c.doctor.languages.map((code) => languageInfo(code)?.nativeName).join(" · ")}
+          <Card aria-labelledby="doctor-heading">
+            <div className="flex items-start gap-3">
+              <Avatar name={c.doctor.name} size="lg" />
+              <div className="min-w-0">
+                <h2 id="doctor-heading" className="text-subheading text-ink">
+                  {c.doctor.name}
+                </h2>
+                <p className="text-small text-muted">{c.doctor.specialization}</p>
+                <p className="text-small text-muted">{c.doctor.qualification}</p>
+              </div>
+            </div>
+            {c.doctor.clinic_name ? <p className="mt-3 text-body">{c.doctor.clinic_name}</p> : null}
+            {c.doctor.clinic_address ? <p className="text-small text-muted">{c.doctor.clinic_address}</p> : null}
+            <p className="mt-2 flex flex-wrap gap-1.5">
+              {c.doctor.languages.map((code) => (
+                <Badge key={code} tone="neutral">
+                  <span lang={code}>{languageInfo(code)?.nativeName ?? code}</span>
+                </Badge>
+              ))}
             </p>
-            <dl className="mt-3 flex flex-col gap-1 text-sm">
-              {c.started_at ? (
-                <div className="flex gap-2">
-                  <dd>{t("consultations.startedOn", { date: formatDateTime(c.started_at) })}</dd>
-                </div>
-              ) : null}
-              {c.completed_at ? (
-                <div className="flex gap-2">
-                  <dd>{t("consultations.completedOn", { date: formatDateTime(c.completed_at) })}</dd>
-                </div>
-              ) : null}
+            <dl className="mt-3 flex flex-col gap-1 text-small text-muted">
+              {c.started_at ? <dd>{t("consultations.startedOn", { date: formatDateTime(c.started_at) })}</dd> : null}
+              {c.completed_at ? <dd>{t("consultations.completedOn", { date: formatDateTime(c.completed_at) })}</dd> : null}
             </dl>
           </Card>
 
-          <Card>
-            <CardHeader title={t("consultations.sharedTitle")} />
+          <Card aria-labelledby="shared-heading">
+            <CardHeader id="shared-heading" title={t("consultations.sharedTitle")} />
             {c.shared_categories.length === 0 ? (
               <p className="text-muted">{t("consultations.sharedNothing")}</p>
             ) : (
-              <ul className="flex flex-col gap-1.5">
+              <ul className="flex flex-wrap gap-1.5">
                 {c.shared_categories.map((cat) => (
-                  <li key={cat} className="flex items-center gap-2">
-                    <span aria-hidden className="size-2 rounded-full bg-brand" />
-                    {t(`shareCategories.${cat}`)}
+                  <li key={cat}>
+                    <Badge tone="brand">{t(`shareCategories.${cat}`)}</Badge>
                   </li>
                 ))}
               </ul>
             )}
             {c.request_message ? (
-              <div className="mt-4 border-t border-line pt-3">
-                <p className="text-sm font-semibold text-muted">{t("consultations.yourNote")}</p>
-                <p lang={c.request_language ?? undefined} className="mt-1 whitespace-pre-line">
-                  {c.request_message}
-                </p>
-                <LanguageTag code={c.request_language} />
+              <div className="mt-4">
+                <p className="text-label uppercase text-subtle">{t("consultations.yourNote")}</p>
+                <ProvenanceBlock
+                  kind="original"
+                  className="mt-1.5"
+                  meta={<LanguageTag code={c.request_language} />}
+                >
+                  <p lang={c.request_language ?? undefined} className="whitespace-pre-line">
+                    {c.request_message}
+                  </p>
+                </ProvenanceBlock>
               </div>
             ) : null}
           </Card>
 
           {canCancel ? (
             <div>
-              <Button variant="danger" onClick={cancel}>
+              <Button variant="danger" className="w-full sm:w-auto" onClick={cancel}>
                 {t("consultations.cancelRequest")}
               </Button>
-              {cancelError ? <Alert tone="error" className="mt-2">{errorMessage(t, cancelError)}</Alert> : null}
+              {cancelError ? (
+                <Alert tone="error" className="mt-2">
+                  {errorMessage(t, cancelError)}
+                </Alert>
+              ) : null}
             </div>
           ) : null}
         </div>

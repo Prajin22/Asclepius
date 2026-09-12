@@ -2,7 +2,8 @@
 
 import { useQuery } from "@carebridge/api-client/react";
 import { useI18n } from "@carebridge/i18n";
-import { EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge, buttonClasses } from "@carebridge/ui";
+import { Avatar, ErrorState, PageHeader, SkeletonCard, StatusBadge, buttonClasses } from "@carebridge/ui";
+import { ArrowRight, ChatCircleDots } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 export default function ConsultationsPage() {
@@ -15,40 +16,46 @@ export default function ConsultationsPage() {
       {q.error && !q.data ? (
         <ErrorState error={q.error} onRetry={q.reload} />
       ) : !q.data ? (
-        <LoadingState />
+        <SkeletonCard />
       ) : q.data.length === 0 ? (
-        <EmptyState
-          action={
-            <Link href="/find-care" className={buttonClasses("primary", "md")}>
-              {t("consultations.findDoctor")}
-            </Link>
-          }
-        >
-          {t("consultations.empty")}
-        </EmptyState>
+        <div className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-12 text-center">
+          <ChatCircleDots size={28} aria-hidden className="mx-auto text-subtle" />
+          <p className="mt-3 font-medium text-ink">{t("consultations.empty")}</p>
+          <Link href="/find-care" className={buttonClasses("primary", "md", "mt-4")}>
+            {t("consultations.findDoctor")}
+          </Link>
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {q.data.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/consultations/${c.id}`}
-                className="block rounded-xl border border-line bg-surface p-4 hover:border-brand/40 sm:p-5"
+                className="group flex items-start gap-3.5 rounded-xl border border-line bg-surface p-4 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint sm:p-5"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-lg font-semibold">{c.doctor.name}</p>
-                    <p className="text-muted">{c.doctor.specialization}</p>
-                  </div>
-                  <StatusBadge status={c.status} />
-                </div>
-                <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-                  <span>{t("consultations.requestedOn", { date: formatDate(c.created_at) })}</span>
-                  {c.started_at ? <span>{t("consultations.startedOn", { date: formatDate(c.started_at) })}</span> : null}
-                  {c.completed_at ? (
-                    <span>{t("consultations.completedOn", { date: formatDate(c.completed_at) })}</span>
-                  ) : null}
-                  <span>{t("consultations.prescriptionCount", { count: c.prescription_count })}</span>
-                </p>
+                <Avatar name={c.doctor.name} size="lg" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-start justify-between gap-2">
+                    <span className="min-w-0">
+                      <span className="block truncate text-subheading text-ink">{c.doctor.name}</span>
+                      <span className="block truncate text-small text-muted">{c.doctor.specialization}</span>
+                    </span>
+                    <StatusBadge status={c.status} />
+                  </span>
+                  <span className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-small text-muted">
+                    <span>{t("consultations.requestedOn", { date: formatDate(c.created_at) })}</span>
+                    {c.started_at ? <span>{t("consultations.startedOn", { date: formatDate(c.started_at) })}</span> : null}
+                    {c.completed_at ? (
+                      <span>{t("consultations.completedOn", { date: formatDate(c.completed_at) })}</span>
+                    ) : null}
+                    <span className="tabular">{t("consultations.prescriptionCount", { count: c.prescription_count })}</span>
+                  </span>
+                </span>
+                <ArrowRight
+                  size={18}
+                  aria-hidden
+                  className="mt-1 shrink-0 text-subtle transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-brand"
+                />
               </Link>
             </li>
           ))}
