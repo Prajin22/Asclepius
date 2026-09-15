@@ -1,7 +1,19 @@
 "use client";
 
 import { useT } from "@carebridge/i18n";
-import { CheckCircle, Clock, FileText, Prohibit, Quotes, Scan, Stethoscope, Warning } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowsClockwise,
+  CheckCircle,
+  Clock,
+  FileText,
+  PaperPlaneTilt,
+  Prohibit,
+  Quotes,
+  Scan,
+  Stethoscope,
+  Warning,
+  WarningCircle,
+} from "@phosphor-icons/react/dist/ssr";
 import type { ReactNode } from "react";
 import { cn } from "./cn";
 
@@ -9,11 +21,17 @@ import { cn } from "./cn";
 type Glyph = typeof CheckCircle;
 
 /**
- * Where a piece of information came from — the product's strongest principle.
+ * The fold language: where a piece of information came from, and what has been
+ * done to it.
  *
- * Source is carried by three things at once, never colour alone: a rule down the
- * left edge (solid for human, dashed for machine), an icon, and a label. Original
- * material sits on paper, machine output on steel, human decisions in jade.
+ *   original / document  the sheet — vermilion washi, the patient's own material
+ *   machine              a crease drawn but not pressed — dashed, quiet
+ *   confirmed            the crease pressed — solid ink, only a person presses it
+ *   doctor               sumi ink — authored, attributed, never machine-made
+ *   needsReview          the gold mark — this is waiting for you
+ *
+ * Three things carry the source at once, never colour alone: the edge (solid,
+ * dashed or inked), an icon, and a word.
  */
 export type ProvenanceKind =
   | "original"
@@ -23,56 +41,77 @@ export type ProvenanceKind =
   | "doctor"
   | "needsReview"
   | "pending"
-  | "rejected";
+  | "rejected"
+  | "processing"
+  | "shared"
+  | "failed";
 
 const KINDS: Record<ProvenanceKind, { icon: Glyph; chip: string; block: string; labelKey: string }> = {
   original: {
     icon: Quotes,
     chip: "border-paper-line bg-paper text-paper-ink",
-    block: "border-l-[3px] border-l-paper-line bg-paper",
+    block: "border-paper-line bg-paper",
     labelKey: "provenance.original",
   },
   document: {
     icon: FileText,
     chip: "border-paper-line bg-paper text-paper-ink",
-    block: "border-l-[3px] border-l-paper-line bg-paper",
+    block: "border-paper-line bg-paper",
     labelKey: "provenance.document",
   },
   machine: {
     icon: Scan,
     chip: "border-dashed border-ai-line bg-ai-soft text-ai",
-    block: "border-l-[3px] border-dashed border-l-ai-line bg-ai-soft",
+    block: "border-dashed border-ai-line bg-ai-soft",
     labelKey: "provenance.machine",
   },
   confirmed: {
     icon: CheckCircle,
-    chip: "border-brand/25 bg-brand-soft text-brand-strong",
-    block: "border-l-[3px] border-l-brand bg-brand-tint",
+    chip: "border-ink/40 bg-surface text-ink",
+    block: "border-ink/60 bg-surface",
     labelKey: "provenance.confirmed",
   },
   doctor: {
     icon: Stethoscope,
-    chip: "border-ink/20 bg-ink/[0.06] text-ink",
-    block: "border-l-[3px] border-l-ink bg-surface",
+    chip: "border-ink bg-ink text-white",
+    block: "border-ink bg-surface",
     labelKey: "provenance.doctor",
   },
   needsReview: {
     icon: Warning,
-    chip: "border-warning/30 bg-warning-soft text-warning",
-    block: "border-l-[3px] border-l-warning bg-warning-soft",
+    chip: "border-mark-ink/40 bg-mark-soft text-mark-ink",
+    block: "border-mark-ink/40 bg-mark-soft",
     labelKey: "provenance.needsReview",
   },
   pending: {
     icon: Clock,
     chip: "border-line bg-sunken text-muted",
-    block: "border-l-[3px] border-l-line-strong bg-surface",
+    block: "border-line bg-surface",
     labelKey: "provenance.pending",
   },
   rejected: {
     icon: Prohibit,
     chip: "border-line bg-sunken text-subtle",
-    block: "border-l-[3px] border-l-line-strong bg-sunken",
+    block: "border-line bg-sunken",
     labelKey: "provenance.rejected",
+  },
+  processing: {
+    icon: ArrowsClockwise,
+    chip: "border-dashed border-ai-line bg-ai-soft text-ai",
+    block: "border-dashed border-ai-line bg-ai-soft",
+    labelKey: "provenance.processing",
+  },
+  shared: {
+    icon: PaperPlaneTilt,
+    chip: "border-line bg-surface text-muted",
+    block: "border-line bg-surface",
+    labelKey: "provenance.shared",
+  },
+  failed: {
+    icon: WarningCircle,
+    chip: "border-danger/35 bg-danger-soft text-danger",
+    block: "border-danger/35 bg-danger-soft",
+    labelKey: "provenance.failed",
   },
 };
 
@@ -91,7 +130,8 @@ export function ProvenanceChip({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-caption font-semibold",
+        // A paper tag, not a pill: the corners stay near square like everything else.
+        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2 py-0.5 text-caption font-semibold",
         chip,
         className,
       )}
@@ -103,9 +143,9 @@ export function ProvenanceChip({
 }
 
 /**
- * A block of content whose origin is unmistakable: ruled edge, chip, then the
- * content itself. Used for the patient's words, a page of a document, machine
- * output, and doctor-authored text.
+ * A block of content whose origin is unmistakable: the edge states it, the chip
+ * names it, then the content itself. Used for the patient's words, a page of a
+ * document, machine output, and doctor-authored text.
  */
 export function ProvenanceBlock({
   kind,
@@ -126,7 +166,7 @@ export function ProvenanceBlock({
   lang?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-line py-3 pl-4 pr-3.5", KINDS[kind].block, className)}>
+    <div className={cn("rounded-md border px-4 py-3", KINDS[kind].block, className)}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <ProvenanceChip kind={kind} label={label} />
@@ -141,7 +181,7 @@ export function ProvenanceBlock({
   );
 }
 
-/** Explains the four sources once, where a first-time user meets them. */
+/** Teaches the fold language once, where a first-time user meets it. */
 export function ProvenanceLegend({ className }: { className?: string }) {
   const t = useT();
   return (

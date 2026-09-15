@@ -91,7 +91,8 @@
   },
   "state": {
     "loading": "Loading…",
-    "empty": "Nothing here yet."
+    "empty": "Nothing here yet.",
+    "errorNote": "Your information is unchanged."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -167,7 +168,7 @@
     "attributedTo": "Attributed by: “{cue}”",
     "familyNotYours": "Recorded as family history — not as your own condition.",
     "check": {
-      "ok": "Meaning preserved across all three versions",
+      "ok": "The English version matches your words",
       "review": "The English wording needs a check",
       "added": "In the English but not in your words",
       "dropped": "Found in your words but missing from the English",
@@ -195,6 +196,9 @@
     "needsReview": "Needs review",
     "pending": "Pending review",
     "rejected": "Rejected",
+    "processing": "Being read",
+    "shared": "Shared",
+    "failed": "Could not be read",
     "legend": "Where this information comes from"
   },
   "reading": {
@@ -206,6 +210,7 @@
     },
     "confidence": "OCR confidence {percent}%",
     "engine": "Engine: {engine}",
+    "technical": "Technical details",
     "pageImageAlt": "Page {page} of the original document",
     "noText": "No text was found on this page.",
     "warnings": {

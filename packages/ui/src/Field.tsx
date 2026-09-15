@@ -45,8 +45,9 @@ export function Field({
   );
 }
 
+// A ruled line on paper: a quiet border that darkens when the field is focused.
 const controlBase =
-  "w-full rounded-lg border border-line-strong bg-surface px-3.5 text-ink placeholder:text-subtle " +
+  "w-full rounded-md border border-line-strong bg-surface px-3.5 text-ink placeholder:text-subtle " +
   "aria-[invalid=true]:border-danger disabled:bg-sunken disabled:text-subtle";
 
 export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
@@ -89,9 +90,9 @@ export function Checkbox({
     <label
       htmlFor={id}
       className={cn(
-        "flex min-h-12 cursor-pointer items-start gap-3 rounded-lg px-3.5 py-3 transition-colors duration-150",
+        "flex min-h-12 cursor-pointer items-start gap-3 rounded-md px-3.5 py-3 transition-colors duration-150",
         variant === "card" &&
-          (checked ? "border border-brand/40 bg-brand-soft" : "border border-line bg-surface hover:bg-sunken"),
+          (checked ? "border border-brand/45 bg-brand-soft" : "border border-line bg-surface hover:bg-sunken"),
         variant === "row" && (checked ? "bg-brand-tint" : "hover:bg-sunken"),
         disabled && "cursor-not-allowed opacity-60",
       )}

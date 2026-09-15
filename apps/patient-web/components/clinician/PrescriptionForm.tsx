@@ -69,10 +69,9 @@ export function PrescriptionForm({ onSubmit }: { onSubmit: (data: PrescriptionCr
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <p className="text-sm text-muted">{t("case.authorNotice")}</p>
       {items.map((item, i) => (
-        <fieldset key={i} className="rounded-lg border border-line bg-sunken p-3.5">
-          <legend className="px-1 text-sm font-semibold">{t("case.item", { n: i + 1 })}</legend>
+        <fieldset key={i} className="rounded-md border border-line bg-sunken p-3.5">
+          <legend className="px-1 text-small font-semibold">{t("case.item", { n: i + 1 })}</legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label={t("prescription.medication")} error={fieldError(i, "medication")} className="sm:col-span-2">
               {(p) => (
@@ -135,7 +134,7 @@ export function PrescriptionForm({ onSubmit }: { onSubmit: (data: PrescriptionCr
         <Button type="submit" disabled={busy}>
           {busy ? t("case.issuing") : t("case.issue")}
         </Button>
-        <span className="text-sm text-muted">{t("case.issueWarning")}</span>
+        <span className="text-small text-muted">{t("case.issueWarning")}</span>
       </div>
     </form>
   );

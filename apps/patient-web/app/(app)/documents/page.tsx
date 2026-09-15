@@ -6,6 +6,7 @@ import {
   Badge,
   Card,
   CardHeader,
+  EmptyState,
   ErrorState,
   LanguageTag,
   PageHeader,
@@ -13,7 +14,7 @@ import {
   SkeletonText,
   formatBytes,
 } from "@carebridge/ui";
-import { ArrowRight, FilePlus } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { UploadForm } from "@/components/UploadForm";
 
@@ -48,18 +49,14 @@ export default function DocumentsPage() {
           ) : !q.data ? (
             <SkeletonText lines={4} className="py-2" />
           ) : q.data.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-10 text-center">
-              <FilePlus size={26} aria-hidden className="mx-auto text-subtle" />
-              <p className="mt-2 font-medium text-ink">{t("documents.empty")}</p>
-              <p className="mt-1 text-small text-muted">{t("documents.fileHint")}</p>
-            </div>
+            <EmptyState title={t("documents.empty")}>{t("documents.emptyWhy")}</EmptyState>
           ) : (
             <ul className="flex flex-col gap-2">
               {q.data.map((doc) => (
                 <li key={doc.id}>
                   <Link
                     href={`/documents/${doc.id}`}
-                    className="group flex items-start gap-3 rounded-lg border border-line px-3.5 py-3 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint"
+                    className="group flex items-start gap-3 rounded-md border border-line px-3.5 py-3 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-ink">{doc.title || doc.file_name}</span>

@@ -12,6 +12,7 @@ import {
   CardHeader,
   ErrorState,
   Field,
+  FoldTrack,
   MessageThread,
   PrescriptionCard,
   ProvenanceChip,
@@ -98,7 +99,10 @@ export default function CasePage() {
   const [reason, setReason] = useState("");
 
   const back = (
-    <Link href={HOME_FOR_ROLE.doctor} className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+    <Link
+      href={`${HOME_FOR_ROLE.doctor}/consultations`}
+      className="inline-flex items-center gap-1.5 font-medium text-brand-strong hover:underline"
+    >
       <ArrowLeft size={16} aria-hidden />
       {t("case.back")}
     </Link>
@@ -135,20 +139,20 @@ export default function CasePage() {
   const decline = () =>
     run(async () => {
       await api.doctor.decline(v.id, reason.trim());
-      router.push(HOME_FOR_ROLE.doctor);
+      router.push(`${HOME_FOR_ROLE.doctor}/consultations`);
     });
 
   return (
     <>
       <div className="mb-4">{back}</div>
 
-      {/* Who this is, what they shared, and what the doctor can do next. */}
-      <section aria-label={v.patient.display_name} className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      {/* Who this is, where the consultation stands, and what the doctor can do next. */}
+      <section aria-label={v.patient.display_name} className="rounded-md border border-line bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 gap-4">
             <Avatar name={v.patient.display_name} size="lg" />
             <div className="min-w-0">
-              <h1 className="text-heading tracking-tight text-ink">{v.patient.display_name}</h1>
+              <h1 className="text-page tracking-tight text-ink">{v.patient.display_name}</h1>
               <p className="mt-0.5 text-muted">{patientMeta(v.patient, t)}</p>
               <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-small text-muted">
                 <span>{t("case.requestedOn", { date: formatDateTime(v.created_at) })}</span>
@@ -177,6 +181,19 @@ export default function CasePage() {
           </div>
         </div>
 
+        {v.status !== "cancelled" ? (
+          <FoldTrack
+            inline
+            className="mt-4 border-t border-line pt-4"
+            label={t("case.journeyLabel")}
+            current={v.status}
+            steps={(["requested", "accepted", "active", "completed"] as const).map((s) => ({
+              key: s,
+              label: t(`status.${s}`),
+            }))}
+          />
+        ) : null}
+
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
           <span className="text-label uppercase text-subtle">{t("case.sharedScope")}</span>
           {v.shared_categories.length === 0 ? (
@@ -192,7 +209,7 @@ export default function CasePage() {
 
         {v.status === "requested" ? <p className="mt-3 text-small text-muted">{t("case.reviewBeforeAccept")}</p> : null}
         {declining ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-danger/30 bg-danger-soft/60 p-4">
+          <div className="mt-4 flex flex-col gap-3 rounded-md border border-danger/30 bg-danger-soft/60 p-4">
             <Field label={t("case.declineReason")}>
               {(p) => <TextArea {...p} rows={2} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />}
             </Field>
@@ -210,25 +227,23 @@ export default function CasePage() {
         ) : null}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
-        {/* What the patient shared. */}
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
+        {/* What the patient shared, in the order a consultation actually runs. */}
         <SharedClinicalInfo
           view={v}
           loadDocument={(docId) => api.doctor.documentFile(v.id, docId)}
           loadPage={(docId, page) => api.doctor.documentPageImage(v.id, docId, page)}
         />
 
-        {/* The doctor's own work, ruled in ink so it is never mistaken for machine output. */}
+        {/* The doctor's own work, inked so it is never mistaken for machine output.
+            One column in the order they work: assessment, prescriptions, messages.
+            Nothing is pinned, so no panel can float over the form beneath it. */}
         <div className="flex min-w-0 flex-col gap-5">
           {v.status === "requested" ? <Alert tone="warning">{t("case.acceptFirst")}</Alert> : null}
           {v.status === "completed" ? <Alert tone="info">{t("case.readOnly")}</Alert> : null}
 
-          <Card className="border-l-[3px] border-l-ink" aria-labelledby="assessment-heading">
-            <CardHeader
-              id="assessment-heading"
-              title={t("case.assessment")}
-              action={<ProvenanceChip kind="doctor" />}
-            />
+          <Card tone="ink" aria-labelledby="assessment-heading">
+            <CardHeader id="assessment-heading" title={t("case.assessment")} action={<ProvenanceChip kind="doctor" />} />
             {canWork ? (
               <AssessmentEditor
                 view={v}
@@ -244,11 +259,11 @@ export default function CasePage() {
           </Card>
 
           <section aria-labelledby="rx-heading" className="flex flex-col gap-3">
-            <h2 id="rx-heading" className="text-subheading text-ink">
+            <h2 id="rx-heading" className="text-heading text-ink">
               {t("case.prescriptions")}
             </h2>
             {v.prescriptions.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-small text-muted">
+              <p className="rounded-md border border-dashed border-line-strong bg-sunken/70 px-4 py-5 text-small text-muted">
                 {t("case.noPrescriptions")}
               </p>
             ) : (
@@ -257,7 +272,7 @@ export default function CasePage() {
           </section>
 
           {v.status === "active" ? (
-            <Card className="border-l-[3px] border-l-ink" aria-labelledby="new-rx-heading">
+            <Card tone="ink" aria-labelledby="new-rx-heading">
               <CardHeader
                 id="new-rx-heading"
                 title={t("case.newPrescription")}

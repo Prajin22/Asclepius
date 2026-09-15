@@ -1,67 +1,12 @@
 "use client";
 
 import { useI18n } from "@carebridge/i18n";
-import {
-  Logo,
-  ProvenanceBlock,
-  ProvenanceChip,
-  ReadingProvenance,
-  buttonClasses,
-  cn,
-} from "@carebridge/ui";
+import { Logo, ProvenanceBlock, ProvenanceChip, ReadingProvenance, buttonClasses, cn } from "@carebridge/ui";
 import { ArrowDown, ArrowRight, FileText, Lock, ShieldCheck, Stethoscope } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { HelixScene } from "./HelixScene";
-
-/**
- * The page's one scroll moment, and it tells the product's story in order: the
- * patient's own words, then what the machine read from them, then the items the
- * patient confirmed. Every other section is simply there. Without JavaScript, or
- * with reduced motion, so is this one.
- */
-function useProvenanceSequence() {
-  const stage = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const node = stage.current;
-    if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Strict Mode mounts effects twice, and the cleanup runs before this dynamic
-    // import resolves — a late arrival must not build a second timeline over the first.
-    let cancelled = false;
-    let context: { revert: () => void } | undefined;
-    void (async () => {
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
-      if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
-      context = gsap.context(() => {
-        // fromTo, not from: the visible end state is stated outright, so it can
-        // never be inferred from whatever the element happens to look like now.
-        gsap.fromTo(
-          "[data-step]",
-          { autoAlpha: 0, y: 14 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.9,
-            ease: "expo.out",
-            stagger: 0.22,
-            scrollTrigger: { trigger: node, start: "top 72%", once: true },
-          },
-        );
-      }, node);
-      // Webfonts swap in after the trigger is measured and shift the page; re-measure once they settle.
-      void document.fonts?.ready.then(() => {
-        if (!cancelled) ScrollTrigger.refresh();
-      });
-    })();
-    return () => {
-      cancelled = true;
-      context?.revert();
-    };
-  }, []);
-  return stage;
-}
+import { FoldScene } from "./FoldScene";
 
 function Section({
   children,
@@ -83,13 +28,9 @@ function Section({
 
 export function LandingPage() {
   const { t } = useI18n();
-  const evidence = useProvenanceSequence();
 
-  const steps = [
-    { key: "step1", n: "1" },
-    { key: "step2", n: "2" },
-    { key: "step3", n: "3" },
-  ] as const;
+  // Five folds, and the numbers are the order the product works in.
+  const steps = ["step1", "step2", "step3", "step4", "step5"] as const;
 
   const promises = [
     { key: "consent", Icon: ShieldCheck },
@@ -101,15 +42,15 @@ export function LandingPage() {
     <div className="flex min-h-[100dvh] flex-col bg-canvas">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:shadow-md"
       >
         {t("a11y.skipToContent")}
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-          <span className="flex items-center gap-2.5 text-subheading tracking-tight text-brand-strong">
-            <Logo size={26} />
+          <span className="flex items-center gap-2.5 text-subheading text-ink">
+            <Logo size={26} className="text-brand" />
             {t("app.name")}
           </span>
           <div className="flex items-center gap-2">
@@ -125,8 +66,8 @@ export function LandingPage() {
       </header>
 
       <main id="main" className="flex-1">
-        {/* Hero */}
-        <Section className="grid items-center gap-10 py-12 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-14 lg:py-16">
+        {/* Hero: one sheet, folding. The page's only colour field is the sheet itself. */}
+        <Section className="grid items-center gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-14 lg:py-20">
           <div className="max-w-2xl">
             <h1 className="text-display text-balance text-ink">{t("landing.hero.title")}</h1>
             <p className="mt-5 max-w-xl text-body-lg text-pretty text-muted">{t("landing.hero.subtitle")}</p>
@@ -141,31 +82,33 @@ export function LandingPage() {
               </a>
             </div>
           </div>
-          <HelixScene className="relative mx-auto aspect-[4/5] w-full max-w-sm lg:max-w-none [&>canvas]:size-full" />
+          <figure className="m-0">
+            <FoldScene className="relative mx-auto aspect-square w-full max-w-sm lg:max-w-none [&>canvas]:size-full" />
+            <figcaption className="mt-3 text-center text-small text-subtle">{t("landing.sceneAlt")}</figcaption>
+          </figure>
         </Section>
 
-        {/* How it works — one joined sequence; the numbers are the order the product works in. */}
+        {/* How it works: five folds, numbered, divided by creases rather than boxed in cards. */}
         <Section id="how" labelledBy="how-title" className="py-16 lg:py-24">
           <h2 id="how-title" className="max-w-2xl text-title text-balance text-ink">
             {t("landing.how.title")}
           </h2>
-          <ol className="mt-10 grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3">
-            {steps.map(({ key, n }) => (
-              <li key={key} className="flex flex-col gap-3 bg-surface p-6 lg:p-8">
-                <span
-                  aria-hidden
-                  className="tabular grid size-8 place-items-center rounded-full bg-brand-soft text-small font-semibold text-brand-strong"
-                >
-                  {n}
+          <ol className="mt-10 divide-y divide-line border-y border-line">
+            {steps.map((key, index) => (
+              <li key={key} className="grid gap-x-6 gap-y-1 py-6 sm:grid-cols-[3rem_minmax(0,1fr)] lg:py-7">
+                <span aria-hidden className="tabular text-step text-subtle">
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3 className="text-subheading text-ink">{t(`landing.how.${key}.title`)}</h3>
-                <p className="text-body text-pretty text-muted">{t(`landing.how.${key}.body`)}</p>
+                <div className="max-w-2xl">
+                  <h3 className="text-subheading text-ink">{t(`landing.how.${key}.title`)}</h3>
+                  <p className="mt-1 text-body text-pretty text-muted">{t(`landing.how.${key}.body`)}</p>
+                </div>
               </li>
             ))}
           </ol>
         </Section>
 
-        {/* Evidence — shown with the product's own components, not a mock-up. */}
+        {/* Evidence, shown with the product's own components rather than a mock-up. */}
         <Section labelledBy="evidence-title" className="py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
             <div>
@@ -174,36 +117,32 @@ export function LandingPage() {
               </h2>
               <p className="mt-4 max-w-lg text-body-lg text-pretty text-muted">{t("landing.evidence.body")}</p>
             </div>
-            <div ref={evidence} className="flex flex-col gap-3">
-              <div data-step>
-                <ProvenanceBlock kind="original" lang="ta" meta="தமிழ்">
-                  <p className="text-body-lg">எனக்கு இரண்டு நாட்களாக தலைவலி மற்றும் காய்ச்சல் உள்ளது.</p>
-                </ProvenanceBlock>
-              </div>
-              <span data-step className="flex justify-center">
+            <div className="flex flex-col gap-3">
+              <ProvenanceBlock kind="original" lang="ta" meta="தமிழ்">
+                <p className="text-body-lg">எனக்கு இரண்டு நாட்களாக தலைவலி மற்றும் காய்ச்சல் உள்ளது.</p>
+              </ProvenanceBlock>
+              <span className="flex justify-center">
                 <ArrowDown size={20} aria-hidden className="text-subtle" />
               </span>
-              <div data-step>
-                <ProvenanceBlock kind="machine" meta={t("provenance.machineNote")}>
-                  <p>Patient reports headache and fever. Reported duration: 2 days.</p>
-                  <ul className="mt-3 flex flex-col gap-2">
-                    {[
-                      { value: "headache", quote: "தலைவலி" },
-                      { value: "2 days", quote: "இரண்டு நாட்களாக" },
-                    ].map((item) => (
-                      <li key={item.value} data-step className="rounded-md border border-ai-line/70 bg-surface px-3 py-2">
-                        <span className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-semibold text-ink">{item.value}</span>
-                          <ProvenanceChip kind="confirmed" />
-                        </span>
-                        <span className="mt-1 block text-small text-muted">
-                          {t("ai.evidenceFrom")}: <q lang="ta">{item.quote}</q>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </ProvenanceBlock>
-              </div>
+              <ProvenanceBlock kind="machine" meta={t("provenance.machineNote")}>
+                <p>Patient reports headache and fever. Reported duration: 2 days.</p>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {[
+                    { value: "headache", quote: "தலைவலி" },
+                    { value: "2 days", quote: "இரண்டு நாட்களாக" },
+                  ].map((item) => (
+                    <li key={item.value} className="rounded-md border border-ink/60 bg-surface px-3 py-2">
+                      <span className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-ink">{item.value}</span>
+                        <ProvenanceChip kind="confirmed" />
+                      </span>
+                      <span className="mt-1 block text-small text-muted">
+                        {t("ai.evidenceFrom")}: <q lang="ta">{item.quote}</q>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </ProvenanceBlock>
             </div>
           </div>
         </Section>
@@ -211,20 +150,20 @@ export function LandingPage() {
         {/* Documents */}
         <Section labelledBy="documents-title" className="py-16 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-            <div className="order-2 flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 lg:order-1">
+            <div className="order-2 flex flex-col gap-3 rounded-md border border-line bg-surface p-5 lg:order-1">
               <ReadingProvenance method="ocr" engine="rapidocr-onnxruntime 1.4.4" confidence={0.985} />
-              <div className="rounded-lg border border-paper-line bg-paper p-4 font-mono text-small leading-relaxed text-paper-ink">
+              <div className="rounded-md border border-paper-line bg-paper p-4 font-mono text-small leading-relaxed text-paper-ink">
                 Demo Diagnostics Laboratory
                 <br />
                 Complete Blood Count
                 <br />
-                <mark className="rounded-sm bg-brand-soft px-1 text-brand-strong">Hemoglobin: 13.5 g/dL</mark>
+                <mark className="rounded-sm bg-mark/40 px-1 text-paper-ink ring-1 ring-mark-ink">Hemoglobin: 13.5 g/dL</mark>
                 <br />
                 Blood pressure: 150/95 mmHg
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <ProvenanceChip kind="document" label="Page 1" />
-                <span className="text-value font-mono text-ink">13.5 g/dL</span>
+                <span className="font-mono text-value text-ink">13.5 g/dL</span>
                 <ProvenanceChip kind="machine" />
               </div>
             </div>
@@ -239,7 +178,7 @@ export function LandingPage() {
 
         {/* Languages */}
         <Section labelledBy="languages-title" className="py-16 lg:py-24">
-          <div className="rounded-2xl border border-line bg-surface p-6 sm:p-10">
+          <div className="rounded-md border border-line bg-surface p-6 sm:p-10">
             <h2 id="languages-title" className="max-w-xl text-title text-balance text-ink">
               {t("landing.languages.title")}
             </h2>
@@ -253,7 +192,7 @@ export function LandingPage() {
                 <li
                   key={sample.lang}
                   lang={sample.lang}
-                  className="rounded-lg border border-paper-line bg-paper px-4 py-3 text-body-lg text-paper-ink"
+                  className="rounded-md border border-paper-line bg-paper px-4 py-3 text-body-lg text-paper-ink"
                 >
                   {sample.text}
                 </li>
@@ -262,9 +201,9 @@ export function LandingPage() {
           </div>
         </Section>
 
-        {/* Doctor — the page's one deliberate dark block, the clinician workspace's own ink. */}
+        {/* The doctor's side: the page's one ink block, the clinician workspace's own material. */}
         <Section labelledBy="doctor-title" className="py-16 lg:py-24">
-          <div className="overflow-hidden rounded-2xl bg-ink px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-16">
+          <div className="on-dark overflow-hidden rounded-md bg-ink px-6 py-10 text-white sm:px-10 lg:px-14 lg:py-16">
             <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-14">
               <div>
                 <h2 id="doctor-title" className="text-title text-balance text-white">
@@ -278,7 +217,7 @@ export function LandingPage() {
                   { icon: ShieldCheck, label: t("provenance.confirmed"), body: t("landing.doctorView.confirmed") },
                   { icon: Stethoscope, label: t("provenance.doctor"), body: t("landing.doctorView.assessment") },
                 ].map(({ icon: Icon, label, body }) => (
-                  <li key={label} className="flex items-start gap-3 rounded-lg bg-white/[0.07] px-4 py-3">
+                  <li key={label} className="flex items-start gap-3 rounded-md bg-white/[0.07] px-4 py-3">
                     <Icon size={20} weight="regular" aria-hidden className="mt-0.5 shrink-0 text-white/70" />
                     <span>
                       <span className="block font-semibold">{label}</span>
@@ -291,7 +230,7 @@ export function LandingPage() {
           </div>
         </Section>
 
-        {/* Trust — a statement and its three commitments, read as a list rather than three matching cards. */}
+        {/* Trust: a statement and its three commitments, read as a list rather than three matching cards. */}
         <Section labelledBy="trust-title" className="py-16 lg:py-24">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
             <h2 id="trust-title" className="max-w-sm text-title text-balance text-ink">
@@ -310,11 +249,11 @@ export function LandingPage() {
           </div>
         </Section>
 
-        {/* Call to action */}
+        {/* Call to action: the one place the page is drenched in the sheet's own colour. */}
         <Section className="pb-20 pt-4 lg:pb-28">
-          <div className="rounded-2xl bg-brand px-6 py-12 text-center text-white sm:px-10 lg:py-16">
+          <div className="on-brand rounded-md bg-brand px-6 py-12 text-center text-white sm:px-10 lg:py-16">
             <h2 className="mx-auto max-w-2xl text-title text-balance text-white">{t("landing.cta.title")}</h2>
-            <p className="mx-auto mt-3 max-w-md text-body text-white/75">{t("landing.cta.body")}</p>
+            <p className="mx-auto mt-3 max-w-md text-body text-white">{t("landing.cta.body")}</p>
             <Link
               href="/login"
               className={buttonClasses(

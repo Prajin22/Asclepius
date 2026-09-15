@@ -49,7 +49,7 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <header className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-small font-medium text-brand hover:underline">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-small font-medium text-brand-strong hover:underline">
           <ArrowLeft size={16} aria-hidden />
           {t("app.name")}
         </Link>
@@ -197,7 +197,7 @@ function AuthPanel() {
           <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
             {applying ? (
               <>
-                <p className="flex gap-2.5 rounded-lg bg-brand-tint px-3.5 py-3 text-small text-brand-strong">
+                <p className="flex gap-2.5 rounded-md bg-brand-tint px-3.5 py-3 text-small text-brand-strong">
                   <ShieldCheck size={18} className="mt-0.5 shrink-0" aria-hidden />
                   {t("auth.applyIntro")}
                 </p>
@@ -276,7 +276,7 @@ function AuthPanel() {
         </Card>
 
         {SHOW_DEMO_ACCOUNT && mode === "signIn" ? (
-          <div className="mt-4 rounded-xl border border-dashed border-line-strong bg-surface px-4 py-3.5">
+          <div className="mt-4 rounded-md border border-dashed border-line-strong bg-surface px-4 py-3.5">
             <p className="text-small font-semibold text-muted">{t("auth.demoTitle")}</p>
             <ul className="mt-2 flex flex-col gap-2.5">
               {DEMOS[role].map((key) => {
@@ -331,7 +331,7 @@ function RoleOption({
   return (
     <label
       className={cn(
-        "flex cursor-pointer flex-col gap-2 rounded-lg border p-3.5 transition-colors duration-150",
+        "flex cursor-pointer flex-col gap-2 rounded-md border p-3.5 transition-colors duration-150",
         "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus",
         checked
           ? "border-brand bg-brand-tint shadow-[inset_0_0_0_1px_var(--color-brand)]"

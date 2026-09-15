@@ -34,3 +34,8 @@ Thumbs.db
 # Local tooling
 .local/
 graphify-out/
+# Design tool runtime state. The surface briefs under .impeccable/surfaces/ are kept.
+.impeccable/questions/
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/build/

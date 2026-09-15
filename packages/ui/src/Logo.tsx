@@ -1,9 +1,9 @@
 /**
- * The Asclepius mark: a rod with information gathering along it.
+ * The Asclepius mark: the rod, drawn in the fold language.
  *
- * The rod is the instrument; the winding line is the patient's information being
- * ordered against it; the three nodes are the items that come out of it. Drawn in
- * `currentColor` so it works on the jade header, on paper and in a single colour.
+ * A square sheet, one solid crease as the rod, a pleated line winding around it,
+ * and the dot that marks whatever is waiting. Drawn in `currentColor` so it works
+ * on ink, on the vermilion sheet and on paper, and it survives at 16px.
  */
 export function Logo({ size = 28, className }: { size?: number; className?: string }) {
   return (
@@ -16,17 +16,17 @@ export function Logo({ size = 28, className }: { size?: number; className?: stri
       aria-hidden
       focusable={false}
     >
-      <path d="M14 3.25v21.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+      <rect x="4.2" y="4.2" width="19.6" height="19.6" rx="0.6" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+      <path d="M14 7.4V23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
-        d="M9.1 7.6c3.3-2.7 9.8-1.2 9.8 2.4 0 3.9-9.8 3.9-9.8 7.8 0 3.6 6.5 5.1 9.8 2.4"
+        d="M9.6 10.6 18.4 12.9 9.6 15.5 18.4 18 9.6 20.6"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.3"
         strokeLinecap="round"
-        opacity="0.85"
+        strokeLinejoin="round"
+        opacity="0.62"
       />
-      <circle cx="14" cy="4.1" r="1.5" fill="currentColor" />
-      <circle cx="19.4" cy="14" r="1.15" fill="currentColor" opacity="0.55" />
-      <circle cx="8.6" cy="14" r="1.15" fill="currentColor" opacity="0.55" />
+      <circle cx="14" cy="5.6" r="1.9" fill="currentColor" />
     </svg>
   );
 }

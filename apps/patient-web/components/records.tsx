@@ -76,7 +76,7 @@ export function RecordForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-lg border border-line bg-sunken p-4">
+    <form onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-md border border-line bg-sunken p-4">
       <Field label={t("health.form.title")} hint={t(`health.form.titleHint.${type}`)}>
         {(p) => <TextInput {...p} required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} />}
       </Field>

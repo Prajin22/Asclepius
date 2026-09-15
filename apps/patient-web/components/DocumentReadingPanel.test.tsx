@@ -155,7 +155,8 @@ describe("DocumentReadingPanel", () => {
       />,
     );
     expect(screen.getByText(/Read by OCR — machine transcription/)).toBeInTheDocument();
-    expect(screen.getByText("OCR confidence 62%")).toBeInTheDocument();
+    // Confidence and engine sit behind the technical disclosure, not in the patient's reading line.
+    expect(screen.getByText(/OCR confidence 62%/)).toBeInTheDocument();
     expect(screen.getByText(/hard to read/)).toBeInTheDocument();
   });
 

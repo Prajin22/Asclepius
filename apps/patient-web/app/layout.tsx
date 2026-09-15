@@ -1,18 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Devanagari, Noto_Sans_Tamil } from "next/font/google";
+import { Geist_Mono, Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Tamil } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
-// Indic scripts are part of the type system, not a system fallback.
-const tamil = Noto_Sans_Tamil({ subsets: ["tamil"], variable: "--font-noto-tamil", display: "swap" });
+// One humanist family across three scripts: Latin, Tamil and Devanagari are drawn
+// as one system, so a patient's sentence and its English rendering match in weight
+// and rhythm. Each script's file loads only when its glyphs appear on screen.
+const sans = Noto_Sans({ subsets: ["latin"], variable: "--font-noto-sans", display: "swap" });
+const tamil = Noto_Sans_Tamil({ subsets: ["tamil"], variable: "--font-noto-tamil", display: "swap", preload: false });
 const devanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
   variable: "--font-noto-devanagari",
   display: "swap",
+  preload: false,
 });
+// Measured values are instrument readings, not prose: monospaced, tabular figures.
+// Not preloaded: a phone on mobile data should not pay for Tamil, Devanagari or the
+// mono face on a page that renders none of them. Each arrives when its glyphs do.
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   title: { default: "Asclepius", template: "%s · Asclepius" },
@@ -23,7 +29,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a5c52",
+  themeColor: "#d83a2e",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -32,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable} ${tamil.variable} ${devanagari.variable}`}
+      className={`${sans.variable} ${geistMono.variable} ${tamil.variable} ${devanagari.variable}`}
     >
       <body>
         <Providers>{children}</Providers>

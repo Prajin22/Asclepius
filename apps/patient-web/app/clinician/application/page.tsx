@@ -117,13 +117,13 @@ function ApplicationStatus() {
     <>
       <h1 className="text-title text-ink">{t("application.title")}</h1>
 
-      <section aria-live="polite" className={cn("mt-6 flex gap-4 rounded-xl border p-5 sm:p-6", STATUS_SURFACE[status])}>
+      <section aria-live="polite" className={cn("mt-6 flex gap-4 rounded-md border p-5 sm:p-6", STATUS_SURFACE[status])}>
         <Icon size={28} weight="duotone" className="shrink-0" aria-hidden />
         <div className="min-w-0 flex-1">
           <h2 className="text-subheading">{t(`application.status.${status}`)}</h2>
           <p className="mt-1 text-ink/80">{t(`application.${status}Body`)}</p>
           {status === "rejected" && account.approval_note ? (
-            <div className="mt-3 rounded-lg border border-danger/20 bg-surface px-3.5 py-2.5">
+            <div className="mt-3 rounded-md border border-danger/20 bg-surface px-3.5 py-2.5">
               <p className="text-label uppercase text-subtle">{t("application.reason")}</p>
               <p className="mt-1 text-ink">{account.approval_note}</p>
             </div>
@@ -150,7 +150,7 @@ function ApplicationStatus() {
               key={step}
               aria-current={now ? "step" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-lg border px-3.5 py-3",
+                "flex items-center gap-3 rounded-md border px-3.5 py-3",
                 done || now ? "border-line-strong bg-surface" : "border-line bg-sunken/60",
               )}
             >
@@ -161,7 +161,7 @@ function ApplicationStatus() {
                   aria-hidden
                   className={cn(
                     "tabular grid size-5 shrink-0 place-items-center rounded-full border-2 text-[0.625rem] font-semibold",
-                    now ? "border-brand text-brand" : "border-line-strong text-subtle",
+                    now ? "border-brand text-brand-strong" : "border-line-strong text-subtle",
                   )}
                 >
                   {i + 1}

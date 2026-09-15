@@ -4,19 +4,23 @@ import { cn } from "./cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "onDark";
 export type ButtonSize = "sm" | "md" | "lg";
 
+/**
+ * Colour is spent in one place per screen: the sheet, and the primary action.
+ * Everything else is paper and ink.
+ */
 const variants: Record<ButtonVariant, string> = {
   primary:
     "bg-brand text-white shadow-xs hover:bg-brand-strong disabled:bg-line disabled:text-subtle disabled:shadow-none",
   secondary:
-    "border border-line-strong bg-surface text-ink hover:border-brand/45 hover:bg-brand-tint disabled:text-subtle",
-  ghost: "text-brand hover:bg-brand-soft disabled:text-subtle",
-  danger: "border border-danger/30 bg-surface text-danger hover:bg-danger-soft disabled:text-subtle",
-  // For jade/ink headers, where a light surface would punch a hole in the bar.
+    "border border-line-strong bg-surface text-ink hover:border-brand/50 hover:bg-brand-tint disabled:text-subtle",
+  ghost: "text-brand-strong hover:bg-brand-soft disabled:text-subtle",
+  danger: "border border-danger/35 bg-surface text-danger hover:bg-danger-soft disabled:text-subtle",
+  // For the ink chrome of the clinician workspace, where a paper button would punch a hole.
   onDark: "border border-white/25 bg-white/10 text-white hover:bg-white/20 disabled:text-white/50",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  // On a phone no target is under 44px (DESIGN.md §7); the compact height is for pointers.
+  // On a phone no target is under 44px; the compact height is for pointers.
   sm: "min-h-11 gap-1.5 px-3 text-small sm:min-h-9",
   md: "min-h-11 gap-2 px-4 text-body",
   lg: "min-h-13 gap-2 px-6 text-body-lg",

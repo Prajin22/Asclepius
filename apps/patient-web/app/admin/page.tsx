@@ -166,7 +166,7 @@ function ApplicationCard({
           {/* The one value checked against the register, set apart from everything else. */}
           <div
             className={cn(
-              "mt-4 rounded-lg border px-4 py-3",
+              "mt-4 rounded-md border px-4 py-3",
               doctor.registration_conflict ? "border-warning/40 bg-warning-soft" : "border-line bg-sunken",
             )}
           >
@@ -198,7 +198,7 @@ function ApplicationCard({
             <p className="mt-4 text-small text-muted">{t("admin.reviewedOn", { date: formatDate(doctor.reviewed_at) })}</p>
           ) : null}
           {status === "rejected" && doctor.approval_note ? (
-            <div className="mt-2 rounded-lg border border-danger/20 bg-danger-soft px-3.5 py-2.5 text-small">
+            <div className="mt-2 rounded-md border border-danger/20 bg-danger-soft px-3.5 py-2.5 text-small">
               <p className="font-semibold text-danger">{t("admin.note")}</p>
               <p className="mt-0.5 text-ink">{doctor.approval_note}</p>
             </div>

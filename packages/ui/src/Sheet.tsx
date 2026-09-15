@@ -7,9 +7,9 @@ import { createPortal } from "react-dom";
 import { cn } from "./cn";
 
 /**
- * One overlay for both device classes: a bottom sheet within thumb reach on a
- * phone, a centred dialog on a larger screen. Escape closes it, focus moves in
- * and returns to where it was, and the page behind it cannot scroll.
+ * One overlay for both device classes: a sheet that slides up within thumb reach
+ * on a phone, a centred dialog on a larger screen. Escape closes it, focus moves
+ * in and returns to where it was, and the page behind it cannot scroll.
  */
 export function Sheet({
   open,
@@ -59,7 +59,7 @@ export function Sheet({
       <button
         type="button"
         aria-label={t("actions.close")}
-        className="absolute inset-0 bg-ink/35 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-ink/40"
         onClick={onClose}
       />
       <div
@@ -69,14 +69,14 @@ export function Sheet({
         aria-label={typeof title === "string" ? title : undefined}
         tabIndex={-1}
         className={cn(
-          "relative flex max-h-[88dvh] w-full flex-col rounded-t-2xl border border-line bg-surface shadow-lg outline-none",
-          "sm:max-w-lg sm:rounded-xl",
+          "relative flex max-h-[88dvh] w-full flex-col rounded-t-lg border border-line bg-surface shadow-lg outline-none",
+          "sm:max-w-lg sm:rounded-md",
           className,
         )}
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-subheading text-ink">{title}</h2>
+            <h2 className="text-heading text-ink">{title}</h2>
             {description ? <p className="mt-0.5 text-small text-muted">{description}</p> : null}
           </div>
           <button

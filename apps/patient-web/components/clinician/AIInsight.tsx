@@ -24,7 +24,7 @@ export function AIInsight({ insight }: { insight: AIRecordInsight }) {
   const check = insight.normalization_check;
 
   return (
-    <div className="mt-3 rounded-lg border border-dashed border-ai-line bg-ai-soft/60">
+    <div className="mt-3 rounded-md border border-dashed border-ai-line bg-ai-soft/60">
       <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <ProvenanceChip kind="machine" label={t("ai.title")} />
@@ -147,9 +147,9 @@ export function FactList({
         <li
           key={`${fact.category}-${fact.subject}-${index}`}
           className={cn(
-            "rounded-md border border-l-[3px] bg-surface px-3 py-2.5",
-            fact.subject === "self" ? "border-line border-l-line-strong" : "border-warning/40 border-l-warning",
-            fact === active && "ring-2 ring-brand/40",
+            "rounded-md border bg-surface px-3 py-2.5",
+            fact.subject === "self" ? "border-line" : "border-warning/50",
+            fact === active && "ring-2 ring-mark",
           )}
         >
           <div className="flex flex-wrap items-start justify-between gap-2">

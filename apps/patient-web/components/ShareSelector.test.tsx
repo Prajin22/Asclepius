@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
@@ -35,6 +35,12 @@ function Harness({ initial }: { initial: SelectionState }) {
   );
 }
 
+/** Opens one category so its items are on screen. */
+async function openCategory(name: string) {
+  const group = screen.getByRole("group", { name: new RegExp(name) });
+  await userEvent.click(within(group).getByRole("button", { name: "Show items" }));
+}
+
 describe("ShareSelector", () => {
   it("renders every category, with an empty-state for categories without items", () => {
     renderWithI18n(<Harness initial={emptySelection()} />);
@@ -55,15 +61,18 @@ describe("ShareSelector", () => {
 
   it("individual items can be unticked, leaving the category partially selected", async () => {
     renderWithI18n(<Harness initial={{ ...emptySelection(), medical_history: ["h1", "h2"] }} />);
+    // Categories arrive folded: the count shows what would go, and opening one shows every item.
+    await openCategory("Relevant medical history");
     await userEvent.click(screen.getByRole("checkbox", { name: /Penicillin allergy/ }));
     expect(latest.medical_history).toEqual(["h1"]);
     const category = screen.getByRole("checkbox", { name: /Relevant medical history/ }) as HTMLInputElement;
     expect(category.indeterminate).toBe(true);
-    expect(screen.getByText("1 selected")).toBeInTheDocument();
+    expect(screen.getByText("1 of 2")).toBeInTheDocument();
   });
 
   it("previous prescriptions start unshared and can be opted in", async () => {
     renderWithI18n(<Harness initial={emptySelection()} />);
+    await openCategory("Previous prescriptions");
     const rx = screen.getByRole("checkbox", { name: /Dr. Rajesh Iyer/ });
     expect(rx).not.toBeChecked();
     await userEvent.click(rx);

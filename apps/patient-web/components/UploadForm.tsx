@@ -103,7 +103,7 @@ export function UploadForm({
                 setFileError(validateFile(dropped));
               }}
               className={cn(
-                "rounded-xl border border-dashed p-4 transition-colors duration-150",
+                "rounded-md border border-dashed p-4 transition-colors duration-150",
                 dragging ? "border-brand bg-brand-tint" : "border-line-strong bg-sunken/70",
               )}
             >

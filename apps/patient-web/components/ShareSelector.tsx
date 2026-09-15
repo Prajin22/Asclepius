@@ -3,12 +3,16 @@
 import { useT } from "@carebridge/i18n";
 import { SHARE_CATEGORIES, type ShareCategory } from "@carebridge/shared-types";
 import { Badge, Checkbox, cn } from "@carebridge/ui";
-import { useEffect, useId, useRef } from "react";
+import { CaretDown, CaretUp } from "@phosphor-icons/react/dist/ssr";
+import { useEffect, useId, useRef, useState } from "react";
 import type { SelectionState, ShareItem } from "@/lib/sharing";
 
 /**
- * Patient-controlled sharing: category checkboxes select/clear all items in
- * the category; individual items can be toggled. Nothing is shared implicitly.
+ * Patient-controlled sharing.
+ *
+ * Categories arrive folded: the count says what would go, and opening one shows
+ * every item so nothing is shared unseen. The category box selects or clears all
+ * of its items; each item can still be toggled on its own. Nothing is implicit.
  */
 export function ShareSelector({
   items,
@@ -20,7 +24,7 @@ export function ShareSelector({
   onChange: (next: SelectionState) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {SHARE_CATEGORIES.map((category) => (
         <CategoryBlock
           key={category}
@@ -48,6 +52,7 @@ function CategoryBlock({
   const t = useT();
   const id = useId();
   const boxRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
   const all = items.length > 0 && selected.length === items.length;
   const some = selected.length > 0 && !all;
 
@@ -61,19 +66,9 @@ function CategoryBlock({
   return (
     <fieldset
       aria-labelledby={`${id}-label`}
-      className={cn(
-        "rounded-xl border bg-surface",
-        selected.length > 0 ? "border-brand/40" : "border-line",
-      )}
+      className={cn("rounded-md border bg-surface", selected.length > 0 ? "border-brand/45" : "border-line")}
     >
-      <label
-        htmlFor={id}
-        className={cn(
-          "flex min-h-14 items-center gap-3 px-4 py-3",
-          items.length === 0 ? "cursor-not-allowed" : "cursor-pointer",
-          items.length > 0 && "border-b border-line",
-        )}
-      >
+      <div className={cn("flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5", open && items.length > 0 && "border-b border-line")}>
         <input
           ref={boxRef}
           id={id}
@@ -83,15 +78,29 @@ function CategoryBlock({
           disabled={items.length === 0}
           onChange={(e) => onChange(e.target.checked ? items.map((i) => i.id) : [])}
         />
-        <span id={`${id}-label`} className="flex-1 text-body font-semibold text-ink">
+        <label htmlFor={id} id={`${id}-label`} className="flex-1 cursor-pointer text-body font-semibold text-ink">
           {t(`shareCategories.${category}`)}
-        </span>
-        <Badge tone={selected.length > 0 ? "brand" : "neutral"}>{t("request.selected", { count: selected.length })}</Badge>
-      </label>
+        </label>
+        <Badge tone={selected.length > 0 ? "brand" : "neutral"}>
+          {t("request.selectedOf", { count: selected.length, total: items.length })}
+        </Badge>
+        {items.length > 0 ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={`${id}-items`}
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-small font-semibold text-brand-strong hover:bg-brand-soft sm:min-h-9"
+          >
+            {open ? <CaretUp size={14} weight="bold" aria-hidden /> : <CaretDown size={14} weight="bold" aria-hidden />}
+            {open ? t("request.hideItems") : t("request.showItems")}
+          </button>
+        ) : null}
+      </div>
       {items.length === 0 ? (
-        <p className="px-4 py-3 text-small text-muted">{t("request.noItems")}</p>
-      ) : (
-        <ul className="flex flex-col gap-0.5 p-2">
+        <p className="px-4 pb-3 text-small text-muted">{t("request.noItems")}</p>
+      ) : open ? (
+        <ul id={`${id}-items`} className="flex flex-col gap-0.5 p-2">
           {items.map((item) => (
             <li key={item.id}>
               <Checkbox
@@ -104,7 +113,7 @@ function CategoryBlock({
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
     </fieldset>
   );
 }

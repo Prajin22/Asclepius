@@ -8,7 +8,13 @@ import { cn } from "./cn";
 import { Alert } from "./Feedback";
 import { Field, TextArea } from "./Field";
 
-/** Plain text consultation messages. Each message keeps its original wording. */
+/**
+ * Consultation messages, each kept in the words it was written in.
+ *
+ * Authorship is material, not just alignment: what the patient writes sits on
+ * their own paper, what the doctor writes is inked. Both sides read the same
+ * thread, so the two never swap materials depending on who is looking.
+ */
 export function MessageThread({
   messages,
   viewerRole,
@@ -57,16 +63,17 @@ export function MessageThread({
       {messages.length === 0 ? (
         <p className="text-small text-muted">{t("messages.empty")}</p>
       ) : (
-        <ol ref={listRef} aria-live="polite" className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto pr-1">
+        <ol ref={listRef} tabIndex={0} aria-live="polite" className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto pr-1">
           {messages.map((m) => {
             const mine = m.sender_role === viewerRole;
+            const fromDoctor = m.sender_role === "doctor";
             return (
               <li key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
                 <div
                   lang={m.language ?? undefined}
                   className={cn(
-                    "max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5",
-                    mine ? "rounded-br-sm bg-brand text-white" : "rounded-bl-sm border border-line bg-sunken text-ink",
+                    "max-w-[85%] whitespace-pre-line rounded-md px-4 py-2.5",
+                    fromDoctor ? "bg-ink text-white" : "border border-paper-line bg-paper text-paper-ink",
                   )}
                 >
                   {m.body}
@@ -102,7 +109,7 @@ export function MessageThread({
           </div>
         </form>
       ) : (
-        <p className="rounded-lg bg-sunken px-3 py-2 text-small text-muted">{t("messages.closed")}</p>
+        <p className="rounded-md bg-sunken px-3 py-2 text-small text-muted">{t("messages.closed")}</p>
       )}
     </div>
   );

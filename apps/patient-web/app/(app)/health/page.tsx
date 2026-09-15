@@ -58,7 +58,7 @@ export default function MyHealthPage() {
           </Link>
         }
       />
-      <div className="mb-6 rounded-xl border border-line bg-surface px-4 py-3.5">
+      <div className="mb-6 rounded-md border border-line bg-surface px-4 py-3.5">
         <SourceLegend />
         <p className="mt-2 text-small text-muted">{t("health.doctorLocked")}</p>
       </div>
@@ -90,7 +90,16 @@ export default function MyHealthPage() {
             }
           />
           {problems.length === 0 ? (
-            <EmptyState>{t("health.empty")}</EmptyState>
+            <EmptyState
+              title={t("health.sections.problems")}
+              action={
+                <Link href="/health/current-problem" className={buttonClasses("primary", "md")}>
+                  {t("health.describeProblem")}
+                </Link>
+              }
+            >
+              {t("health.problemsWhy")}
+            </EmptyState>
           ) : (
             <ul className="divide-y divide-line">
               {problems.map((p) => (

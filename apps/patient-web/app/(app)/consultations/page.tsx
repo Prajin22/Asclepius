@@ -2,8 +2,8 @@
 
 import { useQuery } from "@carebridge/api-client/react";
 import { useI18n } from "@carebridge/i18n";
-import { Avatar, ErrorState, PageHeader, SkeletonCard, StatusBadge, buttonClasses } from "@carebridge/ui";
-import { ArrowRight, ChatCircleDots } from "@phosphor-icons/react/dist/ssr";
+import { Avatar, EmptyState, ErrorState, PageHeader, SkeletonCard, StatusBadge, buttonClasses } from "@carebridge/ui";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 export default function ConsultationsPage() {
@@ -18,20 +18,23 @@ export default function ConsultationsPage() {
       ) : !q.data ? (
         <SkeletonCard />
       ) : q.data.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-12 text-center">
-          <ChatCircleDots size={28} aria-hidden className="mx-auto text-subtle" />
-          <p className="mt-3 font-medium text-ink">{t("consultations.empty")}</p>
-          <Link href="/find-care" className={buttonClasses("primary", "md", "mt-4")}>
-            {t("consultations.findDoctor")}
-          </Link>
-        </div>
+        <EmptyState
+          title={t("consultations.empty")}
+          action={
+            <Link href="/find-care" className={buttonClasses("primary", "md")}>
+              {t("consultations.findDoctor")}
+            </Link>
+          }
+        >
+          {t("consultations.emptyWhy")}
+        </EmptyState>
       ) : (
         <ul className="flex flex-col gap-3">
           {q.data.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/consultations/${c.id}`}
-                className="group flex items-start gap-3.5 rounded-xl border border-line bg-surface p-4 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint sm:p-5"
+                className="group flex items-start gap-3.5 rounded-md border border-line bg-surface p-4 transition-colors duration-150 hover:border-brand/40 hover:bg-brand-tint sm:p-5"
               >
                 <Avatar name={c.doctor.name} size="lg" />
                 <span className="min-w-0 flex-1">

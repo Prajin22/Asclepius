@@ -81,7 +81,7 @@ describe("DocumentInsight", () => {
 
     expect(screen.getByText(/Not clinical advice/)).toBeInTheDocument();
     expect(screen.getByText(/Read by OCR — machine transcription, can misread/)).toBeInTheDocument();
-    expect(screen.getByText("OCR confidence 91%")).toBeInTheDocument();
+    expect(screen.getByText(/OCR confidence 91%/)).toBeInTheDocument();
     expect(screen.getByText(/Family history: Father has diabetes\./)).toHaveAttribute("lang", "en");
     expect(screen.getByText("Diagnosis: hypertension. Family history: father has diabetes.")).toBeInTheDocument();
     expect(screen.getByText("Confirmed by patient")).toBeInTheDocument();

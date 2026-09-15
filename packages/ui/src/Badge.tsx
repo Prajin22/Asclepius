@@ -7,24 +7,25 @@ import type { ReactNode } from "react";
 import { cn } from "./cn";
 import { ProvenanceChip, type ProvenanceKind } from "./Provenance";
 
-export type Tone = "neutral" | "brand" | "info" | "success" | "warning" | "danger" | "ai";
+export type Tone = "neutral" | "brand" | "info" | "success" | "warning" | "danger" | "ai" | "mark";
 
 const tones: Record<Tone, string> = {
   neutral: "border-line bg-sunken text-muted",
-  brand: "border-brand/25 bg-brand-soft text-brand-strong",
+  brand: "border-brand/30 bg-brand-soft text-brand-strong",
   info: "border-info/25 bg-info-soft text-info",
   success: "border-success/25 bg-success-soft text-success",
   warning: "border-warning/25 bg-warning-soft text-warning",
-  danger: "border-danger/25 bg-danger-soft text-danger",
-  ai: "border-dashed border-ai/40 bg-ai-soft text-ai",
+  danger: "border-danger/30 bg-danger-soft text-danger",
+  ai: "border-dashed border-ai-line bg-ai-soft text-ai",
+  mark: "border-mark-ink/40 bg-mark-soft text-mark-ink",
 };
 
+/** A paper tag: square corners, one line, wraps rather than overflowing its column. */
 export function Badge({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
   return (
     <span
       className={cn(
-        // Wraps rather than overflowing its container on a narrow screen.
-        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-caption font-semibold",
+        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2 py-0.5 text-caption font-semibold",
         tones[tone],
         className,
       )}
@@ -34,8 +35,12 @@ export function Badge({ tone = "neutral", children, className }: { tone?: Tone; 
   );
 }
 
+/**
+ * Where a consultation stands. The four folds of a consultation are requested,
+ * accepted, active and completed; each carries an icon and a word as well as a tone.
+ */
 const statusTone: Record<ConsultationStatus, Tone> = {
-  requested: "warning",
+  requested: "mark",
   accepted: "info",
   active: "success",
   completed: "neutral",
@@ -61,7 +66,7 @@ export function StatusBadge({ status }: { status: ConsultationStatus }) {
   );
 }
 
-/** Where a record came from, in the shared provenance language. */
+/** Where a record came from, in the shared fold language. */
 const sourceKind: Record<RecordSource, ProvenanceKind> = {
   patient: "original",
   ai_extracted: "machine",
@@ -78,7 +83,7 @@ export function LanguageTag({ code, className }: { code: LanguageCode | null | u
   const info = languageInfo(code);
   if (!info) return null;
   return (
-    <span lang={info.code} className={cn("text-xs font-medium text-muted", className)}>
+    <span lang={info.code} className={cn("text-caption font-medium text-muted", className)}>
       {info.nativeName}
     </span>
   );

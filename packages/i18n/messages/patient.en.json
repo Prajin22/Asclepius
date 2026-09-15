@@ -1,7 +1,7 @@
 {
   "nav": {
-    "dashboard": "Dashboard",
-    "health": "My Health",
+    "dashboard": "Home",
+    "health": "Health",
     "documents": "Documents",
     "consultations": "Consultations",
     "findCare": "Find Care",
@@ -95,6 +95,21 @@
   "dashboard": {
     "greeting": "Hello, {name}",
     "subtitle": "A summary of your health information.",
+    "actions": "Quick actions",
+    "needsYou": "Needs you",
+    "allClear": "Nothing is waiting for you right now.",
+    "todo": {
+      "describeTitle": "Describe what you are experiencing",
+      "describeWhy": "Your words reach the doctor exactly as you write them.",
+      "readTitle": "Have “{name}” read",
+      "readWhy": "Asclepius reads the text and lists what it found, for you to check.",
+      "replyTitle": "Reply to {name}",
+      "replyWhy": "Your consultation is active.",
+      "prescriptionTitle": "Read the instructions from {name}",
+      "prescriptionWhy": "Written by the doctor on {date}.",
+      "waitingTitle": "Waiting for {name} to accept",
+      "waitingWhy": "Their answer appears in this consultation."
+    },
     "age": "{age} years",
     "currentHealth": "Current health information",
     "conditions": "Conditions",
@@ -155,7 +170,8 @@
     "confirmDelete": "Delete this entry? This cannot be undone.",
     "recorded": "Recorded {date}",
     "describeProblem": "Describe what you are experiencing",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "problemsWhy": "Describe what you are experiencing in your own language. It stays exactly as you wrote it."
   },
   "problem": {
     "title": "What are you experiencing?",
@@ -168,7 +184,14 @@
     "saved": "Saved. Your words are stored exactly as you wrote them.",
     "nextFindDoctor": "Find a doctor to share this with",
     "previous": "Your earlier descriptions",
-    "noPrevious": "No earlier descriptions."
+    "noPrevious": "No earlier descriptions.",
+    "stepsLabel": "Describing a problem",
+    "steps": {
+      "describe": "Your words",
+      "organise": "Organised for the doctor",
+      "review": "Your check"
+    },
+    "submitHint": "Write a few words first."
   },
   "documents": {
     "title": "Documents",
@@ -195,7 +218,8 @@
     "fileName": "File name",
     "fileType": "File type",
     "fileSize": "Size",
-    "status": "Status"
+    "status": "Status",
+    "emptyWhy": "Keep your reports, prescriptions and scans in one place, so you can share them when you choose."
   },
   "consultations": {
     "title": "Consultations",
@@ -220,7 +244,9 @@
     "cancelled": "This consultation was cancelled.",
     "cancelRequest": "Cancel request",
     "confirmCancel": "Cancel this consultation request?",
-    "independent": "This consultation is independent. Advice from other doctors appears only in their own consultations."
+    "independent": "This consultation is independent. Advice from other doctors appears only in their own consultations.",
+    "emptyWhy": "A consultation is one doctor reading what you chose to share, and replying to you.",
+    "journeyLabel": "This consultation"
   },
   "shareCategories": {
     "current_problem": "Current problem",
@@ -243,7 +269,8 @@
     "speaks": "Speaks: {languages}",
     "request": "Request consultation",
     "notAccepting": "Not accepting requests",
-    "demoNotice": "All doctors listed are fictional demo profiles."
+    "demoNotice": "All doctors listed are fictional demo profiles.",
+    "noResultsWhy": "Try a different specialty or language, or clear the search."
   },
   "request": {
     "title": "Request a consultation",
@@ -262,7 +289,10 @@
     "nothingSelected": "Nothing selected",
     "consultationItem": "{doctor} · {date}",
     "prescriptionItem": "{doctor} · {date} · medicines: {count}",
-    "untitled": "Untitled"
+    "untitled": "Untitled",
+    "showItems": "Show items",
+    "hideItems": "Hide items",
+    "selectedOf": "{count} of {total}"
   },
   "ai": {
     "title": "AI assistance",
@@ -287,7 +317,11 @@
     "noFacts": "The AI did not find anything it could support with your own words.",
     "addedToRecord": "Added to your health record",
     "unavailableTitle": "AI is unavailable right now",
-    "yourWords": "What you wrote"
+    "yourWords": "What you wrote",
+    "restore": "Restore",
+    "showInText": "Show in your words",
+    "pendingCount": "{count} to check",
+    "providerDetails": "AI provider details"
   },
   "docAi": {
     "title": "Read this document",
@@ -313,7 +347,16 @@
     "pageAi": "AI could not process this page. The text read from it is shown above.",
     "noItems": "No items on this page could be supported by its text.",
     "reviewTitle": "Check what was found",
-    "reviewSubtitle": "Confirm, correct or reject each item. Nothing is added to your health record until you confirm it."
+    "reviewSubtitle": "Confirm, correct or reject each item. Nothing is added to your health record until you confirm it.",
+    "stepsLabel": "Reading this document",
+    "steps": {
+      "original": "Original page",
+      "reading": "Text read from it",
+      "organised": "Organised",
+      "review": "Your check"
+    },
+    "notReadWhy": "Asclepius reads the text on each page and lists what it found, for you to check.",
+    "originalSafe": "Your original file is unchanged and still available above."
   },
   "landing": {
     "forDoctors": "For doctors",
@@ -339,6 +382,14 @@
         "body": "It renders your words in English for your doctor and pulls out symptoms, medicines and measurements — each one carrying the words it came from."
       },
       "step3": {
+        "title": "You confirm",
+        "body": "Nothing reaches your health record until you confirm it. Correct an item, or reject it, and the original still stands."
+      },
+      "step4": {
+        "title": "You choose what to share",
+        "body": "Pick a doctor, then pick exactly which problems, records and documents they may see."
+      },
+      "step5": {
         "title": "Your doctor decides",
         "body": "They read your original beside the organised version, then write their own assessment and prescription."
       }
@@ -370,7 +421,8 @@
       "body": "A demonstration prototype using synthetic data only.",
       "action": "Get started"
     },
-    "footerNote": "Prototype for demonstration. Not a medical device, and not for real patient data."
+    "footerNote": "Prototype for demonstration. Not a medical device, and not for real patient data.",
+    "sceneAlt": "One sheet: your words, organised, confirmed, shared, and read by your doctor."
   },
   "profile": {
     "title": "Profile",

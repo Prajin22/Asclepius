@@ -18,10 +18,12 @@ export interface PageRegion {
 const PAD = 0.004;
 
 /**
- * One page of the original document with evidence regions outlined on top.
+ * One page of the original document with evidence outlined on top.
  *
  * The outlines are an overlay; the page image itself is the untouched original,
  * fetched through the authenticated API as a blob (so no token appears in a URL).
+ * A region drawn by the machine is dashed like any other crease; the one the
+ * reader asked about takes the gold mark.
  */
 export function PageImage({
   load,
@@ -62,7 +64,7 @@ export function PageImage({
   if (!url) return <LoadingState label={t("document.loadingFile")} />;
 
   return (
-    <div className={cn("relative overflow-hidden rounded-lg border border-line bg-white", className)}>
+    <div className={cn("relative overflow-hidden rounded-md border border-paper-line bg-white", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={url} alt={t("reading.pageImageAlt", { page })} className="block h-auto w-full" />
       {regions.map((region) => {
@@ -78,8 +80,10 @@ export function PageImage({
             data-testid="evidence-region"
             data-active={region.active ? "true" : "false"}
             className={cn(
-              "pointer-events-none absolute rounded-sm border-2 transition-colors",
-              region.active ? "border-ai bg-ai/20" : "border-ai/30",
+              "pointer-events-none absolute rounded-sm transition-colors",
+              region.active
+                ? "border-2 border-mark-ink bg-mark/30"
+                : "border border-dashed border-ai-line bg-ai/[0.06]",
             )}
             style={{
               left: `${left * 100}%`,

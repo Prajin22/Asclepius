@@ -1,50 +1,59 @@
 /*
  * Asclepius design tokens (Tailwind v4 @theme).
  *
- * The palette carries meaning, not decoration:
- *   jade    — human action: the patient's decisions, the doctor's authorship, primary actions
- *   paper   — anything original: the patient's own words, the uploaded document
- *   steel   — anything a machine produced: read text, extracted items, transcriptions
- *   ink     — structure and reading text
- * Status colours are always paired with an icon and a label; colour never carries
- * a state on its own. Every text/background pair below meets WCAG AA.
+ * The world is one uncut sheet of paper. Every token belongs to a material, and
+ * every material carries a meaning:
+ *   paper   — the original: the patient's own words, the file they uploaded.
+ *             Vermilion washi. Never altered, always reachable.
+ *   ai      — a crease drawn but not pressed: anything a machine produced.
+ *             Dashed, quiet, never vermilion, never ink.
+ *   brand   — vermilion: the sheet itself, and the one primary action per screen.
+ *   ink     — sumi: reading text, and everything a doctor authored.
+ *   mark    — the gold dot: the single thing waiting for the person on this screen.
+ * Status is never carried by colour alone; every state ships with a line, an icon
+ * and a word. Every text/background pair below was computed against the surface
+ * it actually sits on.
  */
 @theme {
   /* ---------- type ---------- */
-  /* Latin from Geist, Tamil and Devanagari from Noto so Indic scripts are
-     first-class rather than a system fallback. Set by next/font in each app. */
-  --font-sans: var(--font-geist), var(--font-noto-tamil), var(--font-noto-devanagari), "Nirmala UI", "Segoe UI",
-    system-ui, -apple-system, sans-serif;
+  /* One humanist family across three scripts, so a Tamil sentence and its English
+     rendering sit at the same weight and rhythm instead of looking like two
+     products. Set by next/font in the app. Indic files load only when those
+     glyphs render (unicode-range), so a Latin reader never pays for them. */
+  --font-sans: var(--font-noto-sans), var(--font-noto-tamil), var(--font-noto-devanagari), "Nirmala UI",
+    "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
 
-  --text-display: clamp(2.75rem, 1.9rem + 3.4vw, 4.75rem);
-  --text-display--line-height: 1.02;
-  --text-display--letter-spacing: -0.035em;
-  --text-display--font-weight: 600;
+  /* Display is light and tightly tracked: the sheet is loud, the type is quiet. */
+  --text-display: clamp(2.5rem, 1.8rem + 3vw, 4.25rem);
+  --text-display--line-height: 1.03;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 300;
 
-  --text-title: clamp(2rem, 1.5rem + 1.9vw, 3rem);
-  --text-title--line-height: 1.08;
-  --text-title--letter-spacing: -0.028em;
-  --text-title--font-weight: 600;
+  --text-title: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.022em;
+  --text-title--font-weight: 400;
 
-  --text-heading: 1.5rem;
-  --text-heading--line-height: 1.2;
-  --text-heading--letter-spacing: -0.02em;
-  --text-heading--font-weight: 600;
-
-  /* Page titles in the product: fixed, not fluid (operate surfaces). */
-  --text-page: 1.75rem;
+  /* Product page titles: fixed, not fluid — an operate surface is read at one size. */
+  --text-page: 1.625rem;
   --text-page--line-height: 1.15;
-  --text-page--letter-spacing: -0.024em;
+  --text-page--letter-spacing: -0.02em;
   --text-page--font-weight: 600;
 
-  --text-subheading: 1.125rem;
-  --text-subheading--line-height: 1.35;
-  --text-subheading--letter-spacing: -0.011em;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.014em;
+  --text-heading--font-weight: 600;
+
+  --text-subheading: 1.0625rem;
+  --text-subheading--line-height: 1.4;
+  --text-subheading--letter-spacing: -0.008em;
   --text-subheading--font-weight: 600;
 
+  /* The patient's own words are never set smaller than the machine's rendering. */
   --text-body-lg: 1.0625rem;
-  --text-body-lg--line-height: 1.6;
+  --text-body-lg--line-height: 1.65;
 
   --text-body: 0.9375rem;
   --text-body--line-height: 1.6;
@@ -55,86 +64,101 @@
   --text-caption: 0.75rem;
   --text-caption--line-height: 1.45;
 
-  /* Section labels: small, uppercase, wide. Used sparingly. */
+  /* Small-caps utility labels: legends, column heads. Never a kicker above a heading. */
   --text-label: 0.6875rem;
   --text-label--line-height: 1.4;
   --text-label--letter-spacing: 0.09em;
   --text-label--font-weight: 600;
 
-  /* Measured values — lab results, dosages, page numbers. */
+  /* Measured values — lab results, doses, registration numbers. Instrument digits. */
   --text-value: 1.375rem;
   --text-value--line-height: 1.15;
-  --text-value--letter-spacing: -0.02em;
+  --text-value--letter-spacing: -0.01em;
   --text-value--font-weight: 500;
 
+  /* The numbered margin column of a sequence. */
+  --text-step: 1.25rem;
+  --text-step--line-height: 1.2;
+  --text-step--font-weight: 300;
+
   /* ---------- colour ---------- */
-  --color-ink: #0b1a22;
-  --color-muted: #51626d;
-  /* Captions and labels are small: this stays above 4.5:1 on every light surface. */
-  --color-subtle: #5f6e78;
-  --color-line: #e2e8ea;
-  --color-line-strong: #c6d1d5;
-  --color-canvas: #f5f8f7;
-  --color-surface: #ffffff;
-  --color-sunken: #edf2f1;
+  --color-ink: #1a1a1a;
+  --color-muted: #5e5a52;
+  --color-subtle: #6b675f;
+  --color-line: #d9cfba;
+  --color-line-strong: #c3b79c;
+  --color-canvas: #efe9dc;
+  --color-surface: #fbf8f1;
+  --color-sunken: #f4eee2;
 
-  /* Jade — the product's one accent. Human action and identity. */
-  --color-brand: #0a5c52;
-  --color-brand-strong: #074a42;
-  --color-brand-soft: #e0efea;
-  --color-brand-tint: #f1f8f5;
-  --color-focus: #0e8874;
+  /* Vermilion — the sheet, and the one primary action. White on it is 4.6:1. */
+  --color-brand: #d83a2e;
+  --color-brand-strong: #a82b1c;
+  --color-brand-soft: #f7e3de;
+  --color-brand-tint: #fcf2ef;
+  --color-focus: #1a1a1a;
 
-  /* Paper — original material: the patient's words, the uploaded file. */
-  --color-paper: #fbf9f4;
-  --color-paper-line: #e7e0d2;
-  --color-paper-ink: #3b3327;
+  /* Paper — the original material: washi, tinted by the vermilion sheet. */
+  --color-paper: #fbeee9;
+  --color-paper-line: #e0a89b;
+  --color-paper-ink: #2a1a16;
 
-  /* Steel — machine output. Deliberately the quietest layer on screen. */
-  --color-ai: #47606e;
-  --color-ai-strong: #334956;
-  --color-ai-soft: #eef2f5;
-  --color-ai-line: #c9d6de;
+  /* Crease — machine output: drawn, not pressed. Dashed, and deliberately quiet. */
+  --color-ai: #5e5a52;
+  --color-ai-strong: #3f3c36;
+  --color-ai-soft: #f4eee2;
+  --color-ai-line: #c3b79c;
+
+  /* The gold dot: what needs you. The ring is what clears 3:1 on paper. */
+  --color-mark: #d4af37;
+  --color-mark-ink: #7e5f0f;
+  --color-mark-soft: #faf0d8;
 
   --color-info: #1c5a87;
-  --color-info-soft: #e6eff6;
-  --color-success: #16683e;
-  --color-success-soft: #e3f1e8;
-  --color-warning: #8a5200;
-  --color-warning-soft: #fbefd8;
-  --color-danger: #a22222;
-  --color-danger-soft: #fbe8e8;
+  --color-info-soft: #e4edf4;
+  --color-success: #1e6b45;
+  --color-success-soft: #e4efe7;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #f6ebd6;
+  /* Darker than the sheet's vermilion, and never used as a large field, so an
+     error can never be mistaken for the patient's own material. */
+  --color-danger: #8c1d18;
+  --color-danger-soft: #f6e3e1;
 
   /* ---------- shape ---------- */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.75rem;
+  /* Paper has corners. Radii are small and deliberate: sheets nearly square,
+     controls a touch softer, and only true dots are round. */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.5rem;
 
-  /* ---------- elevation (tinted with ink, never pure black) ---------- */
-  --shadow-xs: 0 1px 2px rgba(11, 26, 34, 0.05);
-  --shadow-sm: 0 1px 3px rgba(11, 26, 34, 0.06), 0 1px 2px rgba(11, 26, 34, 0.04);
-  --shadow-md: 0 6px 16px -6px rgba(11, 26, 34, 0.12), 0 2px 6px -2px rgba(11, 26, 34, 0.06);
-  --shadow-lg: 0 20px 44px -20px rgba(11, 26, 34, 0.22), 0 6px 14px -8px rgba(11, 26, 34, 0.1);
-  --shadow-ring: 0 0 0 1px rgba(11, 26, 34, 0.06);
+  /* ---------- elevation (a sheet lifted off the page, tinted with ink) ---------- */
+  --shadow-xs: 0 1px 1px rgba(26, 26, 26, 0.04);
+  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.05), 0 6px 14px -12px rgba(26, 26, 26, 0.3);
+  --shadow-md: 0 1px 2px rgba(26, 26, 26, 0.05), 0 14px 28px -22px rgba(26, 26, 26, 0.35);
+  --shadow-lg: 0 2px 4px rgba(26, 26, 26, 0.06), 0 26px 48px -28px rgba(26, 26, 26, 0.4);
+  --shadow-ring: 0 0 0 1px rgba(26, 26, 26, 0.06);
 
   /* ---------- motion ---------- */
+  /* Four moments only: a crease drawn, a crease pressed, something unfolded, the
+     dot moving on. Everything else is an instant state change. */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
-  --duration-fast: 150ms;
+  --duration-fast: 180ms;
   --duration-base: 240ms;
-  --duration-slow: 420ms;
+  --duration-slow: 400ms;
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
-    /* No CSS smooth scrolling: it fights ScrollTrigger's position measurements
-       on the landing page, which is the only place that animates on scroll. */
+    /* No CSS smooth scrolling: it fights scroll-driven measurement on the landing
+       page, which is the only place that animates on scroll. */
     /* Browser-drawn surfaces take the palette too, not the platform defaults. */
     accent-color: var(--color-brand);
-    caret-color: var(--color-brand);
+    caret-color: var(--color-ink);
     scrollbar-color: var(--color-line-strong) transparent;
   }
   a {
@@ -162,6 +186,11 @@
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
+  /* On ink and on vermilion a dark ring would disappear, so the ring turns to paper. */
+  .on-dark :focus-visible,
+  .on-brand :focus-visible {
+    outline-color: #ffffff;
+  }
   /* Numbers that are compared down a column should line up. */
   .tabular,
   [data-value] {
@@ -175,5 +204,19 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
     }
+  }
+}
+
+@layer components {
+  /* A crease: the rule that divides panels instead of floating them apart.
+     Solid is structure, dashed is machine-drawn, pressed is confirmed by a person. */
+  .crease {
+    border-top: 1px solid var(--color-line);
+  }
+  .crease-drawn {
+    border-top: 1px dashed var(--color-ai-line);
+  }
+  .crease-pressed {
+    border-top: 1px solid var(--color-ink);
   }
 }

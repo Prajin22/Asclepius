@@ -100,7 +100,7 @@ describe("AIAssistPanel", () => {
     expect(screen.getByRole("region", { name: "3 · Structured items" })).toHaveTextContent("headache");
     expect(screen.getByText("Machine-generated")).toBeInTheDocument();
     expect(screen.getByText(/Detected language/)).toHaveTextContent("தமிழ்");
-    expect(screen.getByText("Meaning preserved across all three versions")).toBeInTheDocument();
+    expect(screen.getByText("The English version matches your words")).toBeInTheDocument();
     expect(screen.getByText("Awaiting patient confirmation")).toBeInTheDocument();
     expect(screen.getByText("About you")).toBeInTheDocument();
   });

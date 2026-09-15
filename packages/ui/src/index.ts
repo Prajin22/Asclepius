@@ -10,6 +10,7 @@ export { cn } from "./cn";
 export { DocumentViewer } from "./DocumentViewer";
 export { Alert, EmptyState, ErrorState, LoadingState, PageHeader, Spinner } from "./Feedback";
 export { Checkbox, Field, Select, TextArea, TextInput, type ControlProps } from "./Field";
+export { Crease, FoldTrack, Mark, type FoldStep } from "./fold";
 export { formatBytes } from "./format";
 export { Logo } from "./Logo";
 export { MessageThread } from "./MessageThread";

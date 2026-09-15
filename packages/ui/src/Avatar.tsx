@@ -34,7 +34,8 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
+        // A square paper tag, like every other mark in the system; only true dots are round.
+        "inline-flex shrink-0 items-center justify-center rounded-sm font-semibold",
         tone === "brand" ? "bg-brand-soft text-brand-strong" : "bg-ink/[0.06] text-ink",
         sizes[size],
         className,

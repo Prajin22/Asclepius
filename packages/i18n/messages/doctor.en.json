@@ -1,11 +1,29 @@
 {
   "nav": {
     "dashboard": "Consultations",
+    "home": "Home",
+    "patients": "Patients",
+    "consultations": "Consultations",
     "profile": "Profile",
     "main": "Main navigation",
     "clinician": "Clinician workspace",
     "admin": "Administration",
     "policy": "Asclepius organises patient-provided information. It does not diagnose or prescribe; clinical decisions remain yours."
+  },
+  "home": {
+    "title": "Home",
+    "subtitle": "What is waiting for you right now.",
+    "viewAll": "All consultations",
+    "incomingWhy": "A request arrives here when a patient chooses you and picks what to share.",
+    "activeWhy": "A consultation becomes active once you accept a request."
+  },
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Everyone who has consulted you, most recent first.",
+    "empty": "No patients yet",
+    "emptyWhy": "A patient appears here when they request a consultation with you.",
+    "consultations": "Consultations: {count}",
+    "latest": "Latest {date}"
   },
   "dashboard": {
     "title": "Consultations",
@@ -27,6 +45,7 @@
   },
   "case": {
     "back": "All consultations",
+    "journeyLabel": "This consultation",
     "requestedOn": "Requested {date}",
     "startedOn": "Started {date}",
     "completedOn": "Completed {date}",

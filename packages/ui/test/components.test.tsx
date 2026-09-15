@@ -89,8 +89,10 @@ describe("ReadingProvenance", () => {
     );
     expect(screen.getByText("Copied exactly from the PDF")).toBeInTheDocument();
     expect(screen.getByText(/Read by OCR — machine transcription/)).toBeInTheDocument();
-    expect(screen.getByText("OCR confidence 63%")).toBeInTheDocument();
     expect(screen.getByText(/hard to read/)).toBeInTheDocument();
+    // Confidence and engine are developer material: present, but behind the disclosure.
+    expect(screen.getAllByText("Technical details")).toHaveLength(2);
+    expect(screen.getByText(/OCR confidence 63%/)).toBeInTheDocument();
   });
 
   it("maps warning codes, including provider failures", () => {

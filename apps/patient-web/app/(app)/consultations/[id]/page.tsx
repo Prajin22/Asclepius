@@ -12,6 +12,7 @@ import {
   Card,
   CardHeader,
   ErrorState,
+  FoldTrack,
   LanguageTag,
   MessageThread,
   PageHeader,
@@ -37,7 +38,7 @@ export default function ConsultationDetailPage() {
   usePolling(q.reload, 5000, q.data ? OPEN.includes(q.data.status) : false);
 
   const back = (
-    <Link href="/consultations" className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+    <Link href="/consultations" className="inline-flex items-center gap-1.5 font-medium text-brand-strong hover:underline">
       <ArrowLeftIcon />
       {t("consultations.back")}
     </Link>
@@ -81,17 +82,30 @@ export default function ConsultationDetailPage() {
   return (
     <>
       <PageHeader
-        eyebrow={back}
+        back={back}
         title={c.doctor.name}
         description={`${c.doctor.specialization} · ${t("consultations.requestedOn", { date: formatDate(c.created_at) })}`}
         actions={<StatusBadge status={c.status} />}
       />
+      {/* The four folds of a consultation, so the patient can see where this one stands. */}
+      {c.status !== "cancelled" ? (
+        <FoldTrack
+          inline
+          className="mb-4"
+          label={t("consultations.journeyLabel")}
+          current={c.status}
+          steps={(["requested", "accepted", "active", "completed"] as const).map((s) => ({
+            key: s,
+            label: t(`status.${s}`),
+          }))}
+        />
+      ) : null}
       <div className="mb-5">{notice}</div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex min-w-0 flex-col gap-5">
-          {/* Written by the doctor — ruled in ink, attributed, never machine-touched. */}
-          <Card className="border-l-[3px] border-l-ink" aria-labelledby="notes-heading">
+          {/* Written by the doctor: inked, attributed, never machine-touched. */}
+          <Card tone="ink" aria-labelledby="notes-heading">
             <CardHeader
               id="notes-heading"
               title={t("consultations.doctorNotes")}
@@ -116,7 +130,7 @@ export default function ConsultationDetailPage() {
               {t("consultations.prescriptionsTitle")}
             </h2>
             {c.prescriptions.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-6 text-center text-muted">
+              <p className="rounded-md border border-dashed border-line-strong bg-sunken/70 px-4 py-6 text-center text-muted">
                 {t("consultations.noPrescriptions")}
               </p>
             ) : (

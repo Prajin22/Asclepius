@@ -41,7 +41,7 @@ export function DocumentInsight({
   const toggle = loadPage ? (fact: AIFactSummary) => setActive((cur) => (cur === fact ? null : fact)) : undefined;
 
   return (
-    <div className="mt-3 rounded-lg border border-dashed border-ai-line bg-ai-soft/60">
+    <div className="mt-3 rounded-md border border-dashed border-ai-line bg-ai-soft/60">
       <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <ProvenanceChip kind="machine" label={t("docAi.title")} />
@@ -73,7 +73,7 @@ export function DocumentInsight({
           ) : null}
 
           {insight.pages.length > 1 ? (
-            <nav aria-label={t("docAi.pages")} className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+            <nav aria-label={t("docAi.pages")} className="flex gap-5 overflow-x-auto border-b border-ai-line/70">
               {insight.pages.map((p) => {
                 const selected = p.page_number === page.page_number;
                 return (
@@ -86,10 +86,8 @@ export function DocumentInsight({
                       setActive(null);
                     }}
                     className={cn(
-                      "inline-flex min-h-9 shrink-0 items-center rounded-full border px-3.5 text-small font-semibold transition-colors duration-150",
-                      selected
-                        ? "border-brand bg-brand text-white"
-                        : "border-line bg-surface text-muted hover:border-brand/40 hover:text-ink",
+                      "-mb-px inline-flex min-h-10 shrink-0 items-center border-b-2 text-small font-semibold transition-colors duration-150",
+                      selected ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink",
                     )}
                   >
                     {t("docAi.pageTitle", { page: p.page_number })}
@@ -118,7 +116,7 @@ export function DocumentInsight({
                   <ProvenanceBlock kind="document" className="mt-2">
                     <p
                       lang={page.detected_language ?? undefined}
-                      className="max-h-64 overflow-auto whitespace-pre-line font-mono text-small leading-relaxed"
+                      tabIndex={0} className="max-h-64 overflow-auto whitespace-pre-line font-mono text-small leading-relaxed"
                     >
                       {page.text}
                     </p>

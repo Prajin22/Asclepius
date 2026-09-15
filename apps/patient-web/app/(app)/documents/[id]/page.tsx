@@ -41,7 +41,7 @@ export default function DocumentDetailPage() {
   const [showOriginal, setShowOriginal] = useState(false);
 
   const back = (
-    <Link href="/documents" className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+    <Link href="/documents" className="inline-flex items-center gap-1.5 font-medium text-brand-strong hover:underline">
       <ArrowLeftIcon />
       {t("documents.back")}
     </Link>
@@ -61,7 +61,7 @@ export default function DocumentDetailPage() {
   return (
     <>
       <PageHeader
-        eyebrow={back}
+        back={back}
         title={doc.title || doc.file_name}
         description={t("documents.uploadedOn", { date: formatDateTime(doc.uploaded_at) })}
         actions={

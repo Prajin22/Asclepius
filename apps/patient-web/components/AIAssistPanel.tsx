@@ -15,21 +15,23 @@ import {
   Card,
   CardHeader,
   Field,
+  Mark,
   ProvenanceBlock,
   ProvenanceChip,
   TextInput,
   cn,
 } from "@carebridge/ui";
-import { ArrowDown, CheckCircle, Lock, PencilSimple, Prohibit, Sparkle } from "@phosphor-icons/react/dist/ssr";
-import { useState } from "react";
+import { CheckCircle, Lock, PencilSimple, Prohibit, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { useState, type ReactNode } from "react";
 
 /**
  * Optional AI assistance for one record.
  *
- * The three layers stay visibly separate — 1 the patient's own words (never
- * changed), 2 the English version, 3 the structured items with their evidence —
- * plus whether layer 2 still means what layer 1 said. Nothing reaches the health
- * record until the patient confirms it.
+ * The sheet and the crease sit side by side: on the left the patient's own words,
+ * never altered; on the right what Asclepius made of them. Selecting an item lights
+ * the exact words it came from, so the patient can check the claim against their own
+ * sentence without scrolling or remembering. Nothing reaches the health record until
+ * they press the crease.
  */
 export function AIAssistPanel({
   originalText,
@@ -50,6 +52,7 @@ export function AIAssistPanel({
   const [current, setCurrent] = useState<AIProcessing | null>(result);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [highlighted, setHighlighted] = useState<string | null>(null);
 
   const state = current ?? result;
 
@@ -65,7 +68,11 @@ export function AIAssistPanel({
     }
   }
 
-  const process = () => guard(async () => setCurrent(await onProcess()));
+  const process = () =>
+    guard(async () => {
+      setCurrent(await onProcess());
+      setHighlighted(null);
+    });
   const grant = () => guard(onGrantConsent);
 
   const review = (factId: string, action: AIFactAction) =>
@@ -78,16 +85,22 @@ export function AIAssistPanel({
 
   // The patient's own facts first; anything about a relative after.
   const facts = state ? [...state.facts].sort((a, b) => Number(a.subject !== "self") - Number(b.subject !== "self")) : [];
+  const quote = facts.find((f) => f.id === highlighted)?.evidence_quote ?? null;
+  const pending = facts.filter((f) => f.review_state === "pending").length;
 
   return (
     <Card aria-labelledby="ai-panel-heading">
-      <CardHeader id="ai-panel-heading" title={t("ai.title")} description={t("ai.subtitle")} />
-      <Alert tone="info" className="mb-4">
-        {t("ai.notDiagnosis")}
-      </Alert>
+      <CardHeader
+        id="ai-panel-heading"
+        title={t("ai.title")}
+        description={t("ai.subtitle")}
+        action={<ProvenanceChip kind="machine" />}
+      />
+      {/* Said once, quietly, where the machine's output actually appears. */}
+      <p className="mb-4 text-small text-muted">{t("ai.notDiagnosis")}</p>
 
       {!hasConsent ? (
-        <div className="rounded-xl border border-dashed border-line-strong bg-sunken/70 p-5">
+        <div className="rounded-md border border-dashed border-line-strong bg-sunken/70 p-5">
           <Lock size={22} weight="regular" aria-hidden className="text-brand" />
           <p className="mt-2 text-subheading text-ink">{t("ai.consentTitle")}</p>
           <p className="mt-1 text-body text-muted">{t("ai.consentBody")}</p>
@@ -108,10 +121,8 @@ export function AIAssistPanel({
               <Sparkle size={18} weight="regular" aria-hidden />
               {busy ? t("ai.processing") : state ? t("ai.reprocess") : t("ai.process")}
             </Button>
-            <Badge tone="success">
-              <CheckCircle size={13} weight="bold" aria-hidden />
-              {t("ai.consentOn")}
-            </Badge>
+            <span className="text-small text-muted">{t("ai.consentOn")}</span>
+            {pending > 0 ? <Mark label={t("ai.pendingCount", { count: pending })} /> : null}
           </div>
           {error ? (
             <Alert tone="error" className="mt-3">
@@ -126,66 +137,81 @@ export function AIAssistPanel({
           ) : null}
 
           {state?.status === "ok" ? (
-            <div className="mt-5 flex flex-col gap-4">
-              <section aria-label={t("ai.layers.original")}>
+            // Registered pair: the words on the left stay level with what was made of them.
+            <div className="mt-5 grid items-start gap-4 xl:grid-cols-2">
+              <section aria-label={t("ai.layers.original")} className="xl:sticky xl:top-24">
                 <LayerLabel label={t("ai.layers.original")} />
-                <ProvenanceBlock kind="original" lang={state.detected_language ?? undefined} className="mt-2">
-                  <p className="whitespace-pre-line text-body-lg">{state.original_text ?? originalText}</p>
-                </ProvenanceBlock>
-              </section>
-
-              <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
-
-              <section aria-label={t("ai.layers.normalized")}>
-                <LayerLabel label={t("ai.layers.normalized")} />
-                <ProvenanceBlock
-                  kind="machine"
-                  className="mt-2"
-                  meta={
-                    state.detected_language
-                      ? t("ai.detectedLanguage", {
-                          language: languageInfo(state.detected_language)?.nativeName ?? state.detected_language,
-                        })
-                      : undefined
-                  }
-                  label={t("ai.machineGenerated")}
-                >
-                  <p className="whitespace-pre-line">{state.normalized_english}</p>
-                  {state.unparsed.length > 0 ? (
-                    <p className="mt-2 text-small text-muted">
-                      {t("ai.unparsed")}: {state.unparsed.join(" · ")}
-                    </p>
-                  ) : null}
-                  <div className="mt-3">
-                    <MeaningCheck check={state.normalization_check} />
-                  </div>
-                </ProvenanceBlock>
-              </section>
-
-              <ArrowDown size={18} aria-hidden className="mx-auto text-subtle" />
-
-              <section aria-label={t("ai.layers.facts")}>
-                <LayerLabel label={t("ai.layers.facts")} />
-                <p className="mt-2 text-subheading text-ink">{t("ai.reviewTitle")}</p>
-                <p className="text-small text-muted">{t("ai.reviewSubtitle")}</p>
-                {facts.length === 0 ? (
-                  <p className="mt-3 rounded-lg border border-dashed border-line-strong bg-sunken/60 px-4 py-5 text-center text-muted">
-                    {t("ai.noFacts")}
+                <ProvenanceBlock kind="original" lang={state.detected_language ?? undefined} className="mt-1.5">
+                  <p className="whitespace-pre-line text-body-lg leading-relaxed">
+                    {markEvidence(state.original_text ?? originalText, quote)}
                   </p>
-                ) : (
-                  <ul className="mt-3 flex flex-col gap-2.5">
-                    {facts.map((fact) => (
-                      <FactRow key={fact.id} fact={fact} busy={busy} onReview={review} />
-                    ))}
-                  </ul>
-                )}
+                </ProvenanceBlock>
               </section>
 
-              <p className="text-caption text-subtle">
-                {t("ai.provenance", { provider: state.provider ?? "", model: state.model ?? "" })}
-                {state.generated_at ? ` · ${t("ai.generatedOn", { date: formatDateTime(state.generated_at) })}` : ""}
-                {state.runs.some((r) => r.cached) ? ` · ${t("ai.cached")}` : ""}
-              </p>
+              <div className="flex min-w-0 flex-col gap-4">
+                <section aria-label={t("ai.layers.normalized")}>
+                  <LayerLabel label={t("ai.layers.normalized")} />
+                  <ProvenanceBlock
+                    kind="machine"
+                    className="mt-1.5"
+                    meta={
+                      state.detected_language
+                        ? t("ai.detectedLanguage", {
+                            language: languageInfo(state.detected_language)?.nativeName ?? state.detected_language,
+                          })
+                        : undefined
+                    }
+                    label={t("ai.machineGenerated")}
+                  >
+                    <p className="whitespace-pre-line">{state.normalized_english}</p>
+                    {state.unparsed.length > 0 ? (
+                      <p className="mt-2 text-small text-muted">
+                        {t("ai.unparsed")}: {state.unparsed.join(" · ")}
+                      </p>
+                    ) : null}
+                    <div className="mt-3">
+                      <MeaningCheck check={state.normalization_check} />
+                    </div>
+                  </ProvenanceBlock>
+                </section>
+
+                <section aria-label={t("ai.layers.facts")}>
+                  <LayerLabel label={t("ai.layers.facts")} />
+                  <p className="mt-1.5 text-subheading text-ink">{t("ai.reviewTitle")}</p>
+                  <p className="text-small text-muted">{t("ai.reviewSubtitle")}</p>
+                  {facts.length === 0 ? (
+                    <p className="mt-3 rounded-md border border-dashed border-line-strong bg-sunken/70 px-4 py-5 text-center text-muted">
+                      {t("ai.noFacts")}
+                    </p>
+                  ) : (
+                    <ul className="mt-3 flex flex-col gap-2.5">
+                      {facts.map((fact) => (
+                        <FactRow
+                          key={fact.id}
+                          fact={fact}
+                          busy={busy}
+                          onReview={review}
+                          highlighted={fact.id === highlighted}
+                          evidenceLabel={t("ai.showInText")}
+                          onShowEvidence={(f) => setHighlighted((cur) => (cur === f.id ? null : f.id))}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                {/* Provider and model are developer material, not a patient's reading. */}
+                <details className="text-caption text-subtle">
+                  <summary className="inline-flex min-h-8 cursor-pointer items-center hover:text-muted">
+                    {t("ai.providerDetails")}
+                  </summary>
+                  <p className="mt-0.5">
+                    {t("ai.provenance", { provider: state.provider ?? "", model: state.model ?? "" })}
+                    {state.generated_at ? ` · ${t("ai.generatedOn", { date: formatDateTime(state.generated_at) })}` : ""}
+                    {state.runs.some((r) => r.cached) ? ` · ${t("ai.cached")}` : ""}
+                  </p>
+                </details>
+              </div>
             </div>
           ) : null}
         </>
@@ -194,9 +220,23 @@ export function AIAssistPanel({
   );
 }
 
+/** Lights the words an item came from, inside the patient's own sentence. */
+function markEvidence(text: string, quote: string | null): ReactNode {
+  if (!quote) return text;
+  const at = text.indexOf(quote);
+  if (at < 0) return text;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className="rounded-sm bg-mark/40 px-0.5 text-paper-ink ring-1 ring-mark-ink">{quote}</mark>
+      {text.slice(at + quote.length)}
+    </>
+  );
+}
+
 /** Names one of the three layers. The label already carries its step number, so no badge repeats it. */
 export function LayerLabel({ label }: { label: string }) {
-  return <p className="text-small font-semibold text-muted">{label}</p>;
+  return <p className="text-label uppercase text-subtle">{label}</p>;
 }
 
 /** Whether the English version still means what the patient wrote. */
@@ -227,11 +267,12 @@ export function MeaningCheck({ check }: { check: NormalizationCheck | null }) {
   );
 }
 
-const REVIEW_RULE: Record<AIFact["review_state"], string> = {
-  pending: "border-l-line-strong",
-  confirmed: "border-l-brand",
-  edited: "border-l-brand",
-  rejected: "border-l-line",
+/** The edge states what has happened to this item: drawn, pressed, or opened again. */
+const REVIEW_EDGE: Record<AIFact["review_state"], string> = {
+  pending: "border-dashed border-ai-line bg-ai-soft/60",
+  confirmed: "border-ink/60 bg-surface",
+  edited: "border-ink/60 bg-surface",
+  rejected: "border-line bg-sunken",
 };
 
 export function FactRow({
@@ -239,13 +280,15 @@ export function FactRow({
   busy,
   onReview,
   onShowEvidence,
+  evidenceLabel,
   highlighted = false,
 }: {
   fact: AIFact;
   busy: boolean;
   onReview: (factId: string, action: AIFactAction) => Promise<void>;
-  /** Documents: point at the evidence on the page image. */
+  /** Points at where the evidence sits: on the page image, or in the patient's own text. */
   onShowEvidence?: (fact: AIFact) => void;
+  evidenceLabel?: string;
   highlighted?: boolean;
 }) {
   const { t } = useI18n();
@@ -256,27 +299,26 @@ export function FactRow({
   const rejected = fact.review_state === "rejected";
 
   const stateChip = {
-    pending: <ProvenanceChip kind="pending" label={t("ai.pendingReview")} />,
+    pending: <Mark label={t("ai.pendingReview")} />,
     confirmed: <ProvenanceChip kind="confirmed" label={t("ai.confirmedByPatient")} />,
     edited: <ProvenanceChip kind="confirmed" label={t("ai.editedByPatient")} />,
-    rejected: <ProvenanceChip kind="rejected" label={t("ai.reject")} />,
+    rejected: <ProvenanceChip kind="rejected" label={t("provenance.rejected")} />,
   }[fact.review_state];
 
   return (
     <li
       className={cn(
         // A container, so the row lays itself out by its own width (a document's side column, a phone).
-        "@container rounded-lg border border-l-[3px] bg-surface px-4 py-3.5 transition-shadow duration-150",
-        REVIEW_RULE[fact.review_state],
-        rejected ? "border-line bg-sunken/70 opacity-70" : "border-line",
-        aboutSomeoneElse && !rejected && "border-warning/40",
-        highlighted && "shadow-md ring-2 ring-brand/40",
+        "@container rounded-md border px-4 py-3.5 transition-shadow duration-150",
+        REVIEW_EDGE[fact.review_state],
+        aboutSomeoneElse && !rejected && "border-warning/50",
+        highlighted && "shadow-md ring-2 ring-mark",
       )}
     >
       <div className="flex flex-col gap-3 @xl:flex-row @xl:items-start @xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-small font-semibold text-muted">{t(`ai.category.${fact.category}`)}</span>
+            <span className="text-label uppercase text-subtle">{t(`ai.category.${fact.category}`)}</span>
             <Badge tone={aboutSomeoneElse ? "warning" : "neutral"}>{t(`ai.subject.${fact.subject}`)}</Badge>
           </div>
           {editing ? (
@@ -298,16 +340,14 @@ export function FactRow({
           {fact.subject === "family" ? (
             <p className="mt-1 text-small font-medium text-warning">{t("ai.familyNotYours")}</p>
           ) : null}
-          {page !== null ? (
-            <p className="mt-1.5 flex flex-wrap items-center gap-2 text-small text-muted">
-              <span>{t("docAi.onPage", { page })}</span>
-              {onShowEvidence && fact.evidence_bbox ? (
-                <Button variant="ghost" size="sm" aria-pressed={highlighted} onClick={() => onShowEvidence(fact)}>
-                  {t("docAi.showOnPage")}
-                </Button>
-              ) : null}
-            </p>
-          ) : null}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-small text-muted">
+            {page !== null ? <span>{t("docAi.onPage", { page })}</span> : null}
+            {onShowEvidence && (fact.evidence_bbox || evidenceLabel) ? (
+              <Button variant="ghost" size="sm" aria-pressed={highlighted} onClick={() => onShowEvidence(fact)}>
+                {evidenceLabel ?? t("docAi.showOnPage")}
+              </Button>
+            ) : null}
+          </div>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             {stateChip}
             {fact.validation_status === "needs_review" ? (
@@ -334,6 +374,12 @@ export function FactRow({
                 {t("actions.cancel")}
               </Button>
             </>
+          ) : rejected ? (
+            // An opened crease is not a dead end: the item can be pressed again.
+            <Button size="sm" variant="secondary" disabled={busy} onClick={() => onReview(fact.id, { action: "confirm" })}>
+              <CheckCircle size={15} weight="bold" aria-hidden className="@max-sm:hidden" />
+              {t("ai.restore")}
+            </Button>
           ) : (
             <>
               <Button
@@ -354,7 +400,7 @@ export function FactRow({
                 variant="ghost"
                 size="sm"
                 className="text-danger hover:bg-danger-soft"
-                disabled={busy || rejected}
+                disabled={busy}
                 onClick={() => onReview(fact.id, { action: "reject" })}
               >
                 <Prohibit size={15} aria-hidden className="@max-sm:hidden" />

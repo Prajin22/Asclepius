@@ -19,7 +19,9 @@ export function readingWarningKey(code: string): string | null {
 
 /**
  * How a page's text was obtained. An exact copy and a machine transcription are
- * labelled differently on purpose, with OCR confidence and warnings beside them.
+ * labelled differently on purpose, in words a patient can act on. The engine name
+ * and the confidence score are developer material, so they sit behind a
+ * disclosure rather than in the patient's reading line.
  */
 export function ReadingProvenance({
   method,
@@ -37,16 +39,23 @@ export function ReadingProvenance({
   const messages = Array.from(new Set(warnings.map(readingWarningKey).filter((key): key is string => key !== null)));
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="flex flex-wrap items-center gap-2 text-small text-muted">
+      <p>
         <Badge tone={exact ? "neutral" : "warning"}>{t(`reading.method.${method}`)}</Badge>
-        {confidence !== null ? <span>{t("reading.confidence", { percent: Math.round(confidence * 100) })}</span> : null}
-        <span className="text-caption text-subtle">{t("reading.engine", { engine })}</span>
       </p>
       {messages.map((key) => (
         <p key={key} className="text-small font-medium text-warning">
           {t(key)}
         </p>
       ))}
+      <details className="text-caption text-subtle">
+        <summary className="inline-flex min-h-8 cursor-pointer items-center hover:text-muted">
+          {t("reading.technical")}
+        </summary>
+        <p className="mt-0.5">
+          {confidence !== null ? `${t("reading.confidence", { percent: Math.round(confidence * 100) })} · ` : ""}
+          {t("reading.engine", { engine })}
+        </p>
+      </details>
     </div>
   );
 }

@@ -55,7 +55,7 @@ function HistoryRow({ r }: { r: MedicalRecord }) {
 function OpinionCard({ c, independent }: { c: SharedConsultation; independent: boolean }) {
   const { t, formatDate } = useI18n();
   return (
-    <article className="rounded-lg border border-line border-l-[3px] border-l-ink/60 p-4">
+    <article className="rounded-md border border-ink/40 p-4">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-semibold text-ink">
@@ -100,7 +100,7 @@ export function SharedClinicalInfo({
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
-      <Card className="border-l-[3px] border-l-brand" aria-labelledby="problem-heading">
+      <Card aria-labelledby="problem-heading">
         <CardHeader id="problem-heading" title={t("case.currentProblem")} description={t("case.patientWords")} />
         {view.current_problems.length === 0 ? (
           <NotShared />
@@ -130,7 +130,7 @@ export function SharedClinicalInfo({
           </div>
         )}
         {view.request_message ? (
-          <div className="mt-4 rounded-lg bg-sunken px-4 py-3">
+          <div className="mt-4 rounded-md bg-sunken px-4 py-3">
             <p className="text-label uppercase text-subtle">{t("case.patientNote")}</p>
             <p lang={view.request_language ?? undefined} className="mt-1 whitespace-pre-line">
               {view.request_message}
@@ -159,7 +159,7 @@ export function SharedClinicalInfo({
         ) : (
           <ul className="flex flex-col gap-3">
             {view.documents.map((d) => (
-              <li key={d.id} className="rounded-lg border border-line">
+              <li key={d.id} className="rounded-md border border-line">
                 <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 py-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-ink">{d.title || d.file_name}</p>

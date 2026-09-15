@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   Card,
+  EmptyState,
   ErrorState,
   Field,
   PageHeader,
@@ -113,9 +114,7 @@ export default function FindCarePage() {
           <SkeletonCard />
         </div>
       ) : results.data.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line-strong bg-sunken/60 px-4 py-12 text-center text-muted">
-          {t("findCare.noResults")}
-        </div>
+        <EmptyState title={t("findCare.noResults")}>{t("findCare.noResultsWhy")}</EmptyState>
       ) : (
         <>
           <p className="mb-3 text-small text-muted" role="status">
@@ -123,7 +122,7 @@ export default function FindCarePage() {
           </p>
           <ul className="grid gap-4 md:grid-cols-2">
             {results.data.map((d) => (
-              <li key={d.id} className="flex flex-col rounded-xl border border-line bg-surface p-5">
+              <li key={d.id} className="flex flex-col rounded-md border border-line bg-surface p-5">
                 <div className="flex items-start gap-3.5">
                   <Avatar name={d.name} size="lg" />
                   <div className="min-w-0 flex-1">
@@ -152,8 +151,9 @@ export default function FindCarePage() {
                   {t("prescription.registration", { id: d.registration_identifier })}
                 </p>
                 <div className="mt-4 flex-1" />
+                {/* Every card offers the same step, so none of them shouts: the choice is which doctor. */}
                 {d.is_accepting_consultations ? (
-                  <Link href={`/find-care/${d.id}`} className={buttonClasses("primary", "md", "w-full")}>
+                  <Link href={`/find-care/${d.id}`} className={buttonClasses("secondary", "md", "w-full")}>
                     {t("findCare.request")}
                   </Link>
                 ) : null}

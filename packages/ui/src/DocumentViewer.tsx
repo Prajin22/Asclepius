@@ -49,7 +49,7 @@ export function DocumentViewer({
   const isPdf = mimeType === "application/pdf";
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-hidden rounded-lg border border-line bg-sunken">
+      <div className="overflow-hidden rounded-md border border-line bg-sunken">
         {isImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={fileName} className="mx-auto max-h-[70vh] w-auto" />

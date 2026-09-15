@@ -2,13 +2,13 @@
 
 import { useAuth } from "@carebridge/api-client/react";
 import { useT } from "@carebridge/i18n";
-import { Button, LoadingState, Logo, buttonClasses, cn } from "@carebridge/ui";
+import { Button, LoadingState, Logo, cn } from "@carebridge/ui";
 import { SignOut } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ComponentProps, type ReactNode } from "react";
 import { HOME_FOR_ROLE } from "@/lib/routes";
-import { ChatIcon, FileIcon, HeartIcon, HomeIcon, SearchIcon, UserIcon } from "./icons";
+import { ChatIcon, FileIcon, HeartIcon, HomeIcon, UserIcon } from "./icons";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 type NavIcon = (props: ComponentProps<typeof HomeIcon>) => ReactNode;
@@ -49,19 +49,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-[100dvh] flex-col">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:shadow-md"
       >
         {t("a11y.skipToContent")}
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link
-            href="/home"
-            className="flex items-center gap-2.5 text-subheading tracking-tight text-brand-strong"
-            aria-label={t("app.name")}
-          >
-            <Logo size={26} />
+          <Link href="/home" className="flex items-center gap-2.5 text-subheading text-ink" aria-label={t("app.name")}>
+            <Logo size={26} className="text-brand" />
             <span>{t("app.name")}</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -76,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="mx-auto flex w-full max-w-6xl flex-1 gap-8 px-4 pb-28 pt-5 sm:px-6 lg:pb-12 lg:pt-8">
         {/* Desktop rail. On a phone this is the bottom bar instead. */}
-        <nav aria-label={t("nav.main")} className="hidden w-60 shrink-0 lg:block">
+        <nav aria-label={t("nav.main")} className="hidden w-56 shrink-0 lg:block">
           <div className="sticky top-24 flex flex-col gap-6">
             <ul className="flex flex-col gap-1">
               {NAV.map(({ href, key, Icon }) => {
@@ -88,7 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex min-h-11 items-center gap-3 rounded-md px-3 font-medium transition-colors duration-150",
-                        active ? "bg-brand-soft text-brand-strong" : "text-muted hover:bg-sunken hover:text-ink",
+                        active ? "bg-brand text-white" : "text-muted hover:bg-sunken hover:text-ink",
                       )}
                     >
                       <Icon weight={active ? "fill" : "regular"} />
@@ -98,11 +94,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 );
               })}
             </ul>
-            <Link href="/find-care" className={buttonClasses("primary", "md", "w-full")}>
-              <SearchIcon size={18} />
-              {t("findCare.title")}
-            </Link>
-            <p className="text-caption leading-relaxed text-subtle">{t("safety.notDiagnosis")}</p>
+            <p className="border-t border-line pt-4 text-caption leading-relaxed text-subtle">
+              {t("safety.notDiagnosis")}
+            </p>
           </div>
         </nav>
 

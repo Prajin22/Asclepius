@@ -58,7 +58,7 @@ export default function RequestConsultationPage() {
   const items = useMemo(() => (q.data ? buildShareItems(q.data, t, formatDate) : null), [q.data, t, formatDate]);
 
   const back = (
-    <Link href="/find-care" className="inline-flex items-center gap-1.5 font-medium text-brand hover:underline">
+    <Link href="/find-care" className="inline-flex items-center gap-1.5 font-medium text-brand-strong hover:underline">
       <ArrowLeftIcon />
       {t("findCare.title")}
     </Link>
@@ -96,9 +96,9 @@ export default function RequestConsultationPage() {
 
   return (
     <>
-      <PageHeader eyebrow={back} title={t("request.title")} />
+      <PageHeader back={back} title={t("request.title")} />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5 max-lg:pb-4">
           <Card>
             <CardHeader title={t("request.shareTitle")} description={t("request.shareSubtitle", { name: doctor.name })} />
             <Alert tone="info" className="mb-4">
@@ -151,17 +151,23 @@ export default function RequestConsultationPage() {
             </p>
           </Card>
 
-          {/* The decision to share sits within reach on a phone, and beside the choices on a desktop. */}
-          <Card className="max-lg:sticky max-lg:bottom-20 max-lg:z-20 max-lg:shadow-lg lg:sticky lg:top-24">
-            {/* Beside the choices on a wide screen. On a phone the ticked categories above are the summary. */}
-            <div className="max-lg:hidden">
-              <CardHeader title={t("request.reviewTitle")} />
+          {/* The decision to share sits within reach on a phone, as a bar across the foot of the
+              screen, and beside the choices on a desktop. What would leave is named in both. */}
+          <Card
+            padding="sm"
+            className="max-lg:sticky max-lg:bottom-20 max-lg:z-20 max-lg:-mx-4 max-lg:rounded-none max-lg:border-x-0 max-lg:shadow-lg sm:max-lg:-mx-6 lg:sticky lg:top-24 lg:p-6"
+          >
+            <div>
+              <p className="text-label uppercase text-subtle lg:hidden">{t("request.reviewTitle")}</p>
+              <div className="max-lg:hidden">
+                <CardHeader title={t("request.reviewTitle")} />
+              </div>
               {selectedCategories.length === 0 ? (
-                <p className="text-muted">{t("request.nothingSelected")}</p>
+                <p className="text-small text-muted lg:text-body">{t("request.nothingSelected")}</p>
               ) : (
-                <ul className="flex flex-col gap-1.5">
+                <ul className="mt-1 flex flex-col gap-1 lg:mt-0 lg:gap-1.5">
                   {selectedCategories.map((cat) => (
-                    <li key={cat} className="flex items-center justify-between gap-3">
+                    <li key={cat} className="flex items-center justify-between gap-3 text-small lg:text-body">
                       <span>{t(`shareCategories.${cat}`)}</span>
                       <span className="tabular text-small text-muted">
                         {t("request.selected", { count: selection[cat].length })}
@@ -176,7 +182,7 @@ export default function RequestConsultationPage() {
                 {errorMessage(t, error)}
               </Alert>
             ) : null}
-            <Button size="lg" className="w-full lg:mt-5" loading={busy} onClick={submit}>
+            <Button size="lg" className="mt-3 w-full lg:mt-5" loading={busy} onClick={submit}>
               {busy ? t("request.submitting") : t("request.submit")}
             </Button>
             <Link href="/find-care" className={buttonClasses("ghost", "md", "mt-2 w-full max-lg:hidden")}>

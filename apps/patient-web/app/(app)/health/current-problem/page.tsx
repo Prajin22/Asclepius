@@ -9,6 +9,7 @@ import {
   Card,
   CardHeader,
   Field,
+  FoldTrack,
   LanguageTag,
   PageHeader,
   ProvenanceBlock,
@@ -59,61 +60,76 @@ export default function CurrentProblemPage() {
   }
 
   const earlier = (previous.data ?? []).filter((r) => r.id !== target?.id);
+  // Three folds: the patient's words, what Asclepius made of them, and their check.
+  const steps = [
+    { key: "describe", label: t("problem.steps.describe") },
+    { key: "organise", label: t("problem.steps.organise") },
+    { key: "review", label: t("problem.steps.review") },
+  ];
+  const step = !target ? "describe" : aiState.data?.status === "ok" ? "review" : "organise";
 
   return (
     <>
       <PageHeader title={t("problem.title")} description={t("problem.subtitle")} />
 
-      <div className="flex flex-col gap-5">
-        <Card className="mx-auto w-full max-w-3xl" aria-labelledby="describe-heading">
-          <CardHeader id="describe-heading" title={t("problem.textLabel")} description={t("problem.textHint")} />
-          <form onSubmit={submit} className="flex flex-col gap-4">
-            <Field label={t("problem.textLabel")} className="[&>label]:sr-only">
-              {(p) => (
-                <TextArea
-                  {...p}
-                  rows={7}
-                  required
-                  maxLength={10000}
-                  lang={language || undefined}
-                  className="text-body-lg leading-relaxed"
-                  placeholder={t("problem.placeholder")}
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-              )}
-            </Field>
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-              <Field label={t("problem.languageLabel")}>
+      <div className="grid gap-6 xl:grid-cols-[10rem_minmax(0,1fr)]">
+        <div className="xl:sticky xl:top-24 xl:self-start">
+          <FoldTrack steps={steps} current={step} label={t("problem.stepsLabel")} />
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-5">
+          <Card aria-labelledby="describe-heading">
+            <CardHeader id="describe-heading" title={t("problem.textLabel")} description={t("problem.textHint")} />
+            <form onSubmit={submit} className="flex flex-col gap-4">
+              <Field label={t("problem.textLabel")} className="[&>label]:sr-only">
                 {(p) => (
-                  <LanguageSelect
+                  <TextArea
                     {...p}
-                    value={language}
-                    onChange={(v) => {
-                      setTouchedLanguage(true);
-                      setLanguage(v);
-                    }}
+                    rows={7}
+                    required
+                    maxLength={10000}
+                    lang={language || undefined}
+                    className="text-body-lg leading-relaxed"
+                    placeholder={t("problem.placeholder")}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
                   />
                 )}
               </Field>
-              <Button type="submit" size="lg" loading={busy} disabled={!text.trim()} className="max-sm:w-full">
-                {busy ? t("actions.saving") : t("problem.submit")}
-              </Button>
-            </div>
-            {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
-            {saved ? (
-              <Alert tone="success" title={t("problem.saved")}>
-                <Link href="/find-care" className="mt-1 inline-flex items-center gap-1.5 font-semibold underline">
-                  {t("problem.nextFindDoctor")}
-                  <ArrowRight size={15} aria-hidden />
-                </Link>
-              </Alert>
-            ) : null}
-          </form>
-        </Card>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <Field label={t("problem.languageLabel")}>
+                  {(p) => (
+                    <LanguageSelect
+                      {...p}
+                      value={language}
+                      onChange={(v) => {
+                        setTouchedLanguage(true);
+                        setLanguage(v);
+                      }}
+                    />
+                  )}
+                </Field>
+                <div className="flex flex-col gap-1 max-sm:w-full">
+                  <Button type="submit" size="lg" loading={busy} disabled={!text.trim()} className="max-sm:w-full">
+                    {busy ? t("actions.saving") : t("problem.submit")}
+                  </Button>
+                  {/* A disabled button explains itself rather than sitting grey and mute. */}
+                  {!text.trim() ? <span className="text-caption text-subtle">{t("problem.submitHint")}</span> : null}
+                </div>
+              </div>
+              {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
+              {saved ? (
+                <Alert tone="success" title={t("problem.saved")}>
+                  <Link href="/find-care" className="mt-1 inline-flex items-center gap-1.5 font-semibold underline">
+                    {t("problem.nextFindDoctor")}
+                    <ArrowRight size={15} aria-hidden />
+                  </Link>
+                </Alert>
+              ) : null}
+            </form>
+          </Card>
 
-        {target ? (
-          <div className="mx-auto w-full max-w-3xl">
+          {target ? (
             <AIAssistPanel
               originalText={target.content}
               hasConsent={profile.data?.ai_processing_consent ?? false}
@@ -125,36 +141,36 @@ export default function CurrentProblemPage() {
               onProcess={() => api.ai.process(target.id)}
               onReviewFact={(factId, action) => api.ai.reviewFact(factId, action)}
             />
-          </div>
-        ) : null}
+          ) : null}
 
-        {earlier.length > 0 ? (
-          <Card className="mx-auto w-full max-w-3xl" aria-labelledby="earlier-heading">
-            <CardHeader id="earlier-heading" title={t("problem.previous")} />
-            <ul className="flex flex-col gap-3">
-              {earlier.map((r) => (
-                <li key={r.id}>
-                  <ProvenanceBlock
-                    kind="original"
-                    lang={r.source_language}
-                    meta={
-                      <span className="flex flex-wrap items-center gap-2">
-                        <LanguageTag code={r.source_language} />
-                        <span>{formatDate(r.created_at)}</span>
-                        <span>· {t(`recordStatus.${r.status}`)}</span>
-                      </span>
-                    }
-                  >
-                    <p className="whitespace-pre-line">{r.content}</p>
-                  </ProvenanceBlock>
-                </li>
-              ))}
-            </ul>
-            <Link href="/find-care" className={buttonClasses("secondary", "md", "mt-4 w-full sm:w-auto")}>
-              {t("problem.nextFindDoctor")}
-            </Link>
-          </Card>
-        ) : null}
+          {earlier.length > 0 ? (
+            <Card aria-labelledby="earlier-heading">
+              <CardHeader id="earlier-heading" title={t("problem.previous")} />
+              <ul className="flex flex-col gap-3">
+                {earlier.map((r) => (
+                  <li key={r.id}>
+                    <ProvenanceBlock
+                      kind="original"
+                      lang={r.source_language}
+                      meta={
+                        <span className="flex flex-wrap items-center gap-2">
+                          <LanguageTag code={r.source_language} />
+                          <span>{formatDate(r.created_at)}</span>
+                          <span>· {t(`recordStatus.${r.status}`)}</span>
+                        </span>
+                      }
+                    >
+                      <p className="whitespace-pre-line">{r.content}</p>
+                    </ProvenanceBlock>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/find-care" className={buttonClasses("secondary", "md", "mt-4 w-full sm:w-auto")}>
+                {t("problem.nextFindDoctor")}
+              </Link>
+            </Card>
+          ) : null}
+        </div>
       </div>
     </>
   );
