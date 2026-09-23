@@ -445,6 +445,122 @@ approved doctor revokes access immediately.
 Revisit: automate the register check where an official API exists, and ask for
 a registration certificate before review.
 
+## D-052 — The model never sees a database identifier
+
+Every authorised item in a case-summary bundle gets an opaque handle — `S1`,
+`S2` — valid only inside that one bundle. The provider is shown handles and
+words; it returns groupings that cite handles; the application maps them back to
+rows (`services/case_summary_bundle.py`, `services/summary_validation.py`).
+
+This collapses four separate requirements into one mechanism. The model cannot
+invent a document id, page number or bounding box, because it is never shown one
+and has no field to put one in. It cannot cite an unshared item, because
+unshared rows have no handle. It cannot leak an identifier, because it holds
+none. And a hallucinated `S99` simply fails to resolve, so the item carrying it
+is dropped — never repaired, never guessed at.
+
+The bundle is built *after* the authorization boundary closes and *before*
+anything is sent, so there is no moment at which a provider is shown something
+and asked to ignore it.
+
+## D-053 — A summary item's origin is always a human
+
+`SummaryItemOrigin` has three members: `patient_provided`, `patient_confirmed`,
+`doctor_authored`. There is deliberately no machine origin. The application sets
+it from the cited sources and the model is never asked, so a provider cannot
+change who said something.
+
+What the model contributes is grouping, de-duplication, ordering and noticing
+that two sources disagree. That is organisation, which is the job `AI_POLICY.md`
+assigns it; authorship stays with the person who wrote the words.
+
+## D-054 — Staleness is computed, never stored
+
+`consultation_summaries` has no `stale_at`. A summary is stale when its
+`source_bundle_hash` differs from a freshly built one, and that comparison
+happens when the summary is read.
+
+Shared records are live references (D-006): a patient can edit one after sharing
+it. A stored flag would be wrong the moment they did, and nothing would be
+watching to correct it. A computed answer cannot be stale about staleness.
+
+The hash therefore covers item *content*, not item ids — which is the only
+reason a stale summary is detectable at all.
+
+## D-055 — What a health claim may rest on
+
+The six claim sections are exactly the six extraction categories. A statement in
+one of them must cite a fact the patient confirmed, a prescription a doctor
+authored, or the title of a health record the patient wrote themselves.
+
+Narrative free text — a current problem, a message, a document, a doctor's note —
+can support a *pointer* ("current problem recorded on the 23rd") but never a
+claim about the patient's health. Turning narrative into a health claim is
+extraction, and extraction goes through the patient (Phase 2).
+
+A record's title is admitted because a health record is not narrative: the
+patient typed it, chose its type and labelled it "Hypertension". Excluding their
+own assertion from a summary whose purpose is to carry what they said would be
+the wrong kind of caution. The record's free-text body is not admitted, so an
+instruction hidden in one cannot become a finding.
+
+This is the defence that does not depend on a word list. An earlier version
+relied on the Phase 2 lexicon to catch unsupported terms, and a model that
+invented "cancer" — a word the lexicon does not contain — passed. The structural
+rule drops it whether or not the invented condition happens to be known.
+
+## D-056 — Free text never becomes a statement
+
+A statement is a confirmed value or an application-written label. It is never a
+copy of a source's free text, and the validator drops any statement of 80
+characters or more that appears verbatim inside a cited source.
+
+The words are not the problem; presenting them as the summary's own organisation
+is. An early version of the local provider lifted a whole record into the
+`current_problem` statement, so a sentence a patient had written — including one
+shaped like an instruction — read as a line the system had produced. Free text
+reaches the doctor through the source block, labelled as the patient's own
+words, where it belongs.
+
+## D-057 — A case summary spends the patient's money, not their turns
+
+Generating a summary counts against the patient's 24-hour estimated-spend cap —
+so provider spend stays bounded exactly as before — and against a new
+per-consultation generation cap (`SUMMARY_PER_CONSULTATION_LIMIT`, default 10).
+It does *not* count against their hourly or daily run limits.
+
+Those run limits exist so a patient can work on their own record. A doctor
+pressing "refresh summary" must not be able to exhaust them. Cache hits create
+no row and cost nothing; failures do count, because they spent a provider call
+and a failing provider should not be an unlimited one.
+
+`ai_limits.enforce_cost_limit` was split out of `enforce_rate_limit` for this,
+with no change to what any existing caller does.
+
+## D-058 — A doctor's own prior consultations are in the bundle, labelled
+
+D-009 lets a doctor see their own earlier consultations with a patient without a
+new grant, and the case view already returns them. They are included in the
+summary bundle, and every bundle item carries an `authorization_basis` of
+`patient_grant` or `own_prior_consultation`.
+
+Excluding them would make the summary quietly less complete than the case view
+directly beneath it, which reads as a bug rather than as caution. Both bases are
+authorised; keeping them apart makes the reason auditable and lets the interface
+say which is which.
+
+## D-059 — Unconfirmed extraction is counted, never stated
+
+Only confirmed and edited facts become summary statements. Facts still awaiting
+the patient's decision are reported as a count — "3 extracted items are awaiting
+the patient's confirmation and are not included" — and rejected facts never
+leave the database.
+
+A doctor who cannot tell a reviewed case from an unreviewed one is worse off
+than one who is told the picture is incomplete. Stating the content of
+unconfirmed items would put machine output in front of a doctor, which Phases 2
+and 3 deliberately avoided.
+
 ## D-018 — Doctor UI is English-only in Phase 1
 
 All doctor strings still come from a catalogue (`doctor.en.json`), so adding a

@@ -13,6 +13,7 @@ from app.models.doctor import DoctorLanguage, DoctorProfile
 from app.models.document import DocumentExtraction, DocumentPage
 from app.models.medical import MedicalDocument, MedicalRecord
 from app.models.patient import PatientProfile
+from app.models.summary import ConsultationSummary
 from app.models.user import User
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "Consultation",
     "ConsultationMessage",
     "ConsultationShare",
+    "ConsultationSummary",
     "DoctorLanguage",
     "DoctorProfile",
     "DocumentExtraction",

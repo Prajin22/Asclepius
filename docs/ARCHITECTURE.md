@@ -347,3 +347,58 @@ Auth token: JWT in this tab's `sessionStorage` (one account per tab), sent as
   `downgrade base` when PostgreSQL is configured.
 * Frontend: Vitest + Testing Library (jsdom) for components, i18n catalogue
   parity, and the API client.
+
+## Case summarisation (Phase 4)
+
+```text
+consultation
+   → authorization: approved doctor, their consultation, visible status
+   → patient AI consent
+   → budget: patient spend cap + per-consultation generation cap
+   → resolve_authorized_context()      ← the one authorization resolver
+   → build_source_bundle()             ← the boundary is now closed
+   → sha256(canonical bundle) → cache lookup
+   → AIProvider.summarize_case()       ← organisation only
+   → ModelCaseSummary (strict schema)
+   → validate_summary()                ← ten checks; failures are dropped
+   → ai_artifacts + consultation_summaries
+   → audit
+```
+
+`resolve_authorized_context()` in `services/consultation_service.py` is the
+single place that turns share grants into rows. `build_case_view()` and
+`build_source_bundle()` both call it, so what a doctor may read and what a
+provider may be shown cannot drift apart.
+
+**Bundle** (`services/case_summary_bundle.py`). Each authorised row becomes an
+item in two halves: a `payload` the provider sees — words, no identifiers — and
+a `resolution` the application keeps, which turns a returned `S7` back into a
+real row. The two never travel together. Items are ordered deterministically and
+handles assigned in that order, so the same authorised state always produces the
+same bytes. The canonical form is hashed over *content*, because shared records
+are live references (D-006), and that hash is both the cache key and the
+staleness test.
+
+The provider is handed `bundle.canonical()` — byte for byte the text that was
+hashed — so what was sent and what was hashed are provably the same.
+
+**Schema** (`schemas/summary.py`). Three layers: `ModelCaseSummary` is all a
+provider may return (section, statement, source handles, a contradiction flag);
+`StoredCaseSummary` is what the application writes once provenance is attached;
+`CaseSummaryOut` is what the browser receives. `extra="forbid"` throughout, and
+the section enum has no member that could carry a conclusion.
+
+**Providers**. `summarize_case` is one non-abstract method on `AIProvider`,
+implemented once on `HttpJSONProvider` — the vendor adapters are generic over
+any `Prompt`, so OpenAI's strict `json_schema`, Anthropic's strict tool and
+Gemini's `responseSchema` all constrain it with no adapter change. The local
+provider implements it as deterministic rules (`providers/ai/mock_summary.py`),
+which is what `DEMO_MODE` pins the public deployment to.
+
+**Storage**. `consultation_summaries` is append-only: each real generation adds
+a row, so what a doctor was shown survives for audit, and "current" is the
+newest row. Failures are stored too, with the reasons items were dropped, so a
+doctor can tell an outage from a summary whose every line was rejected.
+
+**API**. `POST` and `GET /doctors/me/consultations/{id}/summary`. `POST` reuses
+a stored summary when nothing shared has changed; `GET` never generates.

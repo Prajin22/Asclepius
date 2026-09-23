@@ -180,7 +180,7 @@
           "bbox_covers_line": true
         }
       ],
-      "read_ms": 37
+      "read_ms": 25
     },
     {
       "file": "synthetic-discharge-summary.pdf",
@@ -265,7 +265,7 @@
           "bbox_covers_line": true
         }
       ],
-      "read_ms": 17
+      "read_ms": 10
     },
     {
       "file": "synthetic-scanned-lab.pdf",
@@ -316,7 +316,7 @@
           "bbox_covers_line": true
         }
       ],
-      "read_ms": 3054
+      "read_ms": 39995
     },
     {
       "file": "synthetic-prescription-photo.png",
@@ -367,7 +367,7 @@
           "bbox_covers_line": true
         }
       ],
-      "read_ms": 2662
+      "read_ms": 4027
     },
     {
       "file": "synthetic-injection-attempt.pdf",
@@ -418,7 +418,7 @@
           "bbox_covers_line": true
         }
       ],
-      "read_ms": 7
+      "read_ms": 8
     }
   ]
 }

@@ -143,7 +143,11 @@ def test_meta_ai_endpoint_describes_configuration_without_secrets(client):
     assert body["provider"] == "mock"
     assert body["demo_mode"] is True
     assert body["is_external"] is False
-    assert set(body["enabled_features"]) == {"language_detection", "normalization", "extraction"}
+    # Every capability that has a versioned prompt, derived rather than listed.
+    assert set(body["enabled_features"]) == {
+        "language_detection", "normalization", "extraction",
+        "document_transcription", "case_summary",
+    }
     assert body["prompt_versions"]["extraction"] == PROMPTS["extraction"].version
     serialised = str(body).lower()
     for leak in ("api_key", "sk-", "secret", "authorization"):

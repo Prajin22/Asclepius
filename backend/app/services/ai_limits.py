@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
-from app.models import AIArtifact
+from app.models import AIArtifact, ConsultationSummary
 from app.models.enums import AIOperation
 from app.services.errors import AIRateLimited
 
@@ -85,10 +85,69 @@ def enforce_rate_limit(
                 "Please try again tomorrow — your information is unaffected."
             )
 
-    if settings.ai_daily_cost_limit_usd > 0:
-        spend = _spend_since(db, patient_id, now - timedelta(days=1))
-        if spend >= settings.ai_daily_cost_limit_usd:
-            raise AIRateLimited(
-                "Daily AI processing budget reached. Please try again tomorrow — "
-                "your information is unaffected."
+    enforce_cost_limit(db, patient_id, settings)
+
+
+def enforce_cost_limit(db: Session, patient_id: uuid.UUID, settings: Settings | None = None) -> None:
+    """The 24-hour estimated-spend cap alone, without the run counters.
+
+    Split out so case summarisation can be bound by provider spend — which is
+    about protecting the patient's budget — without consuming the hourly and
+    daily run allowance, which is reserved for work the patient starts
+    themselves. A doctor regenerating a summary must not use up the runs a
+    patient needs for their own record.
+    """
+    settings = settings or get_settings()
+    if settings.ai_daily_cost_limit_usd <= 0:
+        return
+    spend = _spend_since(db, patient_id, datetime.now(UTC) - timedelta(days=1))
+    if spend >= settings.ai_daily_cost_limit_usd:
+        raise AIRateLimited(
+            "Daily AI processing budget reached. Please try again tomorrow — "
+            "your information is unaffected."
+        )
+
+
+def summary_generations(db: Session, consultation_id: uuid.UUID) -> int:
+    """Real generations so far for one consultation.
+
+    Cache hits create no row and so cost nothing. Failures do count: they spent
+    a provider call, and a failing provider should not be an unlimited one.
+    """
+    return (
+        db.scalar(
+            select(func.count(ConsultationSummary.id)).where(
+                ConsultationSummary.consultation_id == consultation_id
             )
+        )
+        or 0
+    )
+
+
+def summary_generations_remaining(
+    db: Session, consultation_id: uuid.UUID, settings: Settings | None = None
+) -> int | None:
+    """How many more times this summary may be generated. None when unlimited."""
+    settings = settings or get_settings()
+    if settings.summary_per_consultation_limit <= 0:
+        return None
+    used = summary_generations(db, consultation_id)
+    return max(0, settings.summary_per_consultation_limit - used)
+
+
+def enforce_summary_limit(
+    db: Session, consultation_id: uuid.UUID, settings: Settings | None = None
+) -> None:
+    """Bound how many times one consultation's summary may be regenerated.
+
+    A separate counter from the patient's, because this spends on the doctor's
+    initiative. Set 0 to disable, as with every other limit here.
+    """
+    settings = settings or get_settings()
+    if settings.summary_per_consultation_limit <= 0:
+        return
+    if summary_generations(db, consultation_id) >= settings.summary_per_consultation_limit:
+        raise AIRateLimited(
+            f"This case summary has been generated {settings.summary_per_consultation_limit} times. "
+            "The shared information itself is unaffected and remains available."
+        )

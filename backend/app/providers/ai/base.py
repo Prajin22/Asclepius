@@ -94,6 +94,20 @@ class DocumentTranscription(AIResult):
     unreadable: list[str] = Field(default_factory=list)
 
 
+class SummaryOrganisation(AIResult):
+    """How a provider grouped one consultation's already-authorised sources.
+
+    Organisation only. It carries no identifiers, no provenance, no attribution
+    and no evidence: the application attaches all of those from the source
+    bundle, so a provider cannot change who said something, whose health it
+    describes, or where it came from. `items` is validated against
+    `app.schemas.summary.ModelCaseSummary` at the boundary.
+    """
+
+    #: Raw, schema-valid organisation, still unresolved and unvalidated.
+    payload: dict = Field(default_factory=dict)
+
+
 class AIProvider(ABC):
     """Every method must be safe to call concurrently and must not mutate input."""
 
@@ -109,6 +123,22 @@ class AIProvider(ABC):
         from app.providers.ai.errors import AICapabilityUnsupported
 
         raise AICapabilityUnsupported(f"{self.name} cannot read document images", provider=self.name)
+
+    async def summarize_case(self, bundle_text: str) -> SummaryOrganisation:
+        """Group already-authorised sources for one consultation (Phase 4).
+
+        Organisation, not interpretation: the provider receives opaque source
+        handles and returns which of them belong together, under which section,
+        in which order. It is given no identifiers and asked for no clinical
+        judgement, and there is deliberately no diagnose/prescribe/recommend/
+        triage method beside it.
+
+        Non-abstract so a partial provider degrades to "summary unavailable"
+        rather than failing to construct, the same as vision above.
+        """
+        from app.providers.ai.errors import AICapabilityUnsupported
+
+        raise AICapabilityUnsupported(f"{self.name} cannot summarise a case", provider=self.name)
 
     @abstractmethod
     async def detect_language(self, text: str) -> LanguageDetection: ...

@@ -40,6 +40,9 @@ def ai_status() -> AIStatusOut:
         model=model,
         demo_mode=settings.demo_mode,
         is_external=external,
-        enabled_features=["language_detection", "normalization", "extraction"],
+        # Derived from the prompts that exist, so a new capability cannot ship
+        # without appearing here. Phase 3's transcription was missing while this
+        # was a hand-written list.
+        enabled_features=sorted(PROMPT_VERSIONS),
         prompt_versions=PROMPT_VERSIONS,
     )

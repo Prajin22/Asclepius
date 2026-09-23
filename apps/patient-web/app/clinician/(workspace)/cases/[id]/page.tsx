@@ -24,6 +24,7 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CaseSummary } from "@/components/clinician/CaseSummary";
 import { PrescriptionForm } from "@/components/clinician/PrescriptionForm";
 import { SharedClinicalInfo } from "@/components/clinician/SharedClinicalInfo";
 import { patientMeta } from "@/lib/format";
@@ -97,6 +98,30 @@ export default function CasePage() {
   const [busy, setBusy] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
+
+  // The case summary is fetched on its own, so the page renders everything the
+  // patient shared without waiting for it. Generation is a separate, explicit
+  // action — the doctor decides when to spend it.
+  const summary = useQuery((a) => a.doctor.caseSummary(id), [id]);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<unknown>(null);
+
+  async function generateSummary() {
+    setGeneratingSummary(true);
+    setSummaryError(null);
+    try {
+      // The frontend sends only the consultation id. Authorization, the source
+      // bundle and validation all stay on the server.
+      summary.setData(await api.doctor.generateCaseSummary(id));
+    } catch (err) {
+      setSummaryError(err);
+      // Re-read so a failed attempt still shows the stored state and the
+      // remaining generation budget.
+      void summary.reload();
+    } finally {
+      setGeneratingSummary(false);
+    }
+  }
 
   const back = (
     <Link
@@ -228,12 +253,25 @@ export default function CasePage() {
       </section>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
-        {/* What the patient shared, in the order a consultation actually runs. */}
-        <SharedClinicalInfo
-          view={v}
-          loadDocument={(docId) => api.doctor.documentFile(v.id, docId)}
-          loadPage={(docId, page) => api.doctor.documentPageImage(v.id, docId, page)}
-        />
+        <div className="flex min-w-0 flex-col gap-5">
+          {/* The summary organises what is below it, so it reads first — but it is
+              fetched separately, so the case never waits on it, and it sits in the
+              shared-information column rather than the doctor's own workspace. */}
+          <CaseSummary
+            summary={summary.data}
+            loading={summary.loading}
+            error={summaryError ?? summary.error}
+            generating={generatingSummary}
+            onGenerate={generateSummary}
+          />
+
+          {/* What the patient shared, in the order a consultation actually runs. */}
+          <SharedClinicalInfo
+            view={v}
+            loadDocument={(docId) => api.doctor.documentFile(v.id, docId)}
+            loadPage={(docId, page) => api.doctor.documentPageImage(v.id, docId, page)}
+          />
+        </div>
 
         {/* The doctor's own work, inked so it is never mistaken for machine output.
             One column in the order they work: assessment, prescriptions, messages.

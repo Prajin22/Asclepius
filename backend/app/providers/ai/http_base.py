@@ -27,6 +27,7 @@ from app.providers.ai.base import (
     ExtractionResult,
     LanguageDetection,
     NormalizationResult,
+    SummaryOrganisation,
 )
 from app.providers.ai.errors import (
     AICapabilityUnsupported,
@@ -36,7 +37,15 @@ from app.providers.ai.errors import (
     AITimeout,
 )
 from app.providers.ai.pricing import Price, estimate_cost_usd
-from app.providers.ai.prompts import DOCUMENT_TRANSCRIPTION, EXTRACTION, LANGUAGE_DETECTION, NORMALIZATION, Prompt
+from app.providers.ai.prompts import (
+    CASE_SUMMARY,
+    DOCUMENT_TRANSCRIPTION,
+    EXTRACTION,
+    LANGUAGE_DETECTION,
+    NORMALIZATION,
+    Prompt,
+)
+from app.schemas.summary import ModelCaseSummary
 
 
 class _LanguagePayload(BaseModel):
@@ -240,6 +249,30 @@ class HttpJSONProvider(AIProvider):
             text=payload.text,
             language=LanguageCode(code) if code in {c.value for c in LANGUAGES} else None,
             unreadable=payload.unreadable,
+            usage=usage,
+        )
+
+    async def summarize_case(self, bundle_text: str) -> SummaryOrganisation:
+        """One request per consultation. Same structured-output path as everything else.
+
+        The vendor adapters need nothing new: `_build_request` is generic over any
+        `Prompt`, so OpenAI's strict json_schema, Anthropic's strict tool and
+        Gemini's responseSchema all constrain this response exactly as they
+        constrain extraction.
+        """
+        data, usage = await self._complete(CASE_SUMMARY, CASE_SUMMARY.render_user(bundle=bundle_text))
+        try:
+            # Validated here against the same strict model the application uses,
+            # so a provider that invents a field or a section fails at the
+            # boundary instead of reaching the validator.
+            payload = ModelCaseSummary.model_validate(data)
+        except ValidationError as exc:
+            raise AIMalformedOutput(str(exc), provider=self.name) from exc
+        return SummaryOrganisation(
+            provider=self.name,
+            model=self.model,
+            prompt_version=CASE_SUMMARY.version,
+            payload=payload.model_dump(mode="json"),
             usage=usage,
         )
 

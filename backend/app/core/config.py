@@ -58,6 +58,13 @@ class Settings(BaseSettings):
     # Estimated spend per patient over a rolling 24h, in USD.
     ai_daily_cost_limit_usd: float = 1.0
 
+    # ---------- Case summary (Phase 4) ----------
+    # How many times one consultation's case summary may actually be generated.
+    # Separate from the patient's run limits because a doctor starts this, and a
+    # doctor regenerating must not exhaust the allowance a patient needs for
+    # their own record. Cache hits cost nothing and do not count. Set 0 to disable.
+    summary_per_consultation_limit: int = 10
+
     # ---------- Documents (Phase 3) ----------
     # Pages read per processing request. Each page with text is one AI run.
     document_processing_max_pages: int = 10

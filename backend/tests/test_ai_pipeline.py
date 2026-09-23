@@ -35,7 +35,15 @@ def test_artifacts_capture_provenance_for_each_operation(client, db, consented_p
     process_record(client, consented_patient, record["id"])
     artifacts = list(db.scalars(select(AIArtifact)))
     by_operation = {a.artifact_type: a for a in artifacts}
-    assert set(by_operation) == {o.value for o in AIOperation}
+    # The three operations this pipeline runs over one record. Named explicitly
+    # rather than "every AIOperation": Phase 4's `case_summary` is also an
+    # operation, but it belongs to a different pipeline over a whole
+    # consultation and must not appear here.
+    assert set(by_operation) == {
+        AIOperation.LANGUAGE_DETECTION.value,
+        AIOperation.NORMALIZATION.value,
+        AIOperation.EXTRACTION.value,
+    }
     for artifact in artifacts:
         assert artifact.status == AIArtifactStatus.SUCCEEDED
         assert artifact.provider == "mock" and artifact.model

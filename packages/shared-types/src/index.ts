@@ -548,6 +548,121 @@ export interface AIStatus {
   prompt_versions: Record<string, string>;
 }
 
+// ---------- Case summary (Phase 4) ----------
+
+/**
+ * The only sections a case summary can contain. There is deliberately no
+ * diagnosis, differential, triage, risk or treatment member — the machine
+ * organises already-authorised information and never concludes anything.
+ */
+export type SummarySectionKind =
+  | "current_problem"
+  | "symptom"
+  | "duration"
+  | "medication"
+  | "allergy"
+  | "medical_history"
+  | "measurement"
+  | "document"
+  | "prior_consultation"
+  | "patient_statement"
+  | "doctor_authored_context"
+  | "unresolved_information";
+
+/**
+ * Who asserted a summary item. Always a human: the machine groups and orders,
+ * it never authors a health claim, so there is no machine origin here.
+ */
+export type SummaryItemOrigin = "patient_provided" | "patient_confirmed" | "doctor_authored";
+
+/** What kind of authorised source an item points back at. */
+export type SummarySourceKind =
+  | "patient_statement"
+  | "current_problem"
+  | "health_record"
+  | "fact"
+  | "document"
+  | "prior_consultation"
+  | "prior_prescription";
+
+/** Why this doctor may see the source: the patient granted it, or it is their own. */
+export type AuthorizationBasis = "patient_grant" | "own_prior_consultation";
+
+/**
+ * `not_generated` and `stale` are computed when the summary is read, never
+ * stored: shared records are live references, so staleness is only true as of
+ * the moment it is asked.
+ */
+export type CaseSummaryStatus = "not_generated" | "generating" | "ready" | "stale" | "failed";
+
+/** A resolved pointer from a summary item back to the row it came from. */
+export interface CaseSummarySource {
+  ref: string;
+  kind: SummarySourceKind;
+  authorization_basis: AuthorizationBasis;
+  record_id: UUID | null;
+  document_id: UUID | null;
+  consultation_id: UUID | null;
+  prescription_id: UUID | null;
+  fact_id: UUID | null;
+  page_number: number | null;
+  /** [x0, y0, x1, y1] as fractions of the page, when the reader measured it. */
+  bbox: PageBBox | null;
+  quote: string | null;
+  original_text: string | null;
+  language: LanguageCode | null;
+  doctor_name: string | null;
+  occurred_at: ISODateTime | null;
+}
+
+export interface CaseSummaryItem {
+  section: SummarySectionKind;
+  statement: string;
+  origin: SummaryItemOrigin;
+  /** Copied from the source fact, never inferred. A relative's stays a relative's. */
+  subject: FactSubject | null;
+  subject_evidence: string | null;
+  /** The cited sources disagree. It says so; it never picks a side. */
+  is_contradiction: boolean;
+  occurred_at: ISODateTime | null;
+  sources: CaseSummarySource[];
+}
+
+export interface CaseSummarySection {
+  kind: SummarySectionKind;
+  items: CaseSummaryItem[];
+}
+
+export interface CaseSummaryPayload {
+  version: 1;
+  sections: CaseSummarySection[];
+  unresolved_notes: string[];
+  /** Extracted items the patient has not confirmed. Counted, never stated. */
+  pending_fact_count: number;
+  /** Source kinds that were capped when the bundle was built. */
+  truncated: string[];
+}
+
+export interface CaseSummary {
+  consultation_id: UUID;
+  status: CaseSummaryStatus;
+  /** The shared information changed after this summary was generated. */
+  is_stale: boolean;
+  summary: CaseSummaryPayload | null;
+  generated_at: ISODateTime | null;
+  language: LanguageCode | null;
+  provider: string | null;
+  model: string | null;
+  prompt_version: string | null;
+  /** False in demo mode, where the deterministic local provider runs. */
+  is_external_provider: boolean | null;
+  /** How many items validation removed. Shown, never hidden. */
+  dropped_item_count: number;
+  warnings: string[];
+  error_code: string | null;
+  generations_remaining: number | null;
+}
+
 // ---------- Documents (Phase 3) ----------
 
 /**

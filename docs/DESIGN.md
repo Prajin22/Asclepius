@@ -130,3 +130,29 @@ disclosure, never in a patient's reading line.
 5. Every interactive element has a visible focus state and a touch target of at
    least 44px on a phone.
 6. Colour is spent in one place per screen: the sheet, and the primary action.
+
+## The case summary (Phase 4)
+
+The summary is the fold language applied to a whole consultation rather than one
+record, and it changes nothing about what the materials mean.
+
+* A summary **statement** is never the patient's words. Their words are the
+  sheet — vermilion, quoted, unaltered — and they appear in the source block a
+  statement opens, not in the statement itself (D-056). A statement is a
+  confirmed value or a label the application wrote.
+* Every item carries its **origin** in the existing vocabulary: paper for the
+  patient's own, a pressed crease for what they confirmed, sumi ink for what a
+  doctor authored. There is no drawn-crease origin, because the machine never
+  authors a claim here — it only decides what sits next to what.
+* A **contradiction** is shown as a single line with both sources attached. It
+  never resolves; the interface must not make one side look preferred.
+* **Stale** is a state the reader is told about, not one hidden from them:
+  "generated from information shared on …", and an offer to refresh rather than
+  a silent regeneration that spends someone's budget.
+* Items that validation **dropped** are counted and shown. A thinned summary
+  must never read as a complete one.
+* The summary must never visually outweigh the doctor's own assessment. It sits
+  in the column that holds what the patient shared; the doctor's workspace stays
+  where they expect it.
+
+Stage D builds this view; the rules above are what it has to honour.

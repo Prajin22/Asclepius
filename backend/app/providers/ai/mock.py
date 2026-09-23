@@ -27,6 +27,7 @@ from app.providers.ai.base import (
     ExtractionResult,
     LanguageDetection,
     NormalizationResult,
+    SummaryOrganisation,
 )
 from app.providers.ai.lexicon import (
     ALLERGY_PATTERNS,
@@ -46,7 +47,7 @@ from app.providers.ai.lexicon import (
     TIME_UNITS,
     Concept,
 )
-from app.providers.ai.prompts import EXTRACTION, LANGUAGE_DETECTION, NORMALIZATION
+from app.providers.ai.prompts import CASE_SUMMARY, EXTRACTION, LANGUAGE_DETECTION, NORMALIZATION
 
 MOCK_MODEL = "mock-0"
 
@@ -256,6 +257,34 @@ class MockAIProvider(AIProvider):
         )
 
     # ---------- matching ----------
+
+
+    async def summarize_case(self, bundle_text: str) -> SummaryOrganisation:
+        """Deterministic grouping of one authorised bundle.
+
+        The rules live in `mock_summary.organise`, which is a pure function of
+        the bundle, so the same shared information always yields the same
+        summary — what a reproducible demo needs, and what makes this provider
+        measurable by the same evaluation harness as any other.
+        """
+        import json
+
+        from app.providers.ai.mock_summary import organise
+
+        start = time.perf_counter()
+        try:
+            payload = json.loads(bundle_text)
+        except ValueError as exc:
+            from app.providers.ai.errors import AIMalformedOutput
+
+            raise AIMalformedOutput("bundle was not valid JSON", provider=self.name) from exc
+        return SummaryOrganisation(
+            provider=self.name,
+            model=self.model,
+            prompt_version=CASE_SUMMARY.version,
+            payload=organise(payload),
+            usage=AIUsage(latency_ms=_elapsed_ms(start), estimated_cost_usd=0.0),
+        )
 
     @staticmethod
     def _clause_bounds(source: str, start: int, end: int) -> tuple[int, int]:

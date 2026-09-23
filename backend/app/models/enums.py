@@ -92,6 +92,9 @@ class AIOperation(StrEnum):
     LANGUAGE_DETECTION = "language_detection"
     NORMALIZATION = "normalization"
     EXTRACTION = "extraction"
+    # Phase 4. Organises already-authorised information for one consultation;
+    # it interprets nothing and produces no clinical conclusion.
+    CASE_SUMMARY = "case_summary"
 
 
 class AIArtifactStatus(StrEnum):
@@ -148,3 +151,82 @@ class FactSubject(StrEnum):
     FAMILY = "family"  # a named relative
     OTHER = "other"  # someone else (friend, colleague)
     UNKNOWN = "unknown"
+
+
+class SummaryStatus(StrEnum):
+    """Stored lifecycle of a case summary.
+
+    Two states the UI shows are deliberately *not* stored: `not_generated` is the
+    absence of a row, and `stale` is computed by re-hashing the source bundle at
+    read time (D-054). A stored staleness flag would be wrong the moment a
+    patient edited a shared record, and nothing would be watching to correct it.
+    """
+
+    GENERATING = "generating"
+    READY = "ready"
+    FAILED = "failed"
+
+
+class SummarySectionKind(StrEnum):
+    """The only sections a case summary may contain.
+
+    There is no diagnosis, differential, triage, risk or treatment member, and
+    adding one would be a schema change reviewed like any other. The model
+    chooses among these; it cannot invent a thirteenth.
+    """
+
+    CURRENT_PROBLEM = "current_problem"
+    SYMPTOM = "symptom"
+    DURATION = "duration"
+    MEDICATION = "medication"
+    ALLERGY = "allergy"
+    MEDICAL_HISTORY = "medical_history"
+    MEASUREMENT = "measurement"
+    DOCUMENT = "document"
+    PRIOR_CONSULTATION = "prior_consultation"
+    PATIENT_STATEMENT = "patient_statement"
+    DOCTOR_AUTHORED_CONTEXT = "doctor_authored_context"
+    UNRESOLVED_INFORMATION = "unresolved_information"
+
+
+class SummaryItemOrigin(StrEnum):
+    """Who asserted a summary item.
+
+    There is deliberately no machine origin (D-053): the model groups, orders and
+    de-duplicates, but every health claim in a summary traces to a human — the
+    patient's own words, a fact the patient confirmed, or a doctor's authorship.
+    The application sets this from the source; the model is never asked for it.
+    """
+
+    PATIENT_PROVIDED = "patient_provided"
+    PATIENT_CONFIRMED = "patient_confirmed"
+    DOCTOR_AUTHORED = "doctor_authored"
+
+
+class BundleItemKind(StrEnum):
+    """What one authorised source item in a case-summary bundle is.
+
+    Not a database column — the bundle lives in JSON — but an enum so the builder
+    and the validator cannot disagree about the vocabulary.
+    """
+
+    PATIENT_STATEMENT = "patient_statement"
+    CURRENT_PROBLEM = "current_problem"
+    HEALTH_RECORD = "health_record"
+    FACT = "fact"
+    DOCUMENT = "document"
+    PRIOR_CONSULTATION = "prior_consultation"
+    PRIOR_PRESCRIPTION = "prior_prescription"
+
+
+class AuthorizationBasis(StrEnum):
+    """Why this doctor may see this item.
+
+    Both bases are authorised; keeping them apart makes the reason auditable and
+    lets the interface say which is which (Stage A decision 1).
+    """
+
+    #: The patient selected this item when requesting the consultation.
+    PATIENT_GRANT = "patient_grant"
+    #: This doctor's own earlier consultation with the patient (D-009).
+    OWN_PRIOR_CONSULTATION = "own_prior_consultation"

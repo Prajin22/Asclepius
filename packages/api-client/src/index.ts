@@ -3,6 +3,7 @@ import type {
   AIFact,
   AIProcessing,
   AIStatus,
+  CaseSummary,
   CaseView,
   ConsultationRequestCreate,
   ConsultationStatus,
@@ -228,6 +229,18 @@ export function createApiClient(config: ClientConfig) {
         }),
       createPrescription: (id: string, data: PrescriptionCreate) =>
         request<Prescription>(`/doctors/me/consultations/${enc(id)}/prescriptions`, { method: "POST", body: data }),
+      /**
+       * The stored case summary, judged against the information as it stands
+       * now. Never generates: a `stale` status means the shared information
+       * changed after it was made.
+       */
+      caseSummary: (id: string) => request<CaseSummary>(`/doctors/me/consultations/${enc(id)}/summary`),
+      /**
+       * Organise what the patient shared. Reuses the stored summary when nothing
+       * has changed, so pressing it twice costs nothing.
+       */
+      generateCaseSummary: (id: string) =>
+        request<CaseSummary>(`/doctors/me/consultations/${enc(id)}/summary`, { method: "POST" }),
       documentFile: (consultationId: string, documentId: string) =>
         request<Blob>(`/doctors/me/consultations/${enc(consultationId)}/documents/${enc(documentId)}/file`, {
           blob: true,

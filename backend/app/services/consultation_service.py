@@ -9,6 +9,7 @@ Invariants enforced here:
 """
 
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -443,8 +444,40 @@ def doctor_queue(db: Session, doctor: DoctorProfile, statuses: set[CS] | None = 
     return items
 
 
-def build_case_view(db: Session, c: Consultation) -> CaseView:
-    """Everything the doctor may see for this consultation — and nothing else."""
+@dataclass(frozen=True)
+class AuthorizedContext:
+    """Every row one doctor may see in one consultation, and nothing else.
+
+    The single authorization boundary. The doctor's case view and the Phase 4
+    case-summary source bundle both resolve through here, so what a doctor can
+    read and what an AI provider can be shown can never drift apart: adding a
+    filter (a revoke path, say) changes both at once.
+
+    Rows only — no presentation, no AI. Callers decide what to do with them.
+    """
+
+    consultation: Consultation
+    #: Shared health records, newest first. Current problems and history together.
+    records: list[MedicalRecord]
+    documents: list[MedicalDocument]
+    #: Earlier consultations the patient explicitly granted (never this one).
+    shared_consultations: list[Consultation]
+    shared_prescriptions: list[Prescription]
+    #: This doctor's own earlier consultations with this patient — visible
+    #: without a grant because they were a party to them (D-009).
+    own_previous_consultations: list[Consultation]
+
+    @property
+    def current_problems(self) -> list[MedicalRecord]:
+        return [r for r in self.records if r.type == RecordType.CURRENT_PROBLEM]
+
+    @property
+    def medical_history(self) -> list[MedicalRecord]:
+        return [r for r in self.records if r.type != RecordType.CURRENT_PROBLEM]
+
+
+def resolve_authorized_context(db: Session, c: Consultation) -> AuthorizedContext:
+    """Resolve the share grants on this consultation into the rows they permit."""
     _require_doctor_visibility(c)
     pid = c.patient_id
 
@@ -512,6 +545,25 @@ def build_case_view(db: Session, c: Consultation) -> CaseView:
             .order_by(Consultation.created_at.desc())
         )
     )
+    return AuthorizedContext(
+        consultation=c,
+        records=records,
+        documents=docs,
+        shared_consultations=shared_cons,
+        shared_prescriptions=shared_rxs,
+        own_previous_consultations=own_prev,
+    )
+
+
+def build_case_view(db: Session, c: Consultation) -> CaseView:
+    """Everything the doctor may see for this consultation — and nothing else."""
+    authorized = resolve_authorized_context(db, c)
+    records = authorized.records
+    docs = authorized.documents
+    shared_cons = authorized.shared_consultations
+    shared_rxs = authorized.shared_prescriptions
+    own_prev = authorized.own_previous_consultations
+
     # AI interpretation of the records the patient actually shared. Doctors see
     # the original text too; this never replaces it.
     from app.services import ai_pipeline, ai_presenters

@@ -149,6 +149,41 @@ Anything resembling real patient data that reaches this repository must be
 removed and the database re-seeded (`python -m app.seed --reset`). The demo
 databases can be dropped and recreated at any time.
 
+## The case-summary authorization boundary (Phase 4)
+
+The rule: **an AI provider must never receive information the doctor is not
+authorised to see.** It is enforced by construction rather than by instruction.
+
+1. The requester must be an approved doctor (`CurrentDoctor`).
+2. The consultation must be theirs — another doctor's is `404`, not `403`.
+3. Its status must still be visible to them.
+4. The patient's AI consent must be current (D-020). Consent withdrawn after
+   sharing blocks the summary while leaving the case view working.
+5. The budget is checked (D-057), so an over-budget request sends nothing.
+6. Only then is the bundle built, from `Consultation.shared_ids()` — the same
+   resolver the case view uses, so the two cannot diverge.
+
+Everything before step 6 is a gate. There is no code path that loads the
+patient's record and asks a model to ignore part of it.
+
+**What a provider receives**: opaque handles (`S1`, `S2`), the words of
+authorised items, and minimal identity — age, sex, preferred language, which is
+exactly what the case view already shows. No database identifier, no name, no
+email, no phone, no emergency contact, no audit row, no IP address, no
+configuration, no key. `SourceBundle.provider_payload()` is the single place
+this can be read and audited by eye.
+
+**What an unauthorised row gets**: nothing. It has no handle, so it cannot be
+cited; a handle that does not resolve causes the item to be dropped. Leakage is
+measured directly against decoy items in the evaluation set, and the gate is
+zero.
+
+**Revocation**: `consultation_shares.revoked_at` is honoured by
+`shared_ids()`, so a revoked item leaves the bundle and changes its hash, making
+the stored summary stale. No endpoint sets that column yet; when one is added it
+takes effect in the case view and the summary at the same time, because both
+resolve through the same function.
+
 ## Before any real deployment
 
 TLS everywhere · `HttpOnly`+`SameSite` cookies with CSRF protection ·

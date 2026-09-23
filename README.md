@@ -15,6 +15,12 @@ layer exactly, or transcribing scans and photos with OCR — and extracts items
 that each point at the page and the region they came from. The patient reviews
 them; a doctor sees them beside the untouched original file.
 
+Phase 4 organises one consultation into a case summary for the doctor — built
+only from what the patient actually shared, with every line pointing back at the
+source it came from. The machine decides what sits next to what; it states
+nothing new. The backend, all four providers and the evaluation are done; the
+doctor-facing view is next.
+
 CareBridge is **not** an AI doctor: it does not diagnose, does not prescribe,
 and never decides between doctors' opinions. See [docs/AI_POLICY.md](docs/AI_POLICY.md).
 
@@ -232,6 +238,22 @@ extraction precision/recall/F1, family attribution, page provenance, whether
 evidence regions cover the quoted line, and any forbidden (e.g. injected) facts.
 The scans are clean renders, so the reading numbers do not describe real
 photographs or handwriting.
+
+```bash
+uv run python -m evaluation.run_summary_eval               # case summaries, local provider
+uv run python -m evaluation.run_summary_eval --limit 5 --provider openai   # a bounded live smoke test
+```
+
+52 synthetic consultations covering three languages, confirmed and pending and
+rejected facts, family history, multiple documents, several doctors,
+contradictory statements and prescriptions, missing information, and prompt
+injection in patient text, file names and doctor notes. Each case also carries
+**decoys** — items that exist but were never shared — so leakage is measured
+rather than assumed.
+
+Two results are pass/fail rather than a percentage: **unauthorised source
+leakage must be 0** and **unsupported clinical claims must be 0**. A live
+provider costs real money per case, so bound a smoke test with `--limit`.
 
 ## Tests
 

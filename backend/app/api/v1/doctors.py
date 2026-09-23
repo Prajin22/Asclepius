@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.api.deps import DB, Ctx, CurrentDoctor, DirectoryUser, DoctorAccount
 from app.api.v1.files import document_file_response, page_image_response
 from app.core.languages import LanguageCode
+from app.providers.ai import get_ai_provider
 from app.models.enums import ConsultationStatus
 from app.schemas.consultation import (
     AssessmentUpdate,
@@ -17,7 +18,14 @@ from app.schemas.consultation import (
     PrescriptionOut,
 )
 from app.schemas.doctor import DoctorAccountOut, DoctorDetails, DoctorProfileUpdate, DoctorPublicOut
-from app.services import consultation_service, doctor_service, document_pipeline, presenters
+from app.schemas.summary import CaseSummaryOut
+from app.services import (
+    case_summary,
+    consultation_service,
+    doctor_service,
+    document_pipeline,
+    presenters,
+)
 
 # ----- doctor's own workspace -----
 me_router = APIRouter(prefix="/doctors/me", tags=["doctor"])
@@ -93,6 +101,39 @@ def create_prescription(
 ) -> PrescriptionOut:
     rx = consultation_service.create_prescription(db, doctor, doctor.user, consultation_id, data, ctx)
     return presenters.prescription(rx)
+
+
+@me_router.post("/consultations/{consultation_id}/summary", response_model=CaseSummaryOut)
+async def generate_case_summary(
+    consultation_id: uuid.UUID, doctor: CurrentDoctor, db: DB, ctx: Ctx
+) -> CaseSummaryOut:
+    """Organise the information this patient shared, for this doctor, right now.
+
+    Reuses a stored summary when nothing shared has changed. Every gate —
+    ownership, status, the patient's AI consent, the budget — is checked before
+    any bundle is built, so a request that should not happen sends nothing.
+    """
+    state = await case_summary.generate(db, doctor, doctor.user, consultation_id, ctx)
+    return case_summary.present(state, get_ai_provider())
+
+
+@me_router.get("/consultations/{consultation_id}/summary", response_model=CaseSummaryOut)
+def read_case_summary(
+    consultation_id: uuid.UUID, doctor: CurrentDoctor, db: DB, ctx: Ctx
+) -> CaseSummaryOut:
+    """The stored summary, judged against the information as it stands now.
+
+    Never generates. `stale` here means the shared information changed after the
+    summary was made — the doctor is told, rather than shown an old answer as a
+    current one.
+    """
+    state = case_summary.get_state(db, doctor, consultation_id)
+    if state.summary is not None:
+        case_summary.record_view(
+            db, doctor.user, consultation_service.get_doctor_consultation(db, doctor, consultation_id),
+            state.summary, ctx,
+        )
+    return case_summary.present(state, get_ai_provider())
 
 
 @me_router.get("/consultations/{consultation_id}/documents/{document_id}/file")

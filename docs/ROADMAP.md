@@ -8,7 +8,7 @@ explicit summary — then waits for approval before the next phase starts.
 | **1** | Foundation: patient/doctor platform, records, documents, consultations, prescriptions, sharing | **complete** |
 | **2** | AI foundation: multilingual normalisation, evidence-grounded extraction, patient confirmation, consent, provider abstraction, evaluation | **complete** |
 | **3** | Medical document intelligence: text layer / OCR / vision reading, page evidence, patient review, doctor view | **complete — awaiting review** |
-| 4 | AI case summarisation with evidence grounding | not started |
+| **4** | AI case summarisation across a consultation | **backend + providers + evaluation complete; doctor UI is Stage D** |
 | 5 | Richer doctor consultation + communication | not started |
 | 6 | Prescription translation + patient explanation | not started |
 | 7 | Hospital/clinic discovery + urgency workflows | not started |
@@ -64,7 +64,32 @@ evaluation set with a runner and provider benchmark.
 * Synthetic document evaluation: reading accuracy, page provenance, region
   agreement, extraction, prompt-injection safety.
 
-## Phase 4 — AI case summarisation (next, not started)
+## Phase 4 — AI case summarisation (backend and providers done; UI next)
+
+Built so far:
+
+* One authorization resolver (`consultation_service.resolve_authorized_context`)
+  shared by the doctor's case view and the summary bundle, so what a doctor may
+  read and what a provider may be shown cannot drift apart.
+* A deterministic source bundle with opaque per-bundle references (D-052),
+  hashed over content so a stale summary is detectable (D-054).
+* `summarize_case` on `AIProvider`, implemented once on the shared HTTP base —
+  OpenAI, Anthropic and Gemini needed no adapter changes — plus a deterministic
+  local provider for `DEMO_MODE`.
+* A strict response schema with no way to express a diagnosis, and ten
+  application-side validation checks that drop anything unsupported rather than
+  repairing it (D-055, D-056).
+* `consultation_summaries` (migration `0007`, reversible and PostgreSQL-tested),
+  artifact provenance, audit events, caching and a per-consultation budget
+  (D-057).
+* A 52-case synthetic evaluation set with a runner, plus tests that prove the
+  harness itself can fail.
+
+Still to do in Phase 4: the doctor-facing summary view, summary → source →
+evidence navigation, and the stale/failed/empty states (Stage D), then browser
+and accessibility validation (Stage E).
+
+## Phase 4 — original sketch
 
 * Summaries built only from confirmed or evidenced items, each statement linking
   to its source record, document page or region.
