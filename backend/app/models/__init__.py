@@ -8,6 +8,15 @@ from app.models.conversation import (
     ConversationSession,
     ConversationSkip,
 )
+from app.models.corpus import (
+    CorpusChunk,
+    CorpusDocument,
+    CorpusPage,
+    Instrument,
+    Provision,
+    ProvisionStatusEvent,
+    ProvisionVersion,
+)
 from app.models.consultation import (
     Consultation,
     ConsultationMessage,
@@ -34,14 +43,21 @@ __all__ = [
     "ConversationResponse",
     "ConversationSession",
     "ConversationSkip",
+    "CorpusChunk",
+    "CorpusDocument",
+    "CorpusPage",
     "DoctorLanguage",
     "DoctorProfile",
     "DocumentExtraction",
     "DocumentPage",
+    "Instrument",
     "MedicalDocument",
     "MedicalRecord",
     "PatientProfile",
     "Prescription",
     "PrescriptionItem",
+    "Provision",
+    "ProvisionStatusEvent",
+    "ProvisionVersion",
     "User",
 ]

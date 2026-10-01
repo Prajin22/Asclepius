@@ -99,10 +99,15 @@ NEXT_PUBLIC_PRODUCT=ip_sakti npm run dev
 | Corpus curator | `curator@ipsakti.demo` | `Curator@2026` |
 | Administrator | `admin@ipsakti.demo` | `Admin@2026` |
 
-So far IP-SAKTI is a shell: branding, a disclaimer on every screen, sign-in,
-one area per role and screens that say **Not available yet**. It gives no
-legal answers, holds no legal text and calls no AI. It is information, not
-legal advice, and not an official government service. See
+So far IP-SAKTI has its shell (branding, a disclaimer on every screen, sign-in,
+one area per role) and, from Phase 2, the **curator's source corpus**: upload an
+official source with its provenance, read its text exactly, take provision
+versions from it, compare against what is approved, and approve or reject —
+with India and international material kept apart and approved text immutable.
+The corpus ships **empty**: no official source file is included, and none may
+be invented. Everything else still says **Not available yet**: it gives no legal
+answers and calls no AI. It is information, not legal advice, and not an
+official government service. See
 [docs/IP_SAKTI_MIGRATION_PLAN.md](docs/IP_SAKTI_MIGRATION_PLAN.md),
 [docs/IP_SAKTI_AI_POLICY.md](docs/IP_SAKTI_AI_POLICY.md) and decisions D-077 –
 D-080 in [docs/DECISIONS.md](docs/DECISIONS.md).

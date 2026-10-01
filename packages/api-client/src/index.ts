@@ -8,6 +8,14 @@ import type {
   ConsultationRequestCreate,
   ConsultationStatus,
   ConsultationSummary,
+  CorpusDiff,
+  CorpusLane,
+  CorpusQueue,
+  CorpusReviewState,
+  CorpusSourceDetail,
+  CorpusSourceSummary,
+  CorpusSourceText,
+  CorpusSourceUpload,
   DoctorAccount,
   DoctorApplication,
   DoctorApplicationReview,
@@ -18,7 +26,11 @@ import type {
   DoctorQueueItem,
   DocumentProcessing,
   DocumentType,
+  Instrument,
+  InstrumentCreate,
+  InstrumentDetail,
   LanguageCode,
+  LocatorType,
   MedicalDocument,
   MedicalRecord,
   MedicalRecordCreate,
@@ -33,7 +45,13 @@ import type {
   Prescription,
   PrescriptionCreate,
   ProductInfo,
+  Provision,
+  ProvisionVersionCreate,
+  ProvisionVersionDetail,
   RecordType,
+  SourceAuthorityInfo,
+  StatusEvent,
+  StatusEventCreate,
   TokenResponse,
 } from "@carebridge/shared-types";
 
@@ -271,6 +289,76 @@ export function createApiClient(config: ClientConfig) {
       /** Declines an application, or revokes an approved doctor. The reason is shown to the doctor. */
       rejectDoctor: (id: string, reason: string) =>
         request<DoctorApplicationReview>(`/admin/doctors/${enc(id)}/reject`, { method: "POST", body: { reason } }),
+    },
+    /**
+     * IP-SAKTI's legal source corpus (curator only; an administrator may read).
+     * No method sends legal text: a provision version is a span of a parsed
+     * source, given by offsets, and the server copies the text itself.
+     */
+    corpus: {
+      authorities: () => request<SourceAuthorityInfo[]>("/corpus/authorities"),
+      instruments: (lane?: CorpusLane) => request<Instrument[]>("/corpus/instruments", { query: { lane } }),
+      instrument: (id: string) => request<InstrumentDetail>(`/corpus/instruments/${enc(id)}`),
+      createInstrument: (data: InstrumentCreate) =>
+        request<Instrument>("/corpus/instruments", { method: "POST", body: data }),
+      createProvision: (instrumentId: string, data: { locator: string; locator_type: LocatorType }) =>
+        request<Provision>(`/corpus/instruments/${enc(instrumentId)}/provisions`, { method: "POST", body: data }),
+      sources: (filter: { lane?: CorpusLane; reviewState?: CorpusReviewState } = {}) =>
+        request<CorpusSourceSummary[]>("/corpus/sources", {
+          query: { lane: filter.lane, review_state: filter.reviewState },
+        }),
+      source: (id: string) => request<CorpusSourceDetail>(`/corpus/sources/${enc(id)}`),
+      uploadSource: (input: CorpusSourceUpload) => {
+        const form = new FormData();
+        form.append("file", input.file);
+        form.append("lane", input.lane);
+        form.append("instrument_id", input.instrumentId);
+        form.append("title", input.title);
+        form.append("source_authority", input.sourceAuthority);
+        form.append("document_type", input.documentType);
+        form.append("retrieved_on", input.retrievedOn);
+        if (input.sourceUrl) form.append("source_url", input.sourceUrl);
+        if (input.sourceReference) form.append("source_reference", input.sourceReference);
+        if (input.sourceDate) form.append("source_date", input.sourceDate);
+        return request<CorpusSourceDetail>("/corpus/sources", { method: "POST", form });
+      },
+      original: (id: string) => request<Blob>(`/corpus/sources/${enc(id)}/original`, { blob: true }),
+      parse: (id: string) => request<CorpusSourceDetail>(`/corpus/sources/${enc(id)}/parse`, { method: "POST" }),
+      sourceText: (id: string) => request<CorpusSourceText>(`/corpus/sources/${enc(id)}/text`),
+      sourceDiff: (id: string) => request<CorpusDiff>(`/corpus/sources/${enc(id)}/diff`),
+      submitSource: (id: string) =>
+        request<CorpusSourceDetail>(`/corpus/sources/${enc(id)}/submit`, { method: "POST" }),
+      /** `expectedSha256` is the checksum of the file the curator reviewed. */
+      approveSource: (id: string, expectedSha256: string, acknowledgeIssues = false) =>
+        request<CorpusSourceDetail>(`/corpus/sources/${enc(id)}/approve`, {
+          method: "POST",
+          body: { expected_sha256: expectedSha256, acknowledge_issues: acknowledgeIssues },
+        }),
+      rejectSource: (id: string, reason: string) =>
+        request<CorpusSourceDetail>(`/corpus/sources/${enc(id)}/reject`, { method: "POST", body: { reason } }),
+      createVersion: (sourceId: string, data: ProvisionVersionCreate) =>
+        request<ProvisionVersionDetail>(`/corpus/sources/${enc(sourceId)}/versions`, { method: "POST", body: data }),
+      version: (id: string) => request<ProvisionVersionDetail>(`/corpus/versions/${enc(id)}`),
+      /** A draft only: its span or its validity dates. Never its text, which follows the span. */
+      updateVersion: (
+        id: string,
+        data: { char_start?: number; char_end?: number; valid_from?: string | null; valid_to?: string | null },
+      ) => request<ProvisionVersionDetail>(`/corpus/versions/${enc(id)}`, { method: "PATCH", body: data }),
+      versionDiff: (id: string) => request<CorpusDiff>(`/corpus/versions/${enc(id)}/diff`),
+      submitVersion: (id: string) =>
+        request<ProvisionVersionDetail>(`/corpus/versions/${enc(id)}/submit`, { method: "POST" }),
+      /** `expectedTextSha256` is the checksum of the text the curator reviewed. */
+      approveVersion: (id: string, expectedTextSha256: string, acknowledgeIssues = false) =>
+        request<ProvisionVersionDetail>(`/corpus/versions/${enc(id)}/approve`, {
+          method: "POST",
+          body: { expected_text_sha256: expectedTextSha256, acknowledge_issues: acknowledgeIssues },
+        }),
+      rejectVersion: (id: string, reason: string) =>
+        request<ProvisionVersionDetail>(`/corpus/versions/${enc(id)}/reject`, { method: "POST", body: { reason } }),
+      recordStatus: (versionId: string, data: StatusEventCreate) =>
+        request<StatusEvent>(`/corpus/versions/${enc(versionId)}/status-events`, { method: "POST", body: data }),
+      reviewQueue: () => request<CorpusQueue>("/corpus/review-queue"),
+      drafts: () => request<CorpusQueue>("/corpus/drafts"),
     },
   };
 }

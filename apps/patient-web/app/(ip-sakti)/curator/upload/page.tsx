@@ -1,6 +1,8 @@
-import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
+"use client";
 
-/** Not built yet: a clearly marked placeholder, nothing that looks as if it works. */
+import { CuratorUpload } from "@/components/sakti/corpus/CuratorUpload";
+
+/** Phase 2: add an official source document and record its provenance. */
 export default function UploadPage() {
-  return <SaktiPlaceholder page="upload" />;
+  return <CuratorUpload />;
 }

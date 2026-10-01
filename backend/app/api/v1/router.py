@@ -5,6 +5,7 @@ from app.api.v1 import (
     ai,
     auth,
     conversations,
+    corpus,
     doctors,
     document_ai,
     messages,
@@ -38,6 +39,8 @@ def build_api_router(product: Product) -> APIRouter:
         api_router.include_router(messages.router)
         api_router.include_router(admin.router)
 
-    # IP-SAKTI Sahayak mounts no routes of its own in Phase 1: its shell needs
-    # only sign-in and metadata. Its routes arrive with the phases that build them.
+    if product == Product.IP_SAKTI:
+        # Phase 2: the curator's legal source corpus. Nothing that answers,
+        # searches or classifies — those arrive with the phases that build them.
+        api_router.include_router(corpus.router)
     return api_router

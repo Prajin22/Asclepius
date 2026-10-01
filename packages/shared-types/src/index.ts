@@ -809,3 +809,243 @@ export interface PatientDashboard {
   open_consultations: ConsultationSummary[];
   recent_prescriptions: Prescription[];
 }
+
+// ---------------------------------------------------------------------------
+// IP-SAKTI Sahayak — the legal source corpus (Phase 2, D-081–D-086)
+// ---------------------------------------------------------------------------
+
+export const CORPUS_LANES = ["india", "international"] as const;
+export type CorpusLane = (typeof CORPUS_LANES)[number];
+export const SOURCE_AUTHORITIES = ["india_code", "e_gazette", "ip_india", "nba", "fssai", "wipo_lex"] as const;
+export type SourceAuthority = (typeof SOURCE_AUTHORITIES)[number];
+export const INSTRUMENT_TYPES = [
+  "act", "rules", "regulations", "notification", "treaty", "protocol", "directive", "other",
+] as const;
+export type InstrumentType = (typeof INSTRUMENT_TYPES)[number];
+export const CORPUS_DOCUMENT_TYPES = [
+  "original_text", "consolidated_text", "amendment", "notification", "other",
+] as const;
+export type CorpusDocumentType = (typeof CORPUS_DOCUMENT_TYPES)[number];
+export const LOCATOR_TYPES = [
+  "section", "subsection", "clause", "rule", "regulation", "article", "paragraph", "schedule", "item", "other",
+] as const;
+export type LocatorType = (typeof LOCATOR_TYPES)[number];
+export const PROVISION_STATUSES = [
+  "in_force", "not_yet_in_force", "amended", "superseded", "stayed", "omitted", "disputed", "withdrawn",
+] as const;
+export type ProvisionStatus = (typeof PROVISION_STATUSES)[number];
+export type IngestionState = "uploaded" | "parsed" | "needs_review" | "failed";
+export type CorpusReviewState = "draft" | "under_review" | "approved" | "rejected";
+export type TermsStatus = "unknown" | "verified_permitted" | "verified_restricted";
+
+export interface CorpusUserRef {
+  id: UUID;
+  email: string;
+}
+
+export interface SourceAuthorityInfo {
+  code: SourceAuthority;
+  name: string;
+  lane: CorpusLane;
+  terms_status: TermsStatus;
+}
+
+export interface InstrumentRef {
+  id: UUID;
+  title: string;
+  instrument_type: InstrumentType;
+  lane: CorpusLane;
+}
+
+export interface Instrument {
+  id: UUID;
+  lane: CorpusLane;
+  instrument_type: InstrumentType;
+  title: string;
+  issued_by: string;
+  description: string | null;
+  created_at: ISODateTime;
+}
+
+export interface InstrumentCreate {
+  lane: CorpusLane;
+  instrument_type: InstrumentType;
+  title: string;
+  issued_by: string;
+  description?: string | null;
+}
+
+export interface ProvisionVersionSummary {
+  id: UUID;
+  lane: CorpusLane;
+  provision: { id: UUID; locator: string; locator_type: LocatorType };
+  instrument: InstrumentRef;
+  source_id: UUID;
+  /** A version can be approved only once this is `approved`. */
+  source_review_state: CorpusReviewState;
+  version_number: number;
+  review_state: CorpusReviewState;
+  valid_from: ISODate | null;
+  valid_to: ISODate | null;
+  page_start: number;
+  page_end: number;
+  char_start: number;
+  char_end: number;
+  ocr_derived: boolean;
+  text_sha256: string;
+  created_at: ISODateTime;
+  approved_at: ISODateTime | null;
+  latest_status: ProvisionStatus | null;
+}
+
+export interface Provision {
+  id: UUID;
+  instrument_id: UUID;
+  lane: CorpusLane;
+  locator: string;
+  locator_type: LocatorType;
+  created_at: ISODateTime;
+  versions: ProvisionVersionSummary[];
+}
+
+export interface CorpusSourceSummary {
+  id: UUID;
+  lane: CorpusLane;
+  title: string;
+  instrument: InstrumentRef;
+  source_authority: SourceAuthority;
+  authority_name: string;
+  document_type: CorpusDocumentType;
+  source_date: ISODate | null;
+  retrieved_on: ISODate;
+  terms_status: TermsStatus;
+  ingestion_state: IngestionState;
+  ingestion_issues: string[];
+  review_state: CorpusReviewState;
+  page_count: number | null;
+  /** The file's checksum: an approval must name it. */
+  sha256: string;
+  created_at: ISODateTime;
+  approved_at: ISODateTime | null;
+}
+
+export interface InstrumentDetail extends Instrument {
+  provisions: Provision[];
+  sources: CorpusSourceSummary[];
+}
+
+export interface CorpusSourceDetail extends CorpusSourceSummary {
+  source_url: string | null;
+  source_reference: string | null;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  text_sha256: string | null;
+  text_length: number | null;
+  parse_error_code: string | null;
+  extraction_methods: string[];
+  extraction_engines: string[];
+  parsed_at: ISODateTime | null;
+  uploaded_by: CorpusUserRef;
+  submitted_at: ISODateTime | null;
+  approved_by: CorpusUserRef | null;
+  issues_acknowledged: boolean;
+  rejected_at: ISODateTime | null;
+  rejected_by: CorpusUserRef | null;
+  rejection_reason: string | null;
+  versions: ProvisionVersionSummary[];
+}
+
+export interface CorpusPageText {
+  page_number: number;
+  char_start: number;
+  char_end: number;
+  text: string;
+  method: string;
+  engine: string;
+  confidence: number | null;
+  warnings: string[];
+}
+
+export interface CorpusSourceText {
+  source_id: UUID;
+  text_sha256: string;
+  text_length: number;
+  pages: CorpusPageText[];
+  chunks: { ordinal: number; page_number: number; char_start: number; char_end: number }[];
+}
+
+export interface CorpusSourceUpload {
+  file: File;
+  lane: CorpusLane;
+  instrumentId: UUID;
+  title: string;
+  sourceAuthority: SourceAuthority;
+  documentType: CorpusDocumentType;
+  retrievedOn: ISODate;
+  sourceUrl?: string | null;
+  sourceReference?: string | null;
+  sourceDate?: ISODate | null;
+}
+
+export interface ProvisionVersionCreate {
+  provision_id: UUID;
+  char_start: number;
+  char_end: number;
+  valid_from?: ISODate | null;
+  valid_to?: ISODate | null;
+}
+
+export interface StatusEvent {
+  id: UUID;
+  status: ProvisionStatus;
+  effective_date: ISODate | null;
+  basis_source: { id: UUID; title: string; source_authority: SourceAuthority; review_state: CorpusReviewState; sha256: string } | null;
+  basis_reference: string | null;
+  note: string | null;
+  recorded_by: CorpusUserRef;
+  recorded_at: ISODateTime;
+}
+
+export interface StatusEventCreate {
+  status: ProvisionStatus;
+  effective_date?: ISODate | null;
+  basis_source_id?: UUID | null;
+  basis_reference?: string | null;
+  note?: string | null;
+}
+
+export interface ProvisionVersionDetail extends ProvisionVersionSummary {
+  text: string;
+  source: { id: UUID; title: string; source_authority: SourceAuthority; review_state: CorpusReviewState; sha256: string };
+  issues_acknowledged: boolean;
+  approved_by: CorpusUserRef | null;
+  rejected_at: ISODateTime | null;
+  rejected_by: CorpusUserRef | null;
+  rejection_reason: string | null;
+  status_events: StatusEvent[];
+}
+
+export type DiffWordOp = "equal" | "delete" | "insert";
+export interface DiffBlock {
+  op: "equal" | "insert" | "delete" | "replace";
+  old_start: number;
+  new_start: number;
+  lines?: string[];
+  skipped?: number;
+  tail?: string[];
+  old?: string[];
+  new?: string[];
+  words?: { op: DiffWordOp; text: string }[];
+}
+
+export interface CorpusDiff {
+  baseline: { kind: "source" | "version"; id: UUID; label: string; approved_at: ISODateTime | null } | null;
+  stats: { added: number; removed: number; changed: number; unchanged: number };
+  blocks: DiffBlock[];
+}
+
+export interface CorpusQueue {
+  sources: CorpusSourceSummary[];
+  versions: ProvisionVersionSummary[];
+}

@@ -933,6 +933,129 @@ it comes it will come from the source corpus with its source, not from here.
 The Hindi and Tamil strings are unreviewed drafts, like the patient UI's
 (D-018), and need native-speaker review before real use.
 
+## D-081 — The corpus is source files, the text read from them, and exact spans of that text
+
+IP-SAKTI's legal corpus (Phase 2) is seven tables: `instruments` (what a source
+is a text of), `corpus_documents` (one official file and where it came from),
+`corpus_pages` (the text read from each page), `corpus_chunks` (fixed slices of
+that text for later search), `provisions` (a provision's identity across
+versions), `provision_versions` (one version's text) and
+`provision_status_events` (what sources say about a version). The specification
+named six concepts; `corpus_pages` is the seventh because the read text must be
+kept whole, and chunks alone cannot guarantee that.
+
+A source's text is every page's text, exactly as read, joined by a form feed.
+Every offset — a page's start, a chunk, a version's span — is measured in that
+one string. A provision version is created from two offsets, and the **server**
+cuts the text from what it stored; no request has a field that could carry legal
+wording, so no statutory text can be typed, pasted, repaired or paraphrased into
+the corpus. Its hash is checked again against its pages when it is approved.
+
+A provision's identity is chosen by the curator, never inferred: two versions
+belong to the same provision because a curator said so. Locators are copied as
+the source prints them, with a type (section, rule, article, …) and no assumed
+numbering scheme. Provisions are flat in Phase 2 — "3(1)" is a locator, not a
+child of "3".
+
+Search and retrieval are not built (Phase 4). Chunks are line-bounded, never
+cross a page, and are the same for the same pages; nothing reads them yet.
+
+## D-082 — The two lanes are held by the database, not by a check
+
+Every corpus table except `corpus_pages` (which belongs to its document) carries
+`lane` — `india` or `international`, never null. Each parent has a unique key on
+`(id, lane)` and each child references it with a composite foreign key, so a
+provision cannot belong to an instrument of the other lane, a version cannot cut
+text from a source of the other lane, and a status cannot rest on a basis from
+the other lane — whatever code does the writing. Triggers refuse any change of
+`lane`. Where the API takes a lane it is checked against the parent's and a
+mismatch is `lane_mismatch`; where it does not (a provision, a version), it is
+copied from the parent. Nothing converts a lane.
+
+## D-083 — Only listed official authorities; nothing fetched; terms unknown
+
+A source document names its authority from a fixed list: India Code, e-Gazette,
+IP India, the National Biodiversity Authority and FSSAI for the India lane, WIPO
+Lex for the international lane. The list comes from the team's SIH26045 idea
+deck (India Code, IP India, NBA, WIPO Lex) and the Phase 2 brief (e-Gazette,
+FSSAI). A blog, a law firm's copy, an encyclopaedia or a search result has no
+entry and cannot be uploaded. WIPO Lex republishes national laws too, but a copy
+of an Indian law from it is not the official Indian source, so it is
+international only. Adding an authority — the WTO or CBD Secretariat for
+treaties, for instance — is a code change and a decision.
+
+A source must say where it came from: an http(s) URL, a reference such as a
+gazette number, or both. The URL is recorded and never requested by the server,
+so the corpus cannot be used as a proxy. Uploads are PDF only, by declared type,
+extension and the file's own first bytes; the file is stored under a key the
+server makes and is integrity-checked before every read.
+
+No authority's reuse or redistribution terms have been verified. Every source
+records `terms_status = unknown`, the interface says so, and nothing may claim
+redistribution is permitted until a verification is recorded (plan Q8).
+
+## D-084 — One review workflow; an approval names what it approves; final is final
+
+Sources and provision versions share one state machine: draft → under_review →
+approved | rejected, and nothing else. Nothing is approved as a side effect: a
+source is only uploaded and read until a curator submits and approves it, and a
+version can be approved only after its source has been. An approval carries the
+checksum the curator was looking at (the file's for a source, the text's for a
+version); if the stored record differs, nothing is approved. Text that was
+machine-read, or pages that yielded nothing, must be acknowledged explicitly.
+Rejecting a source rejects the undecided versions cut from it.
+
+Approved and rejected rows are final. The service refuses to change them and
+audits the attempt (`corpus.mutation_refused`); database triggers refuse any
+UPDATE of them too, and of pages, chunks and status events at any time. A
+correction is a new upload or a new version, which sits beside the old one;
+`version_number` counts them. `valid_from` and `valid_to` are when the source
+says a version applies — both optional, both inclusive — and are separate from
+when it was retrieved, uploaded or approved.
+
+The Phase 0 plan said a second person approves. The Phase 2 brief describes one
+curator who uploads, reviews and approves, and no legal reviewer has been named
+(Q7). So separation of duties is a setting, `CORPUS_SEPARATE_APPROVER`, off by
+default: when on, whoever uploaded, created or submitted a record cannot approve
+it. Turning it on is a deployment decision, not a code change.
+
+Migration `ipsakti_0002` refuses to downgrade while any instrument or source
+exists, as `ipsakti_0001` and 0009 refuse to destroy people's records.
+
+## D-085 — Status is a short list of what sources say, not a ruling
+
+`provision_status_events` records, for an approved version, a status from a
+fixed list — in force, not yet in force, amended, superseded, stayed, omitted,
+disputed, withdrawn — with an optional effective date, and a basis that must be
+an approved source of the same lane, a reference, or both. The list is the build
+deck's "in force, stayed or omitted" and the Phase 2 brief's list, minus
+approved and rejected, which are review states. Events are append-only.
+
+An event records what its cited source states. It is not the system's
+conclusion, and nothing combines events into "the law on a date" yet: what each
+value means for an answer "as on" a date is plan Q7, and belongs to Phase 4.
+
+## D-086 — Reading legal text: an exact copy, or flagged OCR, never a model, never in part
+
+Phase 2 reuses Phase 3's readers. A PDF page with a text layer is copied as the
+layer holds it (line by line, as for medical documents); a page without one goes
+to the offline OCR engine and is marked as machine transcription with its
+confidence. No page is ever sent to an AI provider: IP-SAKTI's AI policy permits
+no capability, and a model must never produce legal text. OCR, low confidence,
+empty pages or no OCR engine put the source in `needs_review`, and approval then
+needs an explicit acknowledgment. (The visual check showed why: on a synthetic
+scan the engine reported 99% confidence and dropped every space.)
+
+A source is read whole or not at all. More pages than `CORPUS_MAX_PAGES`, a page
+that cannot be read, or no text anywhere fails the reading and keeps nothing —
+a partial statute would look complete. A source is read once; a failed reading
+may be retried.
+
+Differences are computed by `difflib` — lines, then words inside changed lines —
+against the last approved source of the same instrument or the last approved
+version of the same provision. The diff shows which characters differ and never
+says what a change means.
+
 ## D-018 — Doctor UI is English-only in Phase 1
 
 All doctor strings still come from a catalogue (`doctor.en.json`), so adding a

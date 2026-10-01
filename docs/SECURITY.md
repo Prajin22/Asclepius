@@ -104,6 +104,35 @@
 6. **Uploads are not virus-scanned** (unchanged from Phase 1); reading a file does
    not make it safe to open in another viewer.
 
+## IP-SAKTI legal corpus controls (Phase 2)
+
+| Control | Where |
+|---|---|
+| Corpus routes exist only when `PRODUCT=ip_sakti`; every change requires the curator role, an administrator may only read, users and facilitators get 403 | `api/v1/corpus.py`, `test_corpus_workflow.py` |
+| Uploads are PDF only: the declared type, the extension and the file's first bytes must all agree; size is capped by `CORPUS_MAX_UPLOAD_BYTES` before anything else | `sakti/corpus/ingest.validate_source_file` |
+| File names are display text only, stripped of any path; the stored key is server-generated (`corpus/sources/<uuid>.pdf`) and the storage reference never appears in a response | `ingest.store_source`, `schemas/corpus.py` |
+| A source URL is recorded, never requested: only `http`/`https`, no credentials, no whitespace, a valid port — and no code path fetches it, so the server is not a proxy | `ingest.validate_source_url`, test with network transports disabled |
+| The stored file's SHA-256 is checked before it is read, served or approved; a mismatch returns 409 and nothing changes | `ingest.load_original`, D-084 |
+| The original is served with `nosniff`, `default-src 'none'; sandbox` and `private, no-store` | `api/v1/corpus.get_original` |
+| No page is sent to an AI provider: OCR is the offline engine or nothing, whatever `OCR_ENGINE` says; IP-SAKTI's AI policy refuses every capability anyway | `ingest.read_source`, D-079, D-086 |
+| A source over `CORPUS_MAX_PAGES` is refused whole; the reused page renderer keeps its pixel cap | `ingest.read_source`, `providers/documents/render.py` |
+| No request carries legal text: provision text is cut by the server from stored pages by offsets, and request schemas reject unknown fields | `schemas/corpus.py`, D-081 |
+| Approved and rejected records, pages, chunks and status events refuse UPDATE in the database (triggers), and lane changes are refused everywhere | `models/corpus.py`, `ipsakti_0002`, D-084 |
+| Every corpus step and every refused change of a final record is audited, with ids, checksums and codes only — never legal text | `sakti/corpus/service.py`, D-084 |
+
+### Corpus risks that remain open
+
+1. **The same parsers as Phase 3 run in-process** on curator uploads, with the
+   same lack of sandboxing (risk 1 above), and parsing runs inside the request,
+   so a large scanned source holds a worker for a long time.
+2. **One curator can approve their own work** unless `CORPUS_SEPARATE_APPROVER=true`
+   (D-084). Turn it on once a second reviewer exists.
+3. **Curator-entered text is shown as text** (titles, references, notes, rejection
+   reasons). React escapes it; the source URL is rendered as a link only after the
+   server has checked it is http(s).
+4. **Source files are not virus-scanned**, and "Open the original file" hands the
+   PDF to the browser's own viewer.
+
 ## Known limitations (deliberate, Phase 1)
 
 1. **Token storage.** The JWT lives in `sessionStorage`, so a successful XSS in

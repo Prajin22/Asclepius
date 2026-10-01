@@ -87,6 +87,16 @@ class Settings(BaseSettings):
     document_render_scale: float = 2.0
     document_max_pixels: int = 40_000_000
 
+    # ---------- IP-SAKTI legal corpus (Phase 2) ----------
+    # Official sources are long: separate from the patient-document limits.
+    # A source with more pages than this is refused whole, never read in part.
+    corpus_max_upload_bytes: int = 25 * 1024 * 1024
+    corpus_max_pages: int = 500
+    # Separation of duties: when true, whoever uploaded, created or submitted a
+    # source or version cannot also approve it. Off until a legal reviewer is
+    # named (migration plan Q7), so one demo curator can run the whole workflow.
+    corpus_separate_approver: bool = False
+
     # Credentials stay server-side and are never serialised into a response.
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None

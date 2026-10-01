@@ -710,6 +710,8 @@ no section number, no wording and no current status of any instrument.
   exact file, its SHA-256, the date the text is stated to be current to, and the
   amending instruments it incorporates.
 * A second person approves before the text can be retrieved or cited.
+  *(Phase 2: a setting, `CORPUS_SEPARATE_APPROVER`, off by default until a legal
+  reviewer is named — see §23 and D-084.)*
 * Status is a sequence of dated events taken from official notifications and
   orders. It is never inferred, and never asserted by the system without a
   source.
@@ -841,6 +843,8 @@ None of these phases is executed by this document.
 | Rollback | Unset `PRODUCT`. Revert the branch. `main` is untouched throughout |
 
 ### Phase 2 — Legal corpus and ingestion
+
+*Built 2026-10-01 — see §23 for what was built and where it departs from this table.*
 
 | | |
 |---|---|
@@ -979,6 +983,9 @@ transcription step whose errors must not reach a legal question unconfirmed.
   fast-forwarded onto it. `main` was not touched.
 - **Q2.** **Can the build brief be supplied?** And in particular: which EU instruments
   are "the relevant EU framework"?
+  *Partly answered 2026-10-01: the only IP-SAKTI document found is the team's
+  SIH26045 idea deck (§23). It names no EU instrument and supplies no source
+  file.*
 - **Q4.** **What are the roles?** The instruction names an end user implicitly, a
   facilitator and a curator. Their names, who approves a facilitator, and
   whether the administrator role is kept, are not defined.
@@ -996,8 +1003,11 @@ transcription step whose errors must not reach a legal question unconfirmed.
   labelled as machine text and can never stand in for the quotation.
 - **Q7.** *(Phase 2)* **What is the vocabulary of provision status events**, and who
   is the legal reviewer who signs off corpus material?
+  *Phase 2 recorded the smallest specified list (D-085); what each value means
+  for an answer is still open, and no reviewer is named.*
 - **Q8.** *(Phase 2)* **What are the reuse terms** of each authority's texts, and may
   they be committed to a repository that may become public?
+  *Still open: every source records `terms_status = unknown` (D-083).*
 - **Q9.** *(Phase 1)* **Visual direction:** reuse the existing design system with a new
   brand, or a new direction?
 - **Q10.** **What cut-off dates** does the time-aware corpus need — current law only,
@@ -1036,3 +1046,95 @@ healthcare product. It is **not ready to start** until Q1 is decided, because
 every subsequent commit and migration depends on where Phase 5 lives. Q2, Q4 and
 Q9 should be answered at the same time; none of them blocks the flag itself, but
 each changes what Phase 1 builds on top of it.
+
+---
+
+## 23. Phase 2 — as built (2026-10-01)
+
+**What the specification was.** No separate build brief exists in the
+repository or in the team's files. The only IP-SAKTI document found is the
+team's SIH26045 idea deck (`SIH26045_IP-SAKTI_Idea_PPT 55.pptx`, the latest of
+four near-identical copies). For Phase 2 it specifies: a version-tracked corpus
+pipeline (collect official sources → read PDF/OCR → parse section/rule → tag
+date and status → approve by a human curator); status that knows "in force,
+stayed or omitted"; an official corpus from India Code, IP India, NBA and WIPO
+Lex; statutes kept verbatim; and RapidOCR. Phase 2 was built to that deck and to
+the Phase 2 instructions. Its "index / hybrid search" step is Phase 4 and was
+not built.
+
+**Official corpus status: unavailable.** No official legal source file is in the
+repository, none was downloaded, and none was written from memory. The corpus
+is empty. Every test uses synthetic, non-legal PDFs generated in memory at test
+time (`backend/tests/corpus_fixtures.py`), each headed "SYNTHETIC TEST FIXTURE -
+NOT A LEGAL TEXT"; none is committed as a file, seeded or loadable as corpus.
+
+### Schema (migration `ipsakti_0002`)
+
+| Table | Holds | Lane |
+|---|---|---|
+| `instruments` | What a source is a text of: title, type, issued by, curator note | own, fixed |
+| `corpus_documents` | One official file: authority, document type, URL and/or reference, source date, retrieval date, SHA-256, storage reference (internal), reading state, review state, terms status | = instrument's (composite FK) |
+| `corpus_pages` | The text read from each page, verbatim, with method, engine, confidence, line positions | via its document |
+| `corpus_chunks` | Line-bounded slices of the document text, in order, never across a page | = document's (composite FK) |
+| `provisions` | A provision's identity: locator as printed, locator type | = instrument's (composite FK) |
+| `provision_versions` | An exact span of a document's text, its pages, OCR flag, `valid_from` / `valid_to`, review state, version number | = provision's and = document's (two composite FKs) |
+| `provision_status_events` | Append-only: status, effective date, basis (approved source and/or reference), curator note | = version's and = basis's (composite FKs) |
+
+Indexes cover lane, review state, instrument, provision, document, validity
+dates and version number. No vector index, no search index.
+
+### Lifecycle
+
+    upload (file + provenance; stored as is; draft, unread)
+      → parse (exact text layer, or local OCR flagged for checking; whole or nothing)
+      → draft provision versions (two offsets → the server cuts the text)
+      → submit → approve (names the checksum; OCR must be acknowledged) | reject (with a reason)
+      → status events on approved versions, each citing its basis
+
+Sources and versions share one state machine: draft → under_review → approved |
+rejected. A version can be approved only after its source. Approved and rejected
+records are final — refused by the service (and audited), and by database
+triggers. A correction is a new version or a new upload; old versions are never
+overwritten.
+
+### Source provenance and terms
+
+Every source names one of six official authorities (India Code, e-Gazette, IP
+India, NBA, FSSAI for India; WIPO Lex for international) and gives a URL, a
+reference or both. URLs are recorded, never fetched. **No authority's reuse or
+redistribution terms have been verified; every source records `unknown`.**
+
+### Decisions and controls
+
+D-081 – D-086 in `docs/DECISIONS.md`. Security controls for uploads are in
+`docs/SECURITY.md`. API: `/api/v1/corpus/*`, mounted for IP-SAKTI only; every
+change needs the curator role, administrators may read, users and facilitators
+have no access. Screens: Corpus, Upload, Draft / Diff, Approve, and source,
+version and instrument pages.
+
+### Departures from this plan
+
+* §15 says a second person approves. Phase 2 makes that a setting,
+  `CORPUS_SEPARATE_APPROVER`, **off by default**, because the Phase 2 brief has
+  one curator upload, review and approve, and no legal reviewer is named (Q7).
+* §18's Phase 2 row names `glossary_term`; it is not built (no glossary work in
+  Phase 2).
+* §15 notes that the international lane needs a sub-type (treaty vs a regional
+  legal order); not built — `instrument_type` and the lane are all there is.
+
+### Known limitations
+
+* The corpus is empty: no official source is available (Q2, Q8).
+* Status vocabulary semantics are unresolved (Q7); events are records of what
+  sources say and are not combined into "the law on a date".
+* Separate approval is off by default (see above).
+* Uploads are PDF only. Parsing runs inside the request; a long scanned source is
+  slow. The offline OCR engine reads printed English only, so Hindi or Tamil
+  scans produce text that needs checking or nothing at all.
+* Provisions are flat, and a version is one contiguous span: a provision that
+  runs across a page break includes whatever the pages print at the break, such
+  as running headers.
+* Offsets assume text in the Basic Multilingual Plane, which covers Devanagari
+  and Tamil; a character outside it would shift the client's line offsets, and
+  the server's returned text is what the curator then sees.
+* The Hindi and Tamil interface strings are unreviewed drafts.

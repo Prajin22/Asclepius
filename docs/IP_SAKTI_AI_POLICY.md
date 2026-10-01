@@ -24,6 +24,12 @@ capabilities — medical extraction, case summaries — can never run in
 IP-SAKTI. A capability is added to this policy in the same change that builds
 and tests it, never ahead of it.
 
+Phase 2's source corpus adds none. Reading an official source copies its PDF
+text layer exactly, or uses the offline OCR engine and marks the result as
+machine transcription for a curator to check; no page is ever sent to a model,
+and no model writes, repairs or summarises corpus text (D-086). Differences
+between versions are computed by `difflib`, not judged by a model.
+
 ## Rules every output must honour
 
 Each rule has a stable code. The code list lives in

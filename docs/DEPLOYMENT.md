@@ -156,6 +156,11 @@ its own Vercel project with `NEXT_PUBLIC_PRODUCT=ip_sakti` and
 there too. Leave `PRODUCT` unset on the existing services; unset means
 CareBridge.
 
+From Phase 2 that service stores the curators' official source files. On a host
+whose disk is ephemeral (the free-plan caveat above), the files vanish on
+restart while their database rows stay, and every read of them then fails. Give it persistent storage before loading a real corpus, and check each
+source's reuse terms first: none has been verified.
+
 ## What is deliberately not deployed
 
 - **No AI provider keys.** `DEMO_MODE=true` means the deployed demo never calls

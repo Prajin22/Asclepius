@@ -5,8 +5,9 @@ over the same test database. Each test is about one promise:
 
 * PRODUCT=carebridge serves exactly what it served before the boundary existed,
   plus one read-only metadata endpoint;
-* PRODUCT=ip_sakti serves no healthcare route and no legal route — only
-  sign-in and metadata;
+* PRODUCT=ip_sakti serves no healthcare route; its own routes are sign-in,
+  metadata and, from Phase 2, the curator's source corpus — and nothing that
+  answers, searches or classifies;
 * each product accepts its own roles and no others, and a token works only in
   the product that issued it;
 * each product has its own AI policy, and IP-SAKTI's permits nothing yet;
@@ -45,8 +46,9 @@ from tests.conftest import API, PASSWORD, auth, run_async
 
 SNAPSHOT = Path(__file__).parent / "data" / "carebridge_api_operations.json"
 METHODS = ("get", "post", "put", "patch", "delete")
-#: Areas that belong to later IP-SAKTI phases. Not one may exist in Phase 1.
-FUTURE_LEGAL_WORDS = ("provision", "answer", "classif", "retriev", "corpus", "citation", "escalat", "curator",
+#: Areas that belong to later IP-SAKTI phases. Not one may exist yet. ("corpus"
+#: and "provision" left this list in Phase 2, which builds the curator's corpus.)
+FUTURE_LEGAL_WORDS = ("answer", "ask", "classif", "retriev", "search", "embed", "citation", "escalat", "curator",
                       "facilitator", "product-profile", "abs", "tkdl")
 
 
@@ -135,7 +137,37 @@ def test_carebridge_registration_still_works(client):
 # --------------------------------------------------------------------------
 
 
-def test_ip_sakti_serves_only_sign_in_and_metadata():
+#: Phase 2: the curator's legal source corpus (D-081).
+IP_SAKTI_CORPUS_OPERATIONS = {
+    "GET /api/v1/corpus/authorities",
+    "GET /api/v1/corpus/instruments",
+    "POST /api/v1/corpus/instruments",
+    "GET /api/v1/corpus/instruments/{instrument_id}",
+    "POST /api/v1/corpus/instruments/{instrument_id}/provisions",
+    "GET /api/v1/corpus/sources",
+    "POST /api/v1/corpus/sources",
+    "GET /api/v1/corpus/sources/{source_id}",
+    "GET /api/v1/corpus/sources/{source_id}/original",
+    "POST /api/v1/corpus/sources/{source_id}/parse",
+    "GET /api/v1/corpus/sources/{source_id}/text",
+    "GET /api/v1/corpus/sources/{source_id}/diff",
+    "POST /api/v1/corpus/sources/{source_id}/submit",
+    "POST /api/v1/corpus/sources/{source_id}/approve",
+    "POST /api/v1/corpus/sources/{source_id}/reject",
+    "POST /api/v1/corpus/sources/{source_id}/versions",
+    "GET /api/v1/corpus/versions/{version_id}",
+    "PATCH /api/v1/corpus/versions/{version_id}",
+    "GET /api/v1/corpus/versions/{version_id}/diff",
+    "POST /api/v1/corpus/versions/{version_id}/submit",
+    "POST /api/v1/corpus/versions/{version_id}/approve",
+    "POST /api/v1/corpus/versions/{version_id}/reject",
+    "POST /api/v1/corpus/versions/{version_id}/status-events",
+    "GET /api/v1/corpus/review-queue",
+    "GET /api/v1/corpus/drafts",
+}
+
+
+def test_ip_sakti_serves_sign_in_metadata_and_the_curator_corpus_only():
     assert operations(create_app(Product.IP_SAKTI)) == {
         "POST /api/v1/auth/login",
         "GET /api/v1/auth/me",
@@ -143,7 +175,7 @@ def test_ip_sakti_serves_only_sign_in_and_metadata():
         "GET /api/v1/meta/ai",
         "GET /api/v1/meta/product",
         "GET /health",
-    }
+    } | IP_SAKTI_CORPUS_OPERATIONS
 
 
 def test_ip_sakti_mounts_no_healthcare_route():
@@ -154,7 +186,7 @@ def test_ip_sakti_mounts_no_healthcare_route():
             assert healthcare not in path, f"{op} is a healthcare route"
 
 
-def test_ip_sakti_mounts_no_legal_route_yet():
+def test_ip_sakti_mounts_no_route_of_a_later_phase():
     for op in operations(create_app(Product.IP_SAKTI)):
         for word in FUTURE_LEGAL_WORDS:
             assert word not in op.lower(), f"{op} belongs to a later phase"

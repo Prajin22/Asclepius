@@ -30,7 +30,38 @@
     "forbidden": "You do not have access to this.",
     "not_found": "This could not be found.",
     "validation": "Please check the information you entered.",
-    "invalid_input": "Please check the information you entered."
+    "invalid_input": "Please check the information you entered.",
+    "conflict": "That could not be done because something changed. Reload and try again.",
+    "file_too_large": "The file is larger than the upload limit.",
+    "empty_file": "The file is empty.",
+    "unsupported_type": "Official sources must be PDF files.",
+    "content_mismatch": "The file's content does not match its type.",
+    "bad_extension": "The file name does not end in .pdf.",
+    "invalid_source_url": "The source URL must be an http or https address.",
+    "provenance_required": "Say where the file came from: a URL, a reference, or both.",
+    "authority_not_in_lane": "That source authority does not publish for this lane.",
+    "lane_mismatch": "That record belongs to the other lane. India and international records never mix.",
+    "date_in_future": "A date is in the future.",
+    "duplicate_source": "This exact file is already in the corpus.",
+    "instrument_exists": "An instrument with this title and type already exists in this lane.",
+    "already_parsed": "This source has already been read.",
+    "source_not_read": "This source's text has not been read yet.",
+    "source_rejected": "This source was rejected.",
+    "source_not_approved": "Approve the source document before any text taken from it.",
+    "checksum_mismatch": "What you reviewed is not what is stored. Reload and review again.",
+    "issues_not_acknowledged": "Confirm that the machine-read or missing text was checked against the original.",
+    "invalid_transition": "That step is not possible from the current state.",
+    "corpus_record_final": "This record is final and cannot be changed. A correction is a new version.",
+    "version_not_editable": "Only a draft can be changed.",
+    "version_not_approved": "A status can be recorded only for approved text.",
+    "basis_required": "Cite the basis: an approved source, a reference, or both.",
+    "basis_not_approved": "The basis must be an approved source.",
+    "span_out_of_range": "The selection is outside the document's text.",
+    "span_empty": "The selection contains no text.",
+    "validity_not_ordered": "The end date is before the start date.",
+    "document_integrity_failed": "The stored file no longer matches what was uploaded. Nothing was approved.",
+    "version_conflict": "Someone else changed this provision at the same moment. Try again.",
+    "approver_must_differ": "A different curator must approve this."
   },
   "disclaimer": {
     "short": "Information and guidance grounded in cited sources — not legal advice, and not a substitute for a qualified professional.",
@@ -136,7 +167,7 @@
     },
     "corpus": {
       "title": "Corpus",
-      "description": "The library of official source documents.",
+      "description": "Official source documents and the provisions taken from them. Only approved text can ever be used.",
       "points": {
         "one": "List every official source document with its issuing authority, retrieval date and fingerprint.",
         "two": "Make sure only approved text is ever quoted to users."
@@ -144,23 +175,23 @@
     },
     "upload": {
       "title": "Upload",
-      "description": "Add an official source document.",
+      "description": "Add an official source document and record where it came from.",
       "points": {
         "one": "Accept official source documents, and use none of them until they are approved."
       }
     },
     "drafts": {
       "title": "Draft / Diff",
-      "description": "Compare proposed changes before they are approved.",
+      "description": "Work in progress, and how each piece differs from what is already approved.",
       "points": {
         "one": "Set a proposed version of a provision beside the version it would replace."
       }
     },
     "approve": {
       "title": "Approve",
-      "description": "A second check on source material.",
+      "description": "Decide what enters the corpus. Nothing is used until it is approved here.",
       "points": {
-        "one": "Require a second person to approve source material before anyone can be shown it."
+        "one": "Show each submitted source and provision with its checksum, and record who approved it and when."
       }
     },
     "facilitators": {
@@ -173,7 +204,7 @@
   },
   "landing": {
     "lead": "A guide to intellectual property and regulation for Ayurvedic products — being built to answer from official sources, to show the exact text it relied on, and to keep Indian and international law apart.",
-    "status": "In development. Questions, classification and the source library are not available yet.",
+    "status": "In development. Questions and classification are not available yet. Curators can now prepare the library of official sources; nothing from it is shown to users yet.",
     "areasTitle": "What it is being built to do"
   },
   "signIn": {
@@ -184,5 +215,267 @@
     "demoTitle": "Demo accounts (synthetic)",
     "demoFill": "Fill in as {role}",
     "wrongProduct": "This server is running a different product, so signing in here will not work."
+  },
+  "corpus": {
+    "lane": {
+      "label": "Lane",
+      "india": "India",
+      "international": "International",
+      "all": "All lanes",
+      "hint": "Indian and international material are kept apart. A record's lane is set once and never changes."
+    },
+    "authority": {
+      "label": "Source authority",
+      "hint": "Only these official sources are accepted. Their reuse terms have not been verified.",
+      "india_code": "India Code",
+      "e_gazette": "e-Gazette",
+      "ip_india": "IP India",
+      "nba": "National Biodiversity Authority",
+      "fssai": "FSSAI",
+      "wipo_lex": "WIPO Lex"
+    },
+    "instrumentType": {
+      "label": "Instrument type",
+      "act": "Act",
+      "rules": "Rules",
+      "regulations": "Regulations",
+      "notification": "Notification",
+      "treaty": "Treaty",
+      "protocol": "Protocol",
+      "directive": "Directive",
+      "other": "Other"
+    },
+    "documentType": {
+      "label": "Document type",
+      "original_text": "Original text",
+      "consolidated_text": "Consolidated text (as amended)",
+      "amendment": "Amendment",
+      "notification": "Notification",
+      "other": "Other"
+    },
+    "locatorType": {
+      "label": "Label type",
+      "section": "Section",
+      "subsection": "Subsection",
+      "clause": "Clause",
+      "rule": "Rule",
+      "regulation": "Regulation",
+      "article": "Article",
+      "paragraph": "Paragraph",
+      "schedule": "Schedule",
+      "item": "Item",
+      "other": "Other"
+    },
+    "reviewState": {
+      "draft": "Draft",
+      "under_review": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "ingestion": {
+      "uploaded": "Not read yet",
+      "parsed": "Text read",
+      "needs_review": "Read — needs checking",
+      "failed": "Could not be read"
+    },
+    "issue": {
+      "ocr_text_requires_verification": "Some pages had no text layer and were read by OCR (machine transcription). Check them against the original.",
+      "low_ocr_confidence": "The OCR engine was unsure on some pages.",
+      "page_without_text": "Some pages yielded no text at all.",
+      "ocr_unavailable": "Some pages have no text layer, and no OCR engine was available to read them."
+    },
+    "parseError": {
+      "too_many_pages": "The file has more pages than the limit. It was not read in part, because a partial text would look complete.",
+      "no_text_found": "No text could be read from any page.",
+      "document_unreadable": "The PDF could not be read.",
+      "incomplete_reading": "Not every page could be read, so none of it was kept.",
+      "generic": "The file could not be read."
+    },
+    "method": {
+      "pdf_text_layer": "Exact text layer",
+      "ocr": "OCR — machine transcription",
+      "none": "No text",
+      "confidence": "OCR confidence {value}%"
+    },
+    "status": {
+      "label": "Status",
+      "in_force": "In force",
+      "not_yet_in_force": "Not yet in force",
+      "amended": "Amended",
+      "superseded": "Superseded",
+      "stayed": "Stayed",
+      "omitted": "Omitted",
+      "disputed": "Disputed",
+      "withdrawn": "Withdrawn"
+    },
+    "terms": {
+      "unknown": "Reuse terms not verified",
+      "verified_permitted": "Reuse terms verified: reuse permitted",
+      "verified_restricted": "Reuse terms verified: reuse restricted"
+    },
+    "list": {
+      "upload": "Upload a source",
+      "sourcesTitle": "Source documents",
+      "instrumentsTitle": "Instruments",
+      "empty": "No source documents yet. Upload one to begin.",
+      "emptyLane": "No source documents in this lane.",
+      "noInstruments": "No instruments yet.",
+      "pages": "Pages: {count}",
+      "retrieved": "Retrieved {date}",
+      "dated": "Dated {date}",
+      "filter": "Show"
+    },
+    "upload": {
+      "instrumentTitle": "Instrument",
+      "instrumentHint": "What this file is a text of: an Act, a set of Rules, a treaty.",
+      "chooseInstrument": "Instrument",
+      "newInstrument": "New instrument…",
+      "instrumentTitleLabel": "Instrument title",
+      "issuedBy": "Issued by",
+      "issuedByHint": "The body that issued it, as the source names it.",
+      "description": "Curator's note (optional)",
+      "descriptionHint": "Your own note about this record. Never statutory text.",
+      "sourceTitle": "Source document",
+      "documentTitle": "Document title",
+      "sourceUrl": "Source URL",
+      "sourceUrlHint": "Where you obtained the file. Recorded only — the server never opens it.",
+      "sourceReference": "Source reference",
+      "sourceReferenceHint": "A citation where there is no URL, such as a gazette number.",
+      "sourceDate": "Date on the source (optional)",
+      "retrievedOn": "Date retrieved",
+      "file": "PDF file",
+      "fileHint": "The file is stored exactly as uploaded. Nothing is read or approved until you choose to.",
+      "submit": "Upload source",
+      "submitting": "Uploading…",
+      "provenanceNote": "Give a URL, a reference, or both."
+    },
+    "source": {
+      "back": "Corpus",
+      "provenance": "Provenance",
+      "instrument": "Instrument",
+      "fileName": "File",
+      "size": "Size",
+      "checksum": "File checksum (SHA-256)",
+      "textChecksum": "Text checksum (SHA-256)",
+      "uploadedBy": "Uploaded by {email}, {date}",
+      "approvedBy": "Approved by {email}, {date}",
+      "rejectedBy": "Rejected by {email}, {date}",
+      "rejectionReason": "Reason: {reason}",
+      "terms": "Reuse terms",
+      "openOriginal": "Open the original file",
+      "read": "Read the text",
+      "reading": "Reading…",
+      "readHint": "Copies the PDF's text layer exactly. Pages without one are read by the offline OCR engine and marked for checking.",
+      "readAgain": "Try reading again",
+      "submit": "Submit for review",
+      "compare": "Compare with last approved",
+      "issuesTitle": "Check before approving",
+      "textTitle": "Text as read",
+      "page": "Page",
+      "pageOf": "Page {page} of {count}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "emptyPage": "No text was read from this page.",
+      "versionsTitle": "Provision versions taken from this source",
+      "noVersions": "None yet.",
+      "final": "This decision is final. A correction is a new upload.",
+      "versionLink": "{locator} · version {number}",
+      "sourceDate": "Date on the source"
+    },
+    "mark": {
+      "title": "Take a provision from this text",
+      "help": "Choose the first and last line of the provision. The text is copied exactly as read — nothing can be typed in.",
+      "lineStart": "Line {line}: start the selection here",
+      "lineEnd": "Line {line}: end the selection here",
+      "selectionTitle": "Selected text",
+      "selectionPages": "Pages {start}–{end}",
+      "clear": "Clear selection",
+      "provision": "Provision",
+      "newProvision": "New provision…",
+      "locator": "Label as printed in the source",
+      "locatorHint": "For example 3(1), Article 15, or Schedule I item 4 — exactly as the source prints it.",
+      "validFrom": "Applies from (optional)",
+      "validTo": "Applies until (optional)",
+      "validityHint": "When the source says this text applies. Both dates are inclusive. This is not the upload or approval date.",
+      "create": "Create draft version",
+      "creating": "Creating…",
+      "created": "Draft version {number} created.",
+      "startOnly": "Now choose the last line.",
+      "selectionPage": "Page {page}"
+    },
+    "review": {
+      "approve": "Approve",
+      "approving": "Approving…",
+      "reject": "Reject",
+      "rejecting": "Rejecting…",
+      "reason": "Reason for rejecting",
+      "confirmReject": "Reject",
+      "cancel": "Cancel",
+      "checksumNote": "You are approving exactly this:",
+      "acknowledge": "I checked the machine-read or missing text against the original file.",
+      "needsSource": "Its source document must be approved first.",
+      "approvedNotice": "Approved.",
+      "rejectedNotice": "Rejected."
+    },
+    "version": {
+      "title": "{locator} · version {number}",
+      "back": "Source document",
+      "textTitle": "Exact text",
+      "textFrom": "Taken from {source}",
+      "ocrWarning": "Some of this text is OCR — machine transcription. Check it against the original before approving.",
+      "validity": "Applies",
+      "validityRange": "{from} to {to}",
+      "notRecorded": "not recorded",
+      "checksum": "Text checksum (SHA-256)",
+      "source": "Source document",
+      "submit": "Submit for review",
+      "diffTitle": "Compared with the last approved version",
+      "noBaseline": "There is no earlier approved version of this provision. Every line is new.",
+      "editDates": "Save dates",
+      "statusTitle": "Status history",
+      "statusNote": "Each entry records what a cited source states, with that source. It is not the system's conclusion about the law.",
+      "noStatus": "No status recorded.",
+      "recordStatus": "Record a status",
+      "effectiveDate": "Date the source gives (optional)",
+      "basisSource": "Basis: an approved source",
+      "basisNone": "None",
+      "basisReference": "Basis: reference",
+      "basisHint": "Give an approved source, a reference, or both.",
+      "note": "Curator's note (optional)",
+      "record": "Record status",
+      "recording": "Recording…",
+      "recordedBy": "Recorded by {email}, {date}",
+      "latest": "Latest recorded status: {status}"
+    },
+    "diff": {
+      "title": "Compare",
+      "against": "Compared with {label}, approved {date}",
+      "noBaseline": "There is no earlier approved source of this instrument. Every line is new.",
+      "stats": "{added} added · {removed} removed · {changed} changed · {unchanged} unchanged",
+      "unchanged": "{count} unchanged lines",
+      "removed": "Removed",
+      "added": "Added",
+      "changed": "Changed",
+      "identical": "No differences."
+    },
+    "queue": {
+      "sources": "Source documents",
+      "versions": "Provision versions",
+      "emptyReview": "Nothing is waiting for review.",
+      "emptyDrafts": "No drafts.",
+      "inspect": "Inspect",
+      "compare": "Compare"
+    },
+    "instrument": {
+      "back": "Corpus",
+      "provisions": "Provisions and their versions",
+      "noProvisions": "No provisions yet.",
+      "sources": "Source documents of this instrument",
+      "issuedBy": "Issued by {issuer}"
+    }
+  },
+  "units": {
+    "kb": "{n} KB",
+    "mb": "{n} MB"
   }
 }

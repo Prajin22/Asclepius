@@ -196,9 +196,8 @@ def test_ip_sakti_roles_revision_widens_only_the_shared_users_table():
     Read back from PostgreSQL, since `alembic check` cannot see CHECK values."""
     cfg = _config()
     command.downgrade(cfg, "base")
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, "ipsakti_0001")
     engine = create_engine(URL)
-    assert _head(cfg) == "ipsakti_0001"
 
     carebridge_only = ("'patient'", "'doctor'", "'admin'")
     users = _check_definition(engine, "ck_users_user_role")
@@ -229,7 +228,7 @@ def test_ip_sakti_roles_downgrade_refuses_to_delete_accounts():
 
     cfg = _config()
     command.downgrade(cfg, "base")
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, "ipsakti_0001")
     engine = create_engine(URL)
     with Session(engine) as s:
         s.add(User(role=UserRole.CURATOR, email="curator@downgrade.example.com", password_hash="x"))
@@ -242,6 +241,98 @@ def test_ip_sakti_roles_downgrade_refuses_to_delete_accounts():
         assert conn.execute(text("SELECT COUNT(*) FROM users")).scalar_one() == 1
 
     with engine.begin() as conn:
+        conn.execute(text("DELETE FROM users"))
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+CORPUS_TABLES = {"instruments", "corpus_documents", "corpus_pages", "corpus_chunks", "provisions",
+                 "provision_versions", "provision_status_events"}
+
+
+def _corpus_triggers(engine) -> set[str]:
+    with engine.connect() as conn:
+        return set(conn.execute(text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%_immutable'")).scalars())
+
+
+def test_ip_sakti_corpus_revision_adds_the_corpus_and_its_guards_and_nothing_else():
+    """ipsakti_0002 adds seven tables and their immutability triggers, and is
+    reversible on an empty corpus without disturbing anything before it."""
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "ipsakti_0001")
+    engine = create_engine(URL)
+    before = set(inspect(engine).get_table_names())
+
+    command.upgrade(cfg, "ipsakti_0002")
+    assert _head(cfg) == "ipsakti_0002"
+    inspector = inspect(engine)
+    assert set(inspector.get_table_names()) - before == CORPUS_TABLES
+    assert _corpus_triggers(engine) == {f"trg_{t}_immutable" for t in CORPUS_TABLES}
+    for table in CORPUS_TABLES:
+        lane = next(c for c in inspector.get_columns(table) if c["name"] == "lane") if table != "corpus_pages" else None
+        assert table == "corpus_pages" or lane["nullable"] is False
+    command.check(cfg)
+
+    command.downgrade(cfg, "ipsakti_0001")
+    assert set(inspect(engine).get_table_names()) == before
+    assert _corpus_triggers(engine) == set()
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT COUNT(*) FROM pg_proc WHERE proname = 'corpus_refuse_update'")).scalar() == 0
+    command.upgrade(cfg, "head")
+    command.check(cfg)
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_ip_sakti_corpus_triggers_hold_in_a_migrated_database():
+    """The triggers the migration installs refuse what the model's create_all
+    triggers refuse: no lane change, no edit of an approved row."""
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    with engine.begin() as conn:
+        user = conn.execute(text(
+            "INSERT INTO users (id, role, email, password_hash) VALUES (gen_random_uuid(), 'curator', "
+            "'c@migrate.example.com', 'x') RETURNING id")).scalar_one()
+        instrument = conn.execute(text(
+            "INSERT INTO instruments (id, lane, instrument_type, title, issued_by, created_by_user_id) "
+            "VALUES (gen_random_uuid(), 'india', 'other', 'Synthetic', 'Test', :u) RETURNING id"), {"u": user}).scalar_one()
+    with pytest.raises(Exception, match="immutable"), engine.begin() as conn:
+        conn.execute(text("UPDATE instruments SET lane = 'international' WHERE id = :i"), {"i": instrument})
+    with pytest.raises(Exception, match="fk_provisions_instrument_lane"), engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO provisions (id, instrument_id, lane, locator, locator_type, created_by_user_id) "
+            "VALUES (gen_random_uuid(), :i, 'international', '1', 'other', :u)"), {"i": instrument, "u": user})
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM instruments"))
+        conn.execute(text("DELETE FROM users"))
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_ip_sakti_corpus_downgrade_refuses_to_drop_curated_records():
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    with engine.begin() as conn:
+        user = conn.execute(text(
+            "INSERT INTO users (id, role, email, password_hash) VALUES (gen_random_uuid(), 'curator', "
+            "'c@downgrade.example.com', 'x') RETURNING id")).scalar_one()
+        conn.execute(text(
+            "INSERT INTO instruments (id, lane, instrument_type, title, issued_by, created_by_user_id) "
+            "VALUES (gen_random_uuid(), 'international', 'other', 'Synthetic', 'Test', :u)"), {"u": user})
+
+    with pytest.raises(RuntimeError, match="Refusing to downgrade ipsakti_0002"):
+        command.downgrade(cfg, "ipsakti_0001")
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "ipsakti_0002"
+        assert conn.execute(text("SELECT COUNT(*) FROM instruments")).scalar_one() == 1
+
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM instruments"))
         conn.execute(text("DELETE FROM users"))
     command.downgrade(cfg, "base")
     engine.dispose()

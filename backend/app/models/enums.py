@@ -327,3 +327,136 @@ class ConversationSection(StrEnum):
     MEDICATIONS = "medications"
     ALLERGIES = "allergies"
     REVIEW = "review"
+
+
+# ---------------------------------------------------------------------------
+# IP-SAKTI Sahayak — the legal and regulatory source corpus (Phase 2, D-081+)
+# ---------------------------------------------------------------------------
+
+
+class CorpusLane(StrEnum):
+    """Which body of law a corpus record belongs to. Exactly one, always (D-082).
+
+    The lanes never mix: an Indian rule is never an international text, and a
+    record never changes lane. Later answers draw on one lane at a time.
+    """
+
+    INDIA = "india"
+    INTERNATIONAL = "international"
+
+
+class SourceAuthority(StrEnum):
+    """The official sources a curator may upload from (D-083).
+
+    An explicit list, not a free-text field: a source outside it cannot enter
+    the corpus at all. Adding one is a reviewed code change. Whether each
+    source's terms allow reuse has not been verified (see `TermsStatus`).
+    """
+
+    INDIA_CODE = "india_code"
+    E_GAZETTE = "e_gazette"
+    IP_INDIA = "ip_india"
+    NBA = "nba"  # National Biodiversity Authority
+    FSSAI = "fssai"
+    WIPO_LEX = "wipo_lex"
+
+
+class InstrumentType(StrEnum):
+    """What kind of instrument a source sets out. A description, not a ruling."""
+
+    ACT = "act"
+    RULES = "rules"
+    REGULATIONS = "regulations"
+    NOTIFICATION = "notification"
+    TREATY = "treaty"
+    PROTOCOL = "protocol"
+    DIRECTIVE = "directive"
+    OTHER = "other"
+
+
+class CorpusDocumentType(StrEnum):
+    """What form of the instrument's text a source document is."""
+
+    ORIGINAL_TEXT = "original_text"
+    CONSOLIDATED_TEXT = "consolidated_text"
+    AMENDMENT = "amendment"
+    NOTIFICATION = "notification"
+    OTHER = "other"
+
+
+class LocatorType(StrEnum):
+    """How the source itself labels a provision. No numbering scheme is assumed:
+    the locator is copied as the source prints it, and this only says what kind
+    of label it is."""
+
+    SECTION = "section"
+    SUBSECTION = "subsection"
+    CLAUSE = "clause"
+    RULE = "rule"
+    REGULATION = "regulation"
+    ARTICLE = "article"
+    PARAGRAPH = "paragraph"
+    SCHEDULE = "schedule"
+    ITEM = "item"
+    OTHER = "other"
+
+
+class IngestionState(StrEnum):
+    """How reading a source document went. Separate from whether it is approved.
+
+    `needs_review`: text was read, but some of it is machine transcription (OCR)
+    or some pages yielded nothing, so a curator must check it against the
+    original before it can be approved. `failed`: nothing usable was read.
+    """
+
+    UPLOADED = "uploaded"
+    PARSED = "parsed"
+    NEEDS_REVIEW = "needs_review"
+    FAILED = "failed"
+
+
+class CorpusReviewState(StrEnum):
+    """The curator workflow, shared by source documents and provision versions.
+
+    draft → under_review → approved | rejected. Nothing else. Approved and
+    rejected are final: an approved text is never edited, and a correction is a
+    new version (D-084).
+    """
+
+    DRAFT = "draft"
+    UNDER_REVIEW = "under_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class TermsStatus(StrEnum):
+    """Whether a source's reuse and redistribution terms have been checked.
+
+    Phase 2 records only `unknown`: no source's terms have been verified, and
+    nothing may claim that redistribution is permitted. The other values exist
+    so that a verification recorded later has somewhere to go.
+    """
+
+    UNKNOWN = "unknown"
+    VERIFIED_PERMITTED = "verified_permitted"
+    VERIFIED_RESTRICTED = "verified_restricted"
+
+
+class ProvisionStatus(StrEnum):
+    """What a curator records that a cited source says about an approved version.
+
+    The smallest vocabulary the project specification names (D-085): the build
+    brief's "in force, stayed or omitted" and the Phase 2 brief's list. Each is
+    a record of what a source states, with that source attached — never the
+    system's own conclusion about the law. What each value implies for an
+    answer "as on" a date is not decided yet (migration plan Q7).
+    """
+
+    IN_FORCE = "in_force"
+    NOT_YET_IN_FORCE = "not_yet_in_force"
+    AMENDED = "amended"
+    SUPERSEDED = "superseded"
+    STAYED = "stayed"
+    OMITTED = "omitted"
+    DISPUTED = "disputed"
+    WITHDRAWN = "withdrawn"

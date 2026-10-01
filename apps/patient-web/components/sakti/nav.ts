@@ -1,9 +1,9 @@
 /**
  * IP-SAKTI Sahayak's information architecture: who sees which destinations.
  *
- * One entry per screen. Every screen is a placeholder in Phase 1 — `available`
- * is false for all of them, and a screen stays a placeholder until the phase
- * that builds it flips it. Nothing here may be shown as working before it does.
+ * One entry per screen. A screen is a placeholder until the phase that builds
+ * it flips `available`; nothing may be shown as working before it does. Phase 2
+ * built the curator's four screens; every other screen is still a placeholder.
  */
 import type { SaktiRole } from "@carebridge/shared-types";
 import type { ComponentProps, ReactNode } from "react";
@@ -47,7 +47,7 @@ export interface SaktiPageInfo {
   /** Whether `pages.<key>.note` exists. */
   note?: boolean;
   /** False until the phase that builds the screen. */
-  available: false;
+  available: boolean;
 }
 
 export const SAKTI_PAGES: Record<SaktiPage, SaktiPageInfo> = {
@@ -59,10 +59,10 @@ export const SAKTI_PAGES: Record<SaktiPage, SaktiPageInfo> = {
   brief: { points: ["one"], available: false },
   messages: { points: ["one"], available: false },
   notes: { points: ["one"], available: false },
-  corpus: { points: ["one", "two"], available: false },
-  upload: { points: ["one"], available: false },
-  drafts: { points: ["one"], available: false },
-  approve: { points: ["one"], available: false },
+  corpus: { points: ["one", "two"], available: true },
+  upload: { points: ["one"], available: true },
+  drafts: { points: ["one"], available: true },
+  approve: { points: ["one"], available: true },
   facilitators: { points: ["one"], available: false },
 };
 

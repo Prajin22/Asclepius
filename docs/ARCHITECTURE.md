@@ -51,7 +51,7 @@ describes CareBridge unless it says otherwise.
 
 | | CareBridge | IP-SAKTI Sahayak |
 |---|---|---|
-| API routes | everything below | sign-in, `auth/me`, `meta/*` only — healthcare routes answer 404 |
+| API routes | everything below | sign-in, `auth/me`, `meta/*`, and the curator's `/corpus/*` — healthcare routes answer 404 |
 | Roles that may sign in | patient, doctor, admin | user, facilitator, curator, admin |
 | Web areas | `(app)`, `/clinician`, `/admin` | `(ip-sakti)` group, `/admin` |
 | AI policy | [AI_POLICY.md](AI_POLICY.md) | [IP_SAKTI_AI_POLICY.md](IP_SAKTI_AI_POLICY.md) — no capability permitted yet |
@@ -63,8 +63,17 @@ refused by the other product; healthcare columns that record a role use
 `CareBridgeRole`, so only `users.role` is shared; the AI provider is wrapped in
 `PolicyRestrictedProvider` when the policy does not permit everything. In the
 web app, `ProductOnly` and `forProduct` (`components/product/`) put every route
-in exactly one product. IP-SAKTI's screens are placeholders in this phase: no
-legal content, corpus, retrieval or answers exist.
+in exactly one product.
+
+IP-SAKTI's Phase 2 adds the legal source corpus (D-081 – D-086): curators upload
+official sources, the server reads them (exact PDF text layer, or offline OCR
+flagged for checking), curators cut provision versions from the read text by
+offsets, and every source and version is approved explicitly before it counts.
+Lanes are held by composite foreign keys; approved rows are immutable by
+trigger. The code is `app/sakti/corpus/`, `app/models/corpus.py` and
+`app/api/v1/corpus.py`. No search, retrieval or answering exists yet; every
+non-curator IP-SAKTI screen is still a placeholder, and the corpus holds no
+official text — see [IP_SAKTI_MIGRATION_PLAN.md §23](IP_SAKTI_MIGRATION_PLAN.md).
 
 ## 2. Layering rules
 
