@@ -843,6 +843,96 @@ flows are data precisely so that this boundary is structural: there is no
 callable in a flow for a model to sit behind, and the test that forbids the
 engine from importing a client or a clock will fail if one is added.
 
+## D-077 — One codebase, two products, chosen per deployment
+
+`PRODUCT=carebridge|ip_sakti` on the API and `NEXT_PUBLIC_PRODUCT` on the web
+build say which product a deployment is. Unset means CareBridge, exactly as
+before; an unknown value stops the API from starting and the web build from
+building, rather than shipping the wrong product. The plan is
+[IP_SAKTI_MIGRATION_PLAN.md §11](IP_SAKTI_MIGRATION_PLAN.md).
+
+The other product's routes are not refused, they do not exist. `create_app`
+mounts routers per product: IP-SAKTI gets sign-in, `auth/me` and the `meta`
+endpoints, and every healthcare path answers 404. CareBridge's API is the
+66 operations it had at `48f2a90` plus `GET /meta/product`; a test compares
+against that snapshot. In the web app every route belongs to a product: the
+healthcare areas sit behind `ProductOnly product="carebridge"`, which calls
+`notFound()` in the other build; IP-SAKTI's screens sit in the `(ip-sakti)`
+route group behind the same gate; and the three paths both products need
+(`/`, `/login`, `/admin`) pick one screen per product with `forProduct`. A test
+reads the route tree and fails on any page without a product boundary.
+
+The choice is made at build and start time, not at runtime, so nothing a user
+does can switch products, and a build serves no route of the other product.
+Unreachable is not absent, though: the shared paths import both products'
+screens and the locale provider imports both catalogues, so each build's
+JavaScript still contains the other product's interface text. Nothing in it is
+secret; splitting the bundles is left until it matters.
+The cost is a deployment per product. The schema is one migration chain for
+both, so switching needs no migration, but each product should have its own
+database. No healthcare file was deleted; they are unreachable in IP-SAKTI.
+
+## D-078 — IP-SAKTI's roles share `users.role`, and nothing else
+
+IP-SAKTI adds `user`, `facilitator` and `curator`; `admin` is shared. They
+widen the `users.role` CHECK constraint (migration `ipsakti_0001`) and nothing
+else. The healthcare columns that record a role — `consultations.cancelled_by_role`
+and `consultation_messages.sender_role` — now use `CareBridgeRole`, which has
+exactly the old three values, so their constraints are identical to migration
+0001's and an IP-SAKTI role can never be written into a medical record. No
+IP-SAKTI data is attached to patient or doctor tables.
+
+Sharing the column puts two guards in front of every request. Sign-in refuses
+an account whose role is not one of this product's, with the same message as a
+wrong password, and audits it as `role_not_in_product`. Every token now carries
+a `product` claim, and a token is refused by a product other than the one that
+issued it, and also when its user's role is not one of this product's. A token
+without the claim — issued before this change — is read as CareBridge's, so
+signed-in CareBridge users are not signed out by the upgrade.
+
+The downgrade of `ipsakti_0001` refuses, and changes nothing, while any account
+holds an IP-SAKTI role (as D-075): narrowing the constraint would mean deleting
+people's accounts. IP-SAKTI has no self-registration; accounts are issued, and
+the demo seed issues one per role.
+
+## D-079 — Each product has its own AI policy, enforced below the services
+
+The AI policy is product configuration (`app/core/ai_policy.py`). CareBridge's
+policy permits the five capabilities it already had, under the rules of
+[AI_POLICY.md](AI_POLICY.md). IP-SAKTI's permits **none** yet, under the rules of
+[IP_SAKTI_AI_POLICY.md](IP_SAKTI_AI_POLICY.md): no legal advice, no generated
+statutory text, no fabricated citations or section numbers, grounding in
+sources, abstaining or escalating when uncertain.
+
+The provider is wrapped, not the callers: `build_ai_provider` returns a
+`PolicyRestrictedProvider` that refuses a capability the policy does not
+permit (`ai_capability_not_permitted`, 403) before the inner provider is
+called, so a code path added later cannot reach a model by forgetting a check.
+For CareBridge, whose policy permits everything, the provider is returned
+unwrapped and behaves exactly as before. `GET /meta/ai` lists only what the
+policy permits, and `GET /meta/product` names the policy and its rules.
+
+A test reads the policy document and fails if a rule in code is missing from
+it. The rules about answers — grounding, abstention, forbidden answer fields —
+are recorded now and are enforced only when the first legal capability is
+added; the document lists them as not yet enforced.
+
+## D-080 — IP-SAKTI's interface text is its own catalogue, and is not law
+
+`sakti.{en,hi,ta}.json` is a complete catalogue for IP-SAKTI, not a layer over
+CareBridge's: nothing from the healthcare catalogues is merged in, so no
+medical word can surface in IP-SAKTI through a shared key. Tests check that the
+three languages have the same keys and placeholders, that no healthcare
+vocabulary appears in any of them, and that none claims to give advice or to
+be official.
+
+The catalogue holds interface text only: names of screens, what a screen will
+do, the disclaimer. It holds no statutory text, citation or legal statement,
+and none may be added to it. Legal text is not translated by machine, and when
+it comes it will come from the source corpus with its source, not from here.
+The Hindi and Tamil strings are unreviewed drafts, like the patient UI's
+(D-018), and need native-speaker review before real use.
+
 ## D-018 — Doctor UI is English-only in Phase 1
 
 All doctor strings still come from a catalogue (`doctor.en.json`), so adding a

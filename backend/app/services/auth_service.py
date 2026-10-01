@@ -1,3 +1,5 @@
+from collections.abc import Collection
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -20,20 +22,32 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.scalar(select(User).where(func.lower(User.email) == _normalise_email(email)))
 
 
-def authenticate(db: Session, email: str, password: str, ctx: RequestContext | None = None) -> User:
+def authenticate(
+    db: Session,
+    email: str,
+    password: str,
+    ctx: RequestContext | None = None,
+    *,
+    allowed_roles: Collection[UserRole] | None = None,
+) -> User:
+    """Check credentials. With `allowed_roles`, an account holding any other role
+    is refused exactly as a wrong password is (D-078): the caller learns nothing
+    about accounts that belong to the other product."""
     user = get_user_by_email(db, email)
     if user is None:
         dummy_verify()  # keep timing similar for unknown emails
         ok = False
     else:
         ok = verify_password(password, user.password_hash) and user.is_active
-    if not ok:
+    wrong_product = ok and allowed_roles is not None and user.role not in allowed_roles
+    if not ok or wrong_product:
         audit.record(
             db,
             actor=user,
             action="auth.login_failed",
             resource_type="user",
             resource_id=user.id if user else None,
+            details={"reason": "role_not_in_product"} if wrong_product else None,
             ctx=ctx,
         )
         db.commit()

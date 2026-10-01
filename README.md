@@ -73,6 +73,40 @@ Without `uv`, use a virtual environment and `pip install -e backend`, then run
 
 Health check: <http://localhost:8000/health> → `{"status":"ok"}`.
 
+## Two products, one codebase
+
+This branch also builds **IP-SAKTI Sahayak** — *Intellectual Property &
+Regulatory Guidance for Ayurvedic Products*. One deployment serves one product,
+chosen by `PRODUCT` on the API and `NEXT_PUBLIC_PRODUCT` on the web build. Both
+default to `carebridge`, and everything else in this README is about CareBridge.
+
+```bash
+# IP-SAKTI Sahayak, against its own database
+cd backend
+export PRODUCT=ip_sakti DATABASE_URL=postgresql+psycopg://.../ipsakti   # a separate database
+uv run alembic upgrade head
+uv run python -m app.seed              # IP-SAKTI demo accounts; no legal content
+uv run uvicorn app.main:app --port 8000
+
+# from the repository root, in another terminal
+NEXT_PUBLIC_PRODUCT=ip_sakti npm run dev
+```
+
+| Role | Email | Password |
+|---|---|---|
+| User | `user@ipsakti.demo` | `User@2026` |
+| IP facilitator | `facilitator@ipsakti.demo` | `Facilitator@2026` |
+| Corpus curator | `curator@ipsakti.demo` | `Curator@2026` |
+| Administrator | `admin@ipsakti.demo` | `Admin@2026` |
+
+So far IP-SAKTI is a shell: branding, a disclaimer on every screen, sign-in,
+one area per role and screens that say **Not available yet**. It gives no
+legal answers, holds no legal text and calls no AI. It is information, not
+legal advice, and not an official government service. See
+[docs/IP_SAKTI_MIGRATION_PLAN.md](docs/IP_SAKTI_MIGRATION_PLAN.md),
+[docs/IP_SAKTI_AI_POLICY.md](docs/IP_SAKTI_AI_POLICY.md) and decisions D-077 –
+D-080 in [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## Demo accounts (synthetic)
 
 | Role | Email | Password |
@@ -295,16 +329,18 @@ OCR memory) and how to avoid them, is in
 * [docs/DESIGN.md](docs/DESIGN.md) — design system: provenance rules, tokens, components, motion and 3D limits
 * [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — deploying to Vercel and Render
 * [docs/AI_POLICY.md](docs/AI_POLICY.md) — what the AI may and may not do
+* [docs/IP_SAKTI_AI_POLICY.md](docs/IP_SAKTI_AI_POLICY.md) — the same, for IP-SAKTI Sahayak
+* [docs/IP_SAKTI_MIGRATION_PLAN.md](docs/IP_SAKTI_MIGRATION_PLAN.md) — how IP-SAKTI Sahayak is being built, phase by phase
 * [docs/SECURITY.md](docs/SECURITY.md) — controls and known limitations
 * [docs/DECISIONS.md](docs/DECISIONS.md) — decision log
 * [docs/ROADMAP.md](docs/ROADMAP.md) — phases
 
 ## Configuration
 
-All settings come from `.env` (see `.env.example`): `DATABASE_URL`,
+All settings come from `.env` (see `.env.example`): `PRODUCT`, `DATABASE_URL`,
 `JWT_SECRET`, `JWT_EXPIRES_MINUTES`, `CORS_ORIGINS`, `STORAGE_PROVIDER`,
 `STORAGE_LOCAL_ROOT`, `MAX_UPLOAD_BYTES`, `DEMO_MODE`, `AI_PROVIDER`, `AI_MODEL`,
 the `AI_*` limits, provider keys, `OCR_ENGINE`, `OCR_MIN_TEXT_LAYER_CHARS`,
 `DOCUMENT_PROCESSING_MAX_PAGES`, `DOCUMENT_RENDER_SCALE`, `DOCUMENT_MAX_PIXELS`
-and `NEXT_PUBLIC_API_BASE_URL`. The application runs with **no AI API key**:
+`NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_PRODUCT`. The application runs with **no AI API key**:
 `DEMO_MODE=true` uses the local provider and local OCR.

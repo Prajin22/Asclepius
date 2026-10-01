@@ -80,3 +80,14 @@ class AIRateLimited(DomainError):
 
     status_code = 429
     code = "ai_rate_limited"
+
+
+class AICapabilityNotPermitted(DomainError):
+    """This product's AI policy does not allow that capability (D-079).
+
+    Deliberately not an `AIError`: the healthcare pipelines degrade gracefully
+    on AI errors, and a policy violation must fail loudly instead.
+    """
+
+    status_code = 403
+    code = "ai_capability_not_permitted"

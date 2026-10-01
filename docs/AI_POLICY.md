@@ -1,5 +1,8 @@
 # CareBridge — AI Policy
 
+> This is CareBridge's policy. A deployment with `PRODUCT=ip_sakti` runs under
+> [IP_SAKTI_AI_POLICY.md](IP_SAKTI_AI_POLICY.md) instead (D-079).
+
 ## Core statement
 
 > **CareBridge AI organizes and transforms patient-provided information. It does

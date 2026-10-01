@@ -27,6 +27,9 @@ os.environ["MAX_UPLOAD_BYTES"] = str(1024 * 1024)
 # make the test suite call a live provider or change behaviour under test.
 # Process environment variables take precedence over the .env file.
 os.environ["DEMO_MODE"] = "true"
+# The default application under test is CareBridge; IP-SAKTI tests build their
+# own with create_app(Product.IP_SAKTI). A .env saying otherwise must not leak in.
+os.environ["PRODUCT"] = "carebridge"
 os.environ["AI_MODEL"] = ""
 os.environ["OPENAI_API_KEY"] = ""
 os.environ["ANTHROPIC_API_KEY"] = ""

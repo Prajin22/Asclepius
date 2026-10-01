@@ -7,10 +7,19 @@ import { Avatar, Button, LoadingState, Logo } from "@carebridge/ui";
 import { SignOut } from "@phosphor-icons/react/dist/ssr";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { forProduct } from "@/components/product/ProductOnly";
+import { SaktiShell } from "@/components/sakti/SaktiShell";
 import { HOME_FOR_ROLE } from "@/lib/routes";
 
-/** Administration is English in this prototype, like the clinician workspace. */
-export default function AdminLayout({ children }: { children: ReactNode }) {
+/** Each product's administration (D-077). `admin` is a role in both. */
+export default forProduct({ carebridge: AdminLayout, ip_sakti: SaktiAdminLayout });
+
+function SaktiAdminLayout({ children }: { children: ReactNode }) {
+  return <SaktiShell role="admin">{children}</SaktiShell>;
+}
+
+/** CareBridge: administration is English in this prototype, like the clinician workspace. */
+function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <I18nProvider locale="en" catalogs={doctorCatalogs}>
       <div lang="en">

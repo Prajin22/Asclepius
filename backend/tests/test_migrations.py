@@ -24,6 +24,12 @@ def _config() -> Config:
     return cfg
 
 
+def _head(cfg: Config) -> str:
+    from alembic.script import ScriptDirectory
+
+    return ScriptDirectory.from_config(cfg).get_current_head()
+
+
 def test_upgrade_check_downgrade():
     assert URL and "test" in URL.rsplit("/", 1)[-1]
     cfg = _config()
@@ -169,13 +175,72 @@ def test_phase_5b_downgrade_refuses_to_destroy_patient_answers():
 
     with pytest.raises(RuntimeError, match="Refusing to downgrade 0009"):
         command.downgrade(cfg, "0008")
-    # Nothing was changed: still at 0009, the conversation still there.
+    # Nothing was changed: still at head, the conversation still there. (The
+    # whole downgrade is one transaction, so the step above 0009 that did
+    # succeed is rolled back with it.)
     assert "conversation_skips" in set(inspect(engine).get_table_names())
     with engine.connect() as conn:
-        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "0009"
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == _head(cfg)
         assert conn.execute(text("SELECT COUNT(*) FROM conversation_sessions")).scalar_one() == 1
 
     # Removed deliberately, the downgrade goes through.
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM users"))
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_ip_sakti_roles_revision_widens_only_the_shared_users_table():
+    """ipsakti_0001 lets `users.role` hold the IP-SAKTI roles and touches nothing
+    else: both healthcare role columns keep exactly the constraint 0001 gave them.
+    Read back from PostgreSQL, since `alembic check` cannot see CHECK values."""
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    assert _head(cfg) == "ipsakti_0001"
+
+    carebridge_only = ("'patient'", "'doctor'", "'admin'")
+    users = _check_definition(engine, "ck_users_user_role")
+    for role in carebridge_only + ("'user'", "'facilitator'", "'curator'"):
+        assert role in users
+    for name in ("ck_consultations_cancelled_by_role", "ck_consultation_messages_sender_role"):
+        definition = _check_definition(engine, name)
+        assert all(role in definition for role in carebridge_only)
+        for role in ("'user'", "'facilitator'", "'curator'"):
+            assert role not in definition, f"{name} was widened"
+
+    command.downgrade(cfg, "0009")
+    users = _check_definition(engine, "ck_users_user_role")
+    assert all(role in users for role in carebridge_only)
+    assert "'facilitator'" not in users and "'curator'" not in users
+
+    command.upgrade(cfg, "head")
+    command.check(cfg)
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_ip_sakti_roles_downgrade_refuses_to_delete_accounts():
+    from sqlalchemy.orm import Session
+
+    from app.models import User
+    from app.models.enums import UserRole
+
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    with Session(engine) as s:
+        s.add(User(role=UserRole.CURATOR, email="curator@downgrade.example.com", password_hash="x"))
+        s.commit()
+
+    with pytest.raises(RuntimeError, match="Refusing to downgrade ipsakti_0001"):
+        command.downgrade(cfg, "0009")
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "ipsakti_0001"
+        assert conn.execute(text("SELECT COUNT(*) FROM users")).scalar_one() == 1
+
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM users"))
     command.downgrade(cfg, "base")

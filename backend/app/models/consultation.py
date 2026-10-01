@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.languages import LanguageCode
 from app.db.base import Base, JSONType, Timestamps, UUIDPrimaryKey, enum_column, utcnow
-from app.models.enums import ConsultationStatus, ShareItemType, UserRole
+from app.models.enums import CareBridgeRole, ConsultationStatus, ShareItemType
 
 if TYPE_CHECKING:
     from app.models.doctor import DoctorProfile
@@ -54,7 +54,8 @@ class Consultation(UUIDPrimaryKey, Timestamps, Base):
     started_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     cancelled_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
-    cancelled_by_role: Mapped[UserRole | None] = mapped_column(enum_column(UserRole, "cancelled_by_role"))
+    # CareBridge roles only, exactly as migration 0001 created the constraint (D-078).
+    cancelled_by_role: Mapped[CareBridgeRole | None] = mapped_column(enum_column(CareBridgeRole, "cancelled_by_role"))
     cancellation_reason: Mapped[str | None] = mapped_column(sa.Text)
 
     patient: Mapped[PatientProfile] = relationship()
@@ -104,7 +105,8 @@ class ConsultationMessage(UUIDPrimaryKey, Base):
         sa.ForeignKey("consultations.id", ondelete="CASCADE"), nullable=False, index=True
     )
     sender_user_id: Mapped[uuid.UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
-    sender_role: Mapped[UserRole] = mapped_column(enum_column(UserRole, "sender_role"), nullable=False)
+    # CareBridge roles only, exactly as migration 0001 created the constraint (D-078).
+    sender_role: Mapped[CareBridgeRole] = mapped_column(enum_column(CareBridgeRole, "sender_role"), nullable=False)
     body: Mapped[str] = mapped_column(sa.Text, nullable=False)  # original wording
     language: Mapped[LanguageCode | None] = mapped_column(enum_column(LanguageCode, "message_language"))
     created_at: Mapped[datetime] = mapped_column(

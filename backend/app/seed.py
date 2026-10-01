@@ -3,6 +3,9 @@
     python -m app.seed            # seed if empty
     python -m app.seed --reset    # wipe ALL data, then seed
 
+Seeds the product named by PRODUCT: CareBridge's healthcare demo (below), or
+IP-SAKTI Sahayak's demo accounts (`app.sakti.seed`).
+
 Every person, clinic, registration number and document here is fictional.
 """
 
@@ -15,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.languages import LanguageCode as L
+from app.core.product import Product
 from app.core.security import hash_password
 from app.db.base import Base
 from app.db.session import SessionLocal
@@ -43,6 +47,7 @@ from app import synthetic_documents
 from app.providers.storage import get_storage
 from app.schemas.auth import PatientRegisterRequest
 from app.schemas.doctor import DoctorApplication, DoctorCreate
+from app.sakti import seed as sakti_seed
 from app.services import auth_service, document_service
 
 ADMIN = ("admin@carebridge.demo", "Admin@2026")
@@ -309,7 +314,10 @@ def main(argv: list[str] | None = None) -> int:
     with SessionLocal() as db:
         if args.reset:
             reset(db)
-        seed(db)
+        if get_settings().product == Product.IP_SAKTI:
+            sakti_seed.seed(db)
+        else:
+            seed(db)
     return 0
 
 

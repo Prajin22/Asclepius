@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-from app.api.v1.router import api_router
+from app.api.v1.router import build_api_router
 from app.core.config import get_settings
+from app.core.product import Product
+from app.core.product_config import product_config
 from app.db.session import SessionLocal
 from app.services.errors import DomainError
 
@@ -12,13 +14,18 @@ from app.services.errors import DomainError
 _MULTIPART_OVERHEAD = 256 * 1024
 
 
-def create_app() -> FastAPI:
+def create_app(product: Product | None = None) -> FastAPI:
+    """Build the application for one product (D-077).
+
+    `product` defaults to the `PRODUCT` setting. Passing it explicitly lets one
+    process build either application, which is how the tests exercise both.
+    """
     settings = get_settings()
-    app = FastAPI(
-        title="CareBridge API",
-        version="0.1.0",
-        description="Phase 1 foundation. Organises patient-provided information; does not diagnose or prescribe.",
-    )
+    config = product_config(product or settings.product)
+    app = FastAPI(title=config.api_title, version="0.1.0", description=config.api_description)
+    # Read by dependencies through the request, never from global settings, so
+    # two applications in one process cannot see each other's product.
+    app.state.product_config = config
 
     app.add_middleware(
         CORSMiddleware,
@@ -53,7 +60,7 @@ def create_app() -> FastAPI:
             db.execute(text("SELECT 1"))
         return {"status": "ok"}
 
-    app.include_router(api_router)
+    app.include_router(build_api_router(config.product))
     return app
 
 

@@ -6,6 +6,8 @@ from typing import Annotated
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from app.core.product import Product
+
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 REPO_ROOT = BACKEND_DIR.parent
 
@@ -20,6 +22,11 @@ class Settings(BaseSettings):
     )
 
     app_env: str = "development"
+
+    # Which product this deployment serves (D-077). Unset means CareBridge,
+    # exactly as before; an unknown value stops the application at startup
+    # rather than silently serving the wrong product.
+    product: Product = Product.CAREBRIDGE
 
     database_url: str = "postgresql+psycopg://carebridge:carebridge_dev_password@localhost:5432/carebridge"
 

@@ -19,10 +19,19 @@ import {
 } from "@carebridge/ui";
 import { CheckCircle, IdentificationCard, ListChecks, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useState, type ReactNode } from "react";
+import { forProduct } from "@/components/product/ProductOnly";
+import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
 
 const TABS: DoctorApproval[] = ["pending", "approved", "rejected"];
 
-export default function DoctorApplicationsPage() {
+/** CareBridge reviews doctor applications here; IP-SAKTI will manage facilitators (D-077). */
+export default forProduct({ carebridge: DoctorApplicationsPage, ip_sakti: FacilitatorsPage });
+
+function FacilitatorsPage() {
+  return <SaktiPlaceholder page="facilitators" />;
+}
+
+function DoctorApplicationsPage() {
   const { t } = useI18n();
   const q = useQuery((a) => a.admin.doctors());
   const [tab, setTab] = useState<DoctorApproval>("pending");

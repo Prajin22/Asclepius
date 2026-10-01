@@ -7,7 +7,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import decode_access_token
+from app.core.product_config import ProductConfig
+from app.core.security import LEGACY_TOKEN_PRODUCT, decode_access_token
 from app.db.session import get_db
 from app.models import DoctorProfile, PatientProfile, User
 from app.models.enums import UserRole
@@ -19,12 +20,22 @@ _bearer = HTTPBearer(auto_error=False)
 DB = Annotated[Session, Depends(get_db)]
 
 
+def get_product_config(request: Request) -> ProductConfig:
+    """The product this application serves, set once in `create_app` (D-077)."""
+    return request.app.state.product_config
+
+
+CurrentProduct = Annotated[ProductConfig, Depends(get_product_config)]
+
+
 def _unauthorized(detail: str = "Not authenticated") -> HTTPException:
     return HTTPException(status.HTTP_401_UNAUTHORIZED, detail=detail, headers={"WWW-Authenticate": "Bearer"})
 
 
 def get_current_user(
-    db: DB, creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)]
+    db: DB,
+    product: CurrentProduct,
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
 ) -> User:
     if creds is None or creds.scheme.lower() != "bearer":
         raise _unauthorized()
@@ -35,6 +46,11 @@ def get_current_user(
         raise _unauthorized("Invalid or expired token") from None
     user = db.get(User, user_id)
     if user is None or not user.is_active or user.role.value != payload.get("role"):
+        raise _unauthorized("Invalid or expired token")
+    # A token from the other product, or an account whose role this product
+    # does not have, is not a session here (D-078). Same answer as any invalid
+    # token: nothing about the other product is disclosed.
+    if payload.get("product", LEGACY_TOKEN_PRODUCT) != product.product.value or not product.accepts(user.role):
         raise _unauthorized("Invalid or expired token")
     return user
 

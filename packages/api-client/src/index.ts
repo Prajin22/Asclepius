@@ -32,6 +32,7 @@ import type {
   PatientRegisterRequest,
   Prescription,
   PrescriptionCreate,
+  ProductInfo,
   RecordType,
   TokenResponse,
 } from "@carebridge/shared-types";
@@ -197,6 +198,8 @@ export function createApiClient(config: ClientConfig) {
     meta: {
       /** Public AI configuration. Contains no credentials. */
       ai: () => request<AIStatus>("/meta/ai"),
+      /** Which product the API serves, its roles and its AI policy. Public, read-only. */
+      product: () => request<ProductInfo>("/meta/product"),
     },
     directory: {
       search: (params: { q?: string; specialization?: string; language?: LanguageCode | "" }) =>

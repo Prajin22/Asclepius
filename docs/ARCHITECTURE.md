@@ -41,6 +41,31 @@ for patients, `/clinician` for approved doctors (`/clinician/application` until
 then), `/admin` for administrators. The areas keep their own density and
 language rules, and the API enforces the role on every request.
 
+### Products (D-077 – D-080)
+
+The same codebase also builds **IP-SAKTI Sahayak**, a separate product for
+intellectual-property and regulatory information about Ayurvedic products.
+Which one a deployment is comes from `PRODUCT` (API) and `NEXT_PUBLIC_PRODUCT`
+(web build); both default to `carebridge`, and everything in this document
+describes CareBridge unless it says otherwise.
+
+| | CareBridge | IP-SAKTI Sahayak |
+|---|---|---|
+| API routes | everything below | sign-in, `auth/me`, `meta/*` only — healthcare routes answer 404 |
+| Roles that may sign in | patient, doctor, admin | user, facilitator, curator, admin |
+| Web areas | `(app)`, `/clinician`, `/admin` | `(ip-sakti)` group, `/admin` |
+| AI policy | [AI_POLICY.md](AI_POLICY.md) | [IP_SAKTI_AI_POLICY.md](IP_SAKTI_AI_POLICY.md) — no capability permitted yet |
+| Interface text | `common`/`patient`/`doctor` catalogues | `sakti.*` catalogue, self-contained |
+
+How the boundary is held: `create_app(product)` mounts routers per product and
+keeps a `ProductConfig` on `app.state`; tokens carry a `product` claim and are
+refused by the other product; healthcare columns that record a role use
+`CareBridgeRole`, so only `users.role` is shared; the AI provider is wrapped in
+`PolicyRestrictedProvider` when the policy does not permit everything. In the
+web app, `ProductOnly` and `forProduct` (`components/product/`) put every route
+in exactly one product. IP-SAKTI's screens are placeholders in this phase: no
+legal content, corpus, retrieval or answers exist.
+
 ## 2. Layering rules
 
 | Layer | May depend on | Must not |

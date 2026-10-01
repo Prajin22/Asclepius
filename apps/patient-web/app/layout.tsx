@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Tamil } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { PRODUCT, productConfig } from "@/lib/product";
 import { Providers } from "./providers";
 
 // One humanist family across three scripts: Latin, Tamil and Devanagari are drawn
@@ -21,15 +22,15 @@ const devanagari = Noto_Sans_Devanagari({
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap", preload: false });
 
 export const metadata: Metadata = {
-  title: { default: "Asclepius", template: "%s · Asclepius" },
-  description: "Your health information, organised — in your own words, shared on your terms.",
+  title: { default: productConfig.name, template: `%s · ${productConfig.name}` },
+  description: productConfig.description,
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#d83a2e",
+  themeColor: productConfig.themeColor,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -37,6 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // `lang` is updated on the client to the active UI language.
     <html
       lang="en"
+      // Scopes the product's accent tokens (globals.css).
+      data-product={PRODUCT}
       suppressHydrationWarning
       className={`${sans.variable} ${geistMono.variable} ${tamil.variable} ${devanagari.variable}`}
     >

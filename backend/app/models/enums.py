@@ -2,6 +2,36 @@ from enum import StrEnum
 
 
 class UserRole(StrEnum):
+    """Every role an account can hold, across both products (D-078).
+
+    One enumeration because `users` is one shared table. Which roles a running
+    application accepts is decided by its product (`app.core.product_config`):
+    CareBridge accepts patient, doctor and admin; IP-SAKTI Sahayak accepts user,
+    facilitator, curator and admin. An account whose role its product does not
+    accept cannot sign in to it.
+    """
+
+    # CareBridge (PRODUCT=carebridge)
+    PATIENT = "patient"
+    DOCTOR = "doctor"
+    # Both products
+    ADMIN = "admin"
+    # IP-SAKTI Sahayak (PRODUCT=ip_sakti)
+    USER = "user"
+    FACILITATOR = "facilitator"
+    CURATOR = "curator"
+
+
+class CareBridgeRole(StrEnum):
+    """The roles CareBridge's own tables record — who sent a consultation
+    message, who cancelled a consultation.
+
+    Kept apart from `UserRole` so that widening the shared role vocabulary for
+    IP-SAKTI leaves these healthcare tables' CHECK constraints exactly as
+    migration 0001 created them (D-078). The values equal `UserRole`'s, so a
+    `UserRole` member can be stored here directly.
+    """
+
     PATIENT = "patient"
     DOCTOR = "doctor"
     ADMIN = "admin"

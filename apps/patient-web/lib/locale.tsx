@@ -1,11 +1,16 @@
 "use client";
 
-import { I18nProvider } from "@carebridge/i18n";
-import { patientCatalogs } from "@carebridge/i18n/catalogs";
-import { UI_LANGUAGES, isLanguageCode, type LanguageCode } from "@carebridge/shared-types";
+import { I18nProvider, type Catalogs } from "@carebridge/i18n";
+import { patientCatalogs, saktiCatalogs } from "@carebridge/i18n/catalogs";
+import { UI_LANGUAGES, isLanguageCode, type LanguageCode, type Product } from "@carebridge/shared-types";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-const STORAGE_KEY = "carebridge.patient.locale";
+import { PRODUCT, productConfig } from "@/lib/product";
+
+/** Each product's interface text (D-080). IP-SAKTI's never falls back to CareBridge's. */
+const CATALOGS: Record<Product, Catalogs> = { carebridge: patientCatalogs, ip_sakti: saktiCatalogs };
+
+const STORAGE_KEY = productConfig.localeKey;
 const DEFAULT_LOCALE: LanguageCode = UI_LANGUAGES[0];
 
 interface LocaleControl {
@@ -57,7 +62,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ locale, setLocale }), [locale, setLocale]);
   return (
     <LocaleContext.Provider value={value}>
-      <I18nProvider locale={locale} catalogs={patientCatalogs}>
+      <I18nProvider locale={locale} catalogs={CATALOGS[PRODUCT]}>
         {children}
       </I18nProvider>
     </LocaleContext.Provider>

@@ -33,13 +33,22 @@ def dummy_verify() -> None:
     bcrypt.checkpw(b"x", _DUMMY_HASH.encode("ascii"))
 
 
-def create_access_token(user_id: uuid.UUID, role: str) -> tuple[str, int]:
+#: The product a token was issued by when it says nothing: tokens issued before
+#: the product boundary existed were all CareBridge's, and must keep working.
+LEGACY_TOKEN_PRODUCT = "carebridge"
+
+
+def create_access_token(user_id: uuid.UUID, role: str, product: str = LEGACY_TOKEN_PRODUCT) -> tuple[str, int]:
     settings = get_settings()
     now = datetime.now(UTC)
     expires_in = settings.jwt_expires_minutes * 60
     payload = {
         "sub": str(user_id),
         "role": role,
+        # Binds the token to the product that issued it (D-078). `admin` is a
+        # role in both products, so the role alone cannot keep a CareBridge
+        # admin's token out of an IP-SAKTI deployment that shares a secret.
+        "product": product,
         "iat": now,
         "exp": now + timedelta(seconds=expires_in),
         "jti": uuid.uuid4().hex,

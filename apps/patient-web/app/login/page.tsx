@@ -28,6 +28,8 @@ import {
   type DoctorDetailsDraft,
 } from "@/components/DoctorDetailsFields";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { forProduct } from "@/components/product/ProductOnly";
+import { SaktiSignIn } from "@/components/sakti/SaktiSignIn";
 import { DEMO_ACCOUNTS, SHOW_DEMO_ACCOUNT, type DemoAccountKey } from "@/lib/demo";
 import { DOCTOR_APPLICATION_PATH, HOME_FOR_ROLE } from "@/lib/routes";
 
@@ -40,11 +42,14 @@ const DEMOS: Record<ChosenRole, DemoAccountKey[]> = {
   doctor: ["doctor", "pendingDoctor"],
 };
 
+/** Each product's own way in (D-077). CareBridge's is below, unchanged. */
+export default forProduct({ carebridge: AuthPage, ip_sakti: SaktiSignIn });
+
 /**
  * The one door into Asclepius. Everyone picks who they are, then signs in or
  * creates an account; where they land afterwards comes from the account itself.
  */
-export default function AuthPage() {
+function AuthPage() {
   const t = useT();
   return (
     <div className="flex min-h-[100dvh] flex-col">

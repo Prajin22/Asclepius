@@ -6,3 +6,17 @@
 html {
   font-size: 106.25%;
 }
+
+/*
+ * IP-SAKTI Sahayak (NEXT_PUBLIC_PRODUCT=ip_sakti). Same sheet, same type, same
+ * components — its own accent, so it never reads as the healthcare product with
+ * a new name. Only the brand family changes; status colours keep their meanings.
+ * Contrast, computed: white on brand 7.4:1, brand-strong on brand-soft 8.7:1,
+ * brand on surface 7.0:1. CareBridge's tokens are untouched.
+ */
+html[data-product="ip_sakti"] {
+  --color-brand: #0e5f63;
+  --color-brand-strong: #0a4649;
+  --color-brand-soft: #dcecea;
+  --color-brand-tint: #eef6f5;
+}

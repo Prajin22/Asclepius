@@ -3,6 +3,7 @@
 from functools import lru_cache
 
 from app.core.config import Settings, get_settings
+from app.core.product_config import product_config
 from app.providers.ai.anthropic_provider import DEFAULT_MODEL as ANTHROPIC_MODEL
 from app.providers.ai.anthropic_provider import AnthropicProvider
 from app.providers.ai.base import AIProvider
@@ -20,6 +21,7 @@ from app.providers.ai.gemini_provider import GeminiProvider
 from app.providers.ai.mock import MOCK_MODEL, MockAIProvider
 from app.providers.ai.openai_provider import DEFAULT_MODEL as OPENAI_MODEL
 from app.providers.ai.openai_provider import OpenAIProvider
+from app.providers.ai.policy import PolicyRestrictedProvider, restrict_to_policy
 from app.providers.ai.pricing import Price
 from app.providers.ai.runtime import CircuitBreaker
 
@@ -31,8 +33,17 @@ EXTERNAL_PROVIDERS = {
 
 
 def build_ai_provider(settings: Settings | None = None) -> AIProvider:
-    """Instantiate the configured provider. DEMO_MODE always yields the mock."""
+    """Instantiate the configured provider, held to the product's AI policy.
+
+    DEMO_MODE always yields the mock. CareBridge's policy permits every
+    capability, so it gets the provider itself, exactly as before; IP-SAKTI's
+    permits none yet, so it gets a wrapper that refuses each one (D-079).
+    """
     settings = settings or get_settings()
+    return restrict_to_policy(_build_unrestricted(settings), product_config(settings.product).ai_policy)
+
+
+def _build_unrestricted(settings: Settings) -> AIProvider:
     name = settings.effective_ai_provider
 
     if name == "mock":
@@ -92,6 +103,7 @@ __all__ = [
     "GeminiProvider",
     "MockAIProvider",
     "OpenAIProvider",
+    "PolicyRestrictedProvider",
     "build_ai_provider",
     "get_ai_provider",
     "get_circuit_breaker",

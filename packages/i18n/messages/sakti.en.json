@@ -1,0 +1,188 @@
+{
+  "app": {
+    "name": "IP-SAKTI Sahayak",
+    "domain": "Intellectual Property & Regulatory Guidance for Ayurvedic Products"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
+  "actions": {
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "signOut": "Sign out",
+    "retry": "Try again",
+    "close": "Close",
+    "back": "Back"
+  },
+  "state": {
+    "loading": "Loading…",
+    "errorNote": "Nothing was changed."
+  },
+  "language": {
+    "switcher": "Display language"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Please check your connection.",
+    "unauthorized": "Your session has ended. Please sign in again.",
+    "authentication_failed": "The email or password is incorrect.",
+    "wrong_role": "This account cannot be used here.",
+    "forbidden": "You do not have access to this.",
+    "not_found": "This could not be found.",
+    "validation": "Please check the information you entered.",
+    "invalid_input": "Please check the information you entered."
+  },
+  "disclaimer": {
+    "short": "Information and guidance grounded in cited sources — not legal advice, and not a substitute for a qualified professional.",
+    "prototype": "Smart India Hackathon prototype · problem statement SIH26045. Not an official government service."
+  },
+  "role": {
+    "user": "User",
+    "facilitator": "IP facilitator",
+    "curator": "Corpus curator",
+    "admin": "Administrator"
+  },
+  "areaLabel": {
+    "facilitator": "Facilitator desk",
+    "curator": "Corpus curation",
+    "admin": "Administration"
+  },
+  "nav": {
+    "main": "Main navigation",
+    "ask": "Ask",
+    "classify": "Classify",
+    "myProduct": "My Product",
+    "escalate": "Escalate",
+    "incoming": "Incoming escalations",
+    "brief": "Brief",
+    "messages": "Messages",
+    "notes": "Notes",
+    "corpus": "Corpus",
+    "upload": "Upload",
+    "drafts": "Draft / Diff",
+    "approve": "Approve",
+    "facilitators": "Facilitators"
+  },
+  "notAvailable": {
+    "badge": "Not available yet",
+    "title": "Not available yet",
+    "body": "This screen shows where the feature will be. Nothing here works yet, and nothing shown here is legal information.",
+    "whenReady": "When it is ready, this area will:"
+  },
+  "pages": {
+    "ask": {
+      "title": "Ask",
+      "description": "Ask a question about intellectual property or regulation for an Ayurvedic product.",
+      "points": {
+        "one": "Quote the official text each answer relies on, with its source and date.",
+        "two": "Answer Indian and international material separately, never mixed together.",
+        "three": "Say so when the sources do not support an answer, and offer a human facilitator instead."
+      }
+    },
+    "classify": {
+      "title": "Classify",
+      "description": "Describe your product through a few questions and see which category your answers point to.",
+      "points": {
+        "one": "Ask about your product one question at a time, and show why each question was asked.",
+        "two": "Show the category your own answers lead to — never a legal determination."
+      }
+    },
+    "myProduct": {
+      "title": "My Product",
+      "description": "Describe your product once, so later answers can refer to it.",
+      "points": {
+        "one": "Hold the product or formulation name, its ingredients and its intended purpose.",
+        "two": "Hold formulation details and manufacturing information.",
+        "three": "Hold source documents you choose to attach."
+      },
+      "note": "A profile describes your product. It is never treated as a legal classification."
+    },
+    "escalate": {
+      "title": "Escalate",
+      "description": "When the sources are not enough, send your question to a person.",
+      "points": {
+        "one": "Send your question to a human IP facilitator.",
+        "two": "Show the facilitator's reply as theirs, with their name and role."
+      }
+    },
+    "incoming": {
+      "title": "Incoming escalations",
+      "description": "Questions users have sent to a facilitator.",
+      "points": {
+        "one": "Collect the questions users escalate.",
+        "two": "Show for each what the user asked, and what the sources did and did not support."
+      }
+    },
+    "brief": {
+      "title": "Brief",
+      "description": "Everything about one escalation, in one place.",
+      "points": {
+        "one": "Bring together the question, the user's product profile and the sources already found."
+      }
+    },
+    "messages": {
+      "title": "Messages",
+      "description": "The conversation with the user.",
+      "points": {
+        "one": "Carry your replies to the user, shown as yours and with your role."
+      }
+    },
+    "notes": {
+      "title": "Notes",
+      "description": "Your private notes on an escalation.",
+      "points": {
+        "one": "Keep working notes on an escalation that only facilitators can see."
+      }
+    },
+    "corpus": {
+      "title": "Corpus",
+      "description": "The library of official source documents.",
+      "points": {
+        "one": "List every official source document with its issuing authority, retrieval date and fingerprint.",
+        "two": "Make sure only approved text is ever quoted to users."
+      }
+    },
+    "upload": {
+      "title": "Upload",
+      "description": "Add an official source document.",
+      "points": {
+        "one": "Accept official source documents, and use none of them until they are approved."
+      }
+    },
+    "drafts": {
+      "title": "Draft / Diff",
+      "description": "Compare proposed changes before they are approved.",
+      "points": {
+        "one": "Set a proposed version of a provision beside the version it would replace."
+      }
+    },
+    "approve": {
+      "title": "Approve",
+      "description": "A second check on source material.",
+      "points": {
+        "one": "Require a second person to approve source material before anyone can be shown it."
+      }
+    },
+    "facilitators": {
+      "title": "Facilitators",
+      "description": "Manage IP facilitators.",
+      "points": {
+        "one": "Add IP facilitators and show who is available."
+      }
+    }
+  },
+  "landing": {
+    "lead": "A guide to intellectual property and regulation for Ayurvedic products — being built to answer from official sources, to show the exact text it relied on, and to keep Indian and international law apart.",
+    "status": "In development. Questions, classification and the source library are not available yet.",
+    "areasTitle": "What it is being built to do"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "description": "Use the account you were given. Your role decides what you see.",
+    "email": "Email",
+    "password": "Password",
+    "demoTitle": "Demo accounts (synthetic)",
+    "demoFill": "Fill in as {role}",
+    "wrongProduct": "This server is running a different product, so signing in here will not work."
+  }
+}

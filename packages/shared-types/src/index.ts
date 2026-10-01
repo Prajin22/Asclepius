@@ -9,7 +9,35 @@ export type ISODate = string;
 
 // ---------- enums ----------
 
-export type Role = "patient" | "doctor" | "admin";
+/** Which product a build serves. Mirror of backend/app/core/product.py (D-077). */
+export const PRODUCTS = ["carebridge", "ip_sakti"] as const;
+export type Product = (typeof PRODUCTS)[number];
+
+/** CareBridge's roles. */
+export type CareBridgeRole = "patient" | "doctor" | "admin";
+/** IP-SAKTI Sahayak's roles. `admin` belongs to both products (D-078). */
+export type SaktiRole = "user" | "facilitator" | "curator" | "admin";
+/** Every role an account can hold. Which ones a product accepts: ROLES_BY_PRODUCT. */
+export type Role = CareBridgeRole | SaktiRole;
+
+/** Mirror of backend/app/core/product_config.py. */
+export const ROLES_BY_PRODUCT = {
+  carebridge: ["patient", "doctor", "admin"],
+  ip_sakti: ["user", "facilitator", "curator", "admin"],
+} as const satisfies Record<Product, readonly Role[]>;
+
+export function isProduct(value: unknown): value is Product {
+  return typeof value === "string" && (PRODUCTS as readonly string[]).includes(value);
+}
+
+/** GET /meta/product — which product the API serves. */
+export interface ProductInfo {
+  product: Product;
+  display_name: string;
+  roles: Role[];
+  demo_mode: boolean;
+  ai_policy: { id: string; document: string; rules: string[]; capabilities: string[] };
+}
 
 export const LANGUAGE_CODES = ["en", "hi", "ta", "te", "kn", "ml", "mr", "bn", "gu", "pa", "or", "as"] as const;
 export type LanguageCode = (typeof LANGUAGE_CODES)[number];

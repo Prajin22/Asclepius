@@ -146,6 +146,16 @@ sign-in page.
 - Database migrations run automatically on every deploy (`alembic upgrade head`).
 - The Vercel project redeploys on push to `main`; Render does too.
 
+## IP-SAKTI Sahayak
+
+The `ip-sakti` branch builds a second product from the same code (D-077). It is
+not deployed, and deploying it must not reconfigure the existing deployment:
+it needs its **own** Render service and database with `PRODUCT=ip_sakti`, and
+its own Vercel project with `NEXT_PUBLIC_PRODUCT=ip_sakti` and
+`NEXT_PUBLIC_API_BASE_URL` pointing at that service. `DEMO_MODE=true` applies
+there too. Leave `PRODUCT` unset on the existing services; unset means
+CareBridge.
+
 ## What is deliberately not deployed
 
 - **No AI provider keys.** `DEMO_MODE=true` means the deployed demo never calls
