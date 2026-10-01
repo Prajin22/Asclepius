@@ -1,6 +1,8 @@
-import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
+"use client";
 
-/** Not built yet: a clearly marked placeholder, nothing that looks as if it works. */
+import { MyProducts } from "@/components/sakti/classify/MyProducts";
+
+/** Phase 3: the user's own product profiles. */
 export default function MyProductPage() {
-  return <SaktiPlaceholder page="myProduct" />;
+  return <MyProducts />;
 }

@@ -7,6 +7,7 @@ import { Card, EmptyState, ErrorState, PageHeader, SegmentedTabs, SkeletonCard, 
 import Link from "next/link";
 import { useState } from "react";
 import { UploadIcon } from "@/components/icons";
+import { ClassifierReferenceStatus } from "@/components/sakti/corpus/ClassifierReferences";
 import { LaneBadge } from "@/components/sakti/corpus/labels";
 import { SourceRow } from "@/components/sakti/corpus/rows";
 
@@ -64,6 +65,15 @@ export default function CorpusPage() {
             </Card>
           )}
         </div>
+      </section>
+
+      <section aria-labelledby="classifier-references" className="mt-8">
+        <h2 id="classifier-references" className="text-subheading text-ink">
+          {t("corpus.classifier.listTitle")}
+        </h2>
+        <Card className="mt-3">
+          <ClassifierReferenceStatus />
+        </Card>
       </section>
 
       <section aria-labelledby="instruments-title" className="mt-8">

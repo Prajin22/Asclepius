@@ -30,6 +30,12 @@ machine transcription for a curator to check; no page is ever sent to a model,
 and no model writes, repairs or summarises corpus text (D-086). Differences
 between versions are computed by `difflib`, not judged by a model.
 
+Phase 3's classifier adds none either. A category comes from fixed rules over
+the user's chosen answers (D-088); an answer of "unknown" stops the classifier,
+and no model is asked to guess. If free-text answers are ever mapped to yes, no
+or unknown by a model, that model may only map — never choose a category, add a
+fact, cite a source or override the tree.
+
 ## Rules every output must honour
 
 Each rule has a stable code. The code list lives in

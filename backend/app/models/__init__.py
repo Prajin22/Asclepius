@@ -26,6 +26,13 @@ from app.models.consultation import (
 )
 from app.models.doctor import DoctorLanguage, DoctorProfile
 from app.models.document import DocumentExtraction, DocumentPage
+from app.models.formulation import (
+    ClassificationAnswer,
+    ClassificationOutcome,
+    ClassificationSession,
+    ClassifierReferenceLink,
+    ProductProfile,
+)
 from app.models.medical import MedicalDocument, MedicalRecord
 from app.models.patient import PatientProfile
 from app.models.summary import ConsultationSummary
@@ -35,6 +42,10 @@ __all__ = [
     "AIArtifact",
     "AIExtractedFact",
     "AuditEvent",
+    "ClassificationAnswer",
+    "ClassificationOutcome",
+    "ClassificationSession",
+    "ClassifierReferenceLink",
     "Consultation",
     "ConsultationMessage",
     "ConsultationShare",
@@ -56,6 +67,7 @@ __all__ = [
     "PatientProfile",
     "Prescription",
     "PrescriptionItem",
+    "ProductProfile",
     "Provision",
     "ProvisionStatusEvent",
     "ProvisionVersion",

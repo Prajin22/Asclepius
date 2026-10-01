@@ -3,7 +3,8 @@
  *
  * One entry per screen. A screen is a placeholder until the phase that builds
  * it flips `available`; nothing may be shown as working before it does. Phase 2
- * built the curator's four screens; every other screen is still a placeholder.
+ * built the curator's four screens and Phase 3 the user's Classify and My
+ * Product; every other screen is still a placeholder.
  */
 import type { SaktiRole } from "@carebridge/shared-types";
 import type { ComponentProps, ReactNode } from "react";
@@ -52,8 +53,8 @@ export interface SaktiPageInfo {
 
 export const SAKTI_PAGES: Record<SaktiPage, SaktiPageInfo> = {
   ask: { points: ["one", "two", "three"], available: false },
-  classify: { points: ["one", "two"], available: false },
-  myProduct: { points: ["one", "two", "three"], note: true, available: false },
+  classify: { points: ["one", "two"], available: true },
+  myProduct: { points: ["one", "two", "three"], note: true, available: true },
   escalate: { points: ["one", "two"], available: false },
   incoming: { points: ["one", "two"], available: false },
   brief: { points: ["one"], available: false },

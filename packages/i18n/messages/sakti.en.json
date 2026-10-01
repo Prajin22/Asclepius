@@ -61,7 +61,17 @@
     "validity_not_ordered": "The end date is before the start date.",
     "document_integrity_failed": "The stored file no longer matches what was uploaded. Nothing was approved.",
     "version_conflict": "Someone else changed this provision at the same moment. Try again.",
-    "approver_must_differ": "A different curator must approve this."
+    "approver_must_differ": "A different curator must approve this.",
+    "classification_open": "This product already has a classification in progress. Continue that one, or start again from it.",
+    "classification_final": "This classification is final. Start again to classify the product afresh.",
+    "question_not_applicable": "That question does not apply at this point.",
+    "invalid_choice": "That is not one of the question's answers.",
+    "classification_not_determined": "There is no classification to confirm or reject yet.",
+    "outcome_changed": "The classification changed since you looked at it. Look again before deciding.",
+    "classification_conflict": "This changed at the same moment somewhere else. Reload and try again.",
+    "classifier_tree_changed": "The questions this classification used are no longer available in this version.",
+    "classifier_tree_unavailable": "The questions this classification used are not available in this version.",
+    "provision_not_approved": "Only approved corpus text can support the classifier."
   },
   "disclaimer": {
     "short": "Information and guidance grounded in cited sources — not legal advice, and not a substitute for a qualified professional.",
@@ -112,7 +122,7 @@
     },
     "classify": {
       "title": "Classify",
-      "description": "Describe your product through a few questions and see which category your answers point to.",
+      "description": "Answer a few fixed questions about one of your products and see which category your answers lead to.",
       "points": {
         "one": "Ask about your product one question at a time, and show why each question was asked.",
         "two": "Show the category your own answers lead to — never a legal determination."
@@ -120,7 +130,7 @@
     },
     "myProduct": {
       "title": "My Product",
-      "description": "Describe your product once, so later answers can refer to it.",
+      "description": "Describe your products. What you write here is your own description, not a classification.",
       "points": {
         "one": "Hold the product or formulation name, its ingredients and its intended purpose.",
         "two": "Hold formulation details and manufacturing information.",
@@ -472,10 +482,188 @@
       "noProvisions": "No provisions yet.",
       "sources": "Source documents of this instrument",
       "issuedBy": "Issued by {issuer}"
+    },
+    "classifier": {
+      "title": "Support for the classifier",
+      "help": "Link this approved text to a reference the classifier rests on. Only approved text in the same lane can be linked, and the link is recorded.",
+      "slot": "Classifier reference",
+      "link": "Link this text",
+      "linking": "Linking…",
+      "linked": "Linked. The reference is now verified.",
+      "current": "References this text supports",
+      "none": "None yet.",
+      "listTitle": "Classifier references",
+      "listHelp": "What the classifier's questions rest on, and whether approved text supports each one yet."
     }
   },
   "units": {
     "kb": "{n} KB",
     "mb": "{n} MB"
+  },
+  "product": {
+    "add": "Add a product",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "create": "Add product",
+    "classify": "Classify",
+    "empty": "You have not described a product yet.",
+    "factsNote": "These are your facts about your product, kept as you write them. They are not a classification and not a legal determination.",
+    "notClassified": "Not classified yet",
+    "confirmedAs": "Your confirmed classification: {category}",
+    "inProgress": "A classification is in progress",
+    "revision": "Version {number}",
+    "field": {
+      "name": "Product or formulation name",
+      "intended_use": "What it is for, in your words",
+      "dosage_form": "Form (for example tablet, oil, powder)",
+      "administration_route": "How it is taken or applied",
+      "ingredients": "Ingredients",
+      "preparation_method": "How it is prepared",
+      "classical_reference": "Classical text or formulation it follows, if any",
+      "extract_description": "Extract or fraction details",
+      "standardization_description": "Standardisation details",
+      "markers": "Defined markers",
+      "notes": "Notes",
+      "text_language": "Language you are writing in"
+    },
+    "route": {
+      "oral": "By mouth",
+      "topical": "On the skin",
+      "nasal": "Through the nose",
+      "parenteral": "By injection or infusion",
+      "other": "Another way",
+      "unknown": "Not known"
+    },
+    "ingredient": {
+      "name": "Ingredient",
+      "part_used": "Part used",
+      "quantity": "Quantity",
+      "add": "Add an ingredient",
+      "remove": "Remove ingredient {number}"
+    },
+    "marker": {
+      "name": "Marker",
+      "add": "Add a marker",
+      "remove": "Remove marker {number}"
+    },
+    "none": "Not given"
+  },
+  "classifier": {
+    "choice": {
+      "therapeutic": "Therapeutic use",
+      "nutrition": "Nutrition, as food",
+      "external_beautification": "External beautification",
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "I don't know"
+    },
+    "category": {
+      "classical": "Classical formulation",
+      "patent_proprietary": "Patent or proprietary formulation",
+      "new_or_non_classical": "New or non-classical formulation",
+      "phytopharmaceutical": "Phytopharmaceutical",
+      "ayurveda_aahara": "Ayurveda Aahara",
+      "cosmetic": "Cosmetic"
+    },
+    "status": {
+      "incomplete": "In progress",
+      "requires_information": "Requires information",
+      "determined": "Determined from your answers",
+      "user_confirmed": "Confirmed by you",
+      "user_rejected": "Rejected by you",
+      "superseded": "Replaced by a newer classification"
+    },
+    "reference": {
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "corpus_required": "Corpus required",
+      "verifiedNote": "Linked by a curator to approved text in the source library.",
+      "unverifiedNote": "Linked, but to text that is not approved. It is not relied on.",
+      "corpusRequiredNote": "The official text for this has not been added to the source library yet, so nothing is cited.",
+      "pointer": "{instrument} · {locator} · version {version} · {source}"
+    },
+    "v1": {
+      "purpose": {
+        "question": "What is the product's main purpose?",
+        "help": "The purpose decides which group of rules the product is looked at under first.",
+        "missing": "The product's main purpose.",
+        "why": "Without it the classifier cannot tell which group of categories to consider."
+      },
+      "classical_formula": {
+        "question": "Is the formula and method exactly as given in a text listed in the relevant First Schedule?",
+        "help": "Answer yes only if you can name the listed text and the product follows its formula and method exactly.",
+        "missing": "Whether the formula and method follow a listed text exactly.",
+        "why": "This decides whether the product can be a classical formulation."
+      },
+      "schedule_combination": {
+        "question": "Does it contain only ingredients from the relevant First Schedule, in a new combination, and is it not given by injection or infusion?",
+        "help": "Answer yes only if all three are true. If any one is not, answer no.",
+        "missing": "Whether every ingredient is from the First Schedule, whether the combination is new, and how the product is given.",
+        "why": "This decides whether the product can be a patent or proprietary formulation."
+      },
+      "phytopharmaceutical": {
+        "question": "Is it a purified and standardised extract or fraction of a plant, with at least four defined markers?",
+        "help": "Count only markers that are defined for this extract or fraction.",
+        "missing": "Whether the product is a purified, standardised plant extract or fraction, and how many defined markers it has.",
+        "why": "This decides whether the product can be a phytopharmaceutical."
+      },
+      "slot": {
+        "first_schedule": "The First Schedule these questions refer to",
+        "category_classical": "The official description of a classical formulation",
+        "category_patent_proprietary": "The official description of a patent or proprietary formulation",
+        "category_new_or_non_classical": "The official basis for a new or non-classical formulation, if one exists",
+        "category_phytopharmaceutical": "The official description of a phytopharmaceutical",
+        "category_ayurveda_aahara": "The official description of Ayurveda Aahara",
+        "category_cosmetic": "The official description of a cosmetic"
+      }
+    },
+    "start": {
+      "product": "Product",
+      "begin": "Start classifying",
+      "continue": "Continue the classification in progress",
+      "noProducts": "Describe a product first, on My Product.",
+      "toMyProduct": "Go to My Product",
+      "history": "Earlier classifications of this product",
+      "noHistory": "None yet."
+    },
+    "session": {
+      "title": "Classifying {product}",
+      "tree": "Classifier version {version} · engineering draft, not yet legally reviewed",
+      "back": "Classify",
+      "answered": "Your answers",
+      "change": "Change",
+      "cancelChange": "Keep this answer",
+      "continue": "Continue",
+      "saving": "Saving…",
+      "context": "What you told us about the product",
+      "noContext": "You have not described this yet.",
+      "stopTitle": "Information needed",
+      "stopMissing": "Missing: {missing}",
+      "stopWhy": "Why it is needed: {why}",
+      "stopBody": "The classifier cannot determine a classification from the information available. Nothing has been assumed and no category has been chosen. Change the answer when you know more.",
+      "resultTitle": "Result",
+      "classification": "Classification",
+      "status": "Status",
+      "confirmation": "Confirmation",
+      "awaiting": "Awaiting your confirmation",
+      "confirmedOn": "Confirmed by you on {date}",
+      "rejectedOn": "Rejected by you on {date}",
+      "references": "References",
+      "resultNote": "This is the category the classifier's fixed questions lead to from your answers. It is not a legal determination, not an approval, and not advice.",
+      "confirm": "Confirm this classification",
+      "reject": "Reject",
+      "rejectReason": "Why it does not fit (optional)",
+      "confirmReject": "Reject this classification",
+      "cancel": "Cancel",
+      "rejectedNote": "No other category was chosen in its place. To revise your answers, start again.",
+      "restart": "Start again",
+      "restarting": "Starting…",
+      "superseded": "This classification was replaced by a newer one. It is kept as it was.",
+      "history": "Results in this classification",
+      "historyItem": "{number}. {result}",
+      "stoppedAt": "Stopped: information needed"
+    }
   }
 }

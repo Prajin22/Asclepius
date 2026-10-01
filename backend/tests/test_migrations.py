@@ -265,14 +265,14 @@ def test_ip_sakti_corpus_revision_adds_the_corpus_and_its_guards_and_nothing_els
     before = set(inspect(engine).get_table_names())
 
     command.upgrade(cfg, "ipsakti_0002")
-    assert _head(cfg) == "ipsakti_0002"
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "ipsakti_0002"
     inspector = inspect(engine)
     assert set(inspector.get_table_names()) - before == CORPUS_TABLES
     assert _corpus_triggers(engine) == {f"trg_{t}_immutable" for t in CORPUS_TABLES}
     for table in CORPUS_TABLES:
         lane = next(c for c in inspector.get_columns(table) if c["name"] == "lane") if table != "corpus_pages" else None
         assert table == "corpus_pages" or lane["nullable"] is False
-    command.check(cfg)
 
     command.downgrade(cfg, "ipsakti_0001")
     assert set(inspect(engine).get_table_names()) == before
@@ -315,7 +315,7 @@ def test_ip_sakti_corpus_triggers_hold_in_a_migrated_database():
 def test_ip_sakti_corpus_downgrade_refuses_to_drop_curated_records():
     cfg = _config()
     command.downgrade(cfg, "base")
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, "ipsakti_0002")
     engine = create_engine(URL)
     with engine.begin() as conn:
         user = conn.execute(text(
@@ -333,6 +333,78 @@ def test_ip_sakti_corpus_downgrade_refuses_to_drop_curated_records():
 
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM instruments"))
+        conn.execute(text("DELETE FROM users"))
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+CLASSIFIER_TABLES = {"product_profiles", "classification_sessions", "classification_answers",
+                     "classification_outcomes", "classifier_reference_links"}
+
+
+def test_ip_sakti_classifier_revision_adds_only_its_own_tables():
+    """ipsakti_0003 adds five tables and their triggers, touches no healthcare
+    or corpus table, and is reversible while no user data exists."""
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "ipsakti_0002")
+    engine = create_engine(URL)
+    before = set(inspect(engine).get_table_names())
+    constraints_before = {
+        t: {c["name"] for c in inspect(engine).get_foreign_keys(t)} for t in ("users", "provision_versions")
+    }
+
+    command.upgrade(cfg, "ipsakti_0003")
+    inspector = inspect(engine)
+    assert set(inspector.get_table_names()) - before == CLASSIFIER_TABLES
+    for table in CLASSIFIER_TABLES:
+        targets = {fk["referred_table"] for fk in inspector.get_foreign_keys(table)}
+        assert not targets & {"patient_profiles", "doctor_profiles", "consultations", "medical_records"}, table
+    assert {t: {c["name"] for c in inspector.get_foreign_keys(t)} for t in constraints_before} == constraints_before
+    with engine.connect() as conn:
+        triggers = set(conn.execute(text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%_final'")).scalars())
+    assert triggers == {"trg_classification_outcomes_final", "trg_classifier_reference_links_final",
+                        "trg_classification_sessions_final", "trg_classification_answers_final"}
+    command.check(cfg)
+
+    command.downgrade(cfg, "ipsakti_0002")
+    assert set(inspect(engine).get_table_names()) == before
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT COUNT(*) FROM pg_proc WHERE proname = 'sakti_refuse_final_update'")).scalar() == 0
+    command.upgrade(cfg, "head")
+    command.check(cfg)
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_ip_sakti_classifier_outcomes_never_carry_a_category_from_unknown():
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    with engine.begin() as conn:
+        user = conn.execute(text(
+            "INSERT INTO users (id, role, email, password_hash) VALUES (gen_random_uuid(), 'user', "
+            "'u@migrate.example.com', 'x') RETURNING id")).scalar_one()
+        product = conn.execute(text(
+            "INSERT INTO product_profiles (id, owner_user_id, name, ingredients, markers, revision) "
+            "VALUES (gen_random_uuid(), :u, 'Synthetic', '[]', '[]', 1) RETURNING id"), {"u": user}).scalar_one()
+        session = conn.execute(text(
+            "INSERT INTO classification_sessions (id, product_id, owner_user_id, classifier_id, tree_version, "
+            "tree_fingerprint, status, product_revision, product_snapshot, revision) VALUES (gen_random_uuid(), :p, :u, "
+            "'ip_sakti_formulation', 1, 'x', 'requires_information', 1, '{}', 1) RETURNING id"),
+            {"p": product, "u": user}).scalar_one()
+    with pytest.raises(Exception, match="category_only_when_determined"), engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO classification_outcomes (id, session_id, sequence, kind, category, stop_node_id, path, "
+            "answers_sha256, tree_version, tree_fingerprint, \"references\") VALUES (gen_random_uuid(), :s, 1, "
+            "'requires_information', 'classical', 'purpose', '[]', 'x', 1, 'x', '[]')"), {"s": session})
+
+    with pytest.raises(RuntimeError, match="Refusing to downgrade ipsakti_0003"):
+        command.downgrade(cfg, "ipsakti_0002")
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM classification_sessions"))
+        conn.execute(text("DELETE FROM product_profiles"))
         conn.execute(text("DELETE FROM users"))
     command.downgrade(cfg, "base")
     engine.dispose()

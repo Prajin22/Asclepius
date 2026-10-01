@@ -1049,3 +1049,147 @@ export interface CorpusQueue {
   sources: CorpusSourceSummary[];
   versions: ProvisionVersionSummary[];
 }
+
+// ---------------------------------------------------------------------------
+// IP-SAKTI Sahayak — product profiles and the formulation classifier (Phase 3)
+// ---------------------------------------------------------------------------
+
+export const FORMULATION_CATEGORIES = [
+  "classical", "patent_proprietary", "new_or_non_classical", "phytopharmaceutical", "ayurveda_aahara", "cosmetic",
+] as const;
+export type FormulationCategory = (typeof FORMULATION_CATEGORIES)[number];
+export type ClassificationStatus =
+  | "incomplete"
+  | "requires_information"
+  | "determined"
+  | "user_confirmed"
+  | "user_rejected"
+  | "superseded";
+export type ReferenceStatus = "verified" | "unverified" | "corpus_required";
+export const ADMINISTRATION_ROUTES = ["oral", "topical", "nasal", "parenteral", "other", "unknown"] as const;
+export type AdministrationRoute = (typeof ADMINISTRATION_ROUTES)[number];
+
+export interface ProductIngredient {
+  name: string;
+  part_used?: string | null;
+  quantity?: string | null;
+}
+
+/** What the user says about their product. Their facts, never a classification. */
+export interface ProductFields {
+  name: string;
+  intended_use?: string | null;
+  dosage_form?: string | null;
+  administration_route?: AdministrationRoute | null;
+  ingredients?: ProductIngredient[];
+  preparation_method?: string | null;
+  classical_reference?: string | null;
+  extract_description?: string | null;
+  standardization_description?: string | null;
+  markers?: string[];
+  notes?: string | null;
+  text_language?: LanguageCode | null;
+}
+
+export interface ProductProfile extends Required<Omit<ProductFields, "ingredients" | "markers">> {
+  id: UUID;
+  ingredients: ProductIngredient[];
+  markers: string[];
+  revision: number;
+  created_at: ISODateTime;
+  updated_at: ISODateTime;
+  confirmed_classification: {
+    session_id: UUID;
+    outcome_id: UUID;
+    category: FormulationCategory;
+    tree_version: number;
+    decided_at: ISODateTime;
+  } | null;
+  open_session_id: UUID | null;
+}
+
+export interface ClassifierNode {
+  id: string;
+  question_key: string;
+  help_key: string;
+  missing_key: string;
+  why_key: string;
+  choices: { id: string; label_key: string }[];
+  context_fields: string[];
+  references: string[];
+}
+
+export interface ClassifierSlot {
+  id: string;
+  lane: CorpusLane;
+  describes_key: string;
+  status: ReferenceStatus;
+  /** Approved, stored metadata only — present only when verified. */
+  provision: {
+    provision_version_id: UUID;
+    locator: string;
+    version_number: number;
+    instrument_title: string;
+    source_title: string;
+    source_authority: SourceAuthority;
+  } | null;
+}
+
+export interface ClassifierTree {
+  classifier_id: string;
+  version: number;
+  fingerprint: string;
+  current: boolean;
+  status: string;
+  legal_review: string;
+  start: string;
+  nodes: ClassifierNode[];
+  categories: FormulationCategory[];
+  slots: ClassifierSlot[];
+}
+
+export interface ClassificationStep {
+  node_id: string;
+  choice: string;
+}
+
+export interface ClassificationOutcome {
+  id: UUID;
+  sequence: number;
+  kind: "determined" | "requires_information";
+  category: FormulationCategory | null;
+  stop_node_id: string | null;
+  path: ClassificationStep[];
+  answers_sha256: string;
+  tree_version: number;
+  references: { slot_id: string; status: ReferenceStatus; provision_version_id: UUID | null }[];
+  created_at: ISODateTime;
+}
+
+export interface ClassificationSummary {
+  id: UUID;
+  product_id: UUID;
+  status: ClassificationStatus;
+  tree_version: number;
+  category: FormulationCategory | null;
+  created_at: ISODateTime;
+  decided_at: ISODateTime | null;
+  restarted_from_id: UUID | null;
+}
+
+export interface ClassificationSession extends ClassificationSummary {
+  product_name: string;
+  classifier_id: string;
+  tree_fingerprint: string;
+  current_node_id: string | null;
+  path: ClassificationStep[];
+  latest_outcome: ClassificationOutcome | null;
+  outcomes: ClassificationOutcome[];
+  answer_history: { node_id: string; choice: string; answered_at: ISODateTime; superseded_at: ISODateTime | null }[];
+  references: ClassifierSlot[];
+  product_revision: number;
+  product_snapshot: Record<string, unknown>;
+  decided_outcome_id: UUID | null;
+  rejection_reason: string | null;
+  updated_at: ISODateTime;
+}

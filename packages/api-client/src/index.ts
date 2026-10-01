@@ -1,4 +1,10 @@
 import type {
+  ClassificationSession,
+  ClassificationSummary,
+  ClassifierSlot,
+  ClassifierTree,
+  ProductFields,
+  ProductProfile,
   AIFactAction,
   AIFact,
   AIProcessing,
@@ -359,6 +365,50 @@ export function createApiClient(config: ClientConfig) {
         request<StatusEvent>(`/corpus/versions/${enc(versionId)}/status-events`, { method: "POST", body: data }),
       reviewQueue: () => request<CorpusQueue>("/corpus/review-queue"),
       drafts: () => request<CorpusQueue>("/corpus/drafts"),
+      /** Point a classifier reference slot at an approved provision version (curator only). */
+      linkClassifierReference: (version: number, slotId: string, provisionVersionId: string) =>
+        request<ClassifierSlot>(`/classification-tree/${version}/references/${enc(slotId)}`, {
+          method: "POST",
+          body: { provision_version_id: provisionVersionId },
+        }),
+    },
+    /** IP-SAKTI: the signed-in user's own product profiles. Their facts, never a classification. */
+    products: {
+      list: () => request<ProductProfile[]>("/products"),
+      get: (id: string) => request<ProductProfile>(`/products/${enc(id)}`),
+      create: (data: ProductFields) => request<ProductProfile>("/products", { method: "POST", body: data }),
+      /** Only the fields sent change; a field sent as null is cleared. */
+      update: (id: string, data: Partial<ProductFields>) =>
+        request<ProductProfile>(`/products/${enc(id)}`, { method: "PATCH", body: data }),
+      classifications: (id: string) => request<ClassificationSummary[]>(`/products/${enc(id)}/classifications`),
+    },
+    /**
+     * IP-SAKTI's formulation classifier. Answers are a question id and one of
+     * its choice ids — never free text; the category comes from fixed rules.
+     */
+    classifier: {
+      tree: (version?: number) =>
+        request<ClassifierTree>(version === undefined ? "/classification-tree" : `/classification-tree/${version}`),
+      start: (productId: string) =>
+        request<ClassificationSession>("/classifications", { method: "POST", body: { product_id: productId } }),
+      session: (id: string) => request<ClassificationSession>(`/classifications/${enc(id)}`),
+      respond: (id: string, nodeId: string, choice: string) =>
+        request<ClassificationSession>(`/classifications/${enc(id)}/responses`, {
+          method: "POST",
+          body: { node_id: nodeId, choice },
+        }),
+      restart: (id: string) => request<ClassificationSession>(`/classifications/${enc(id)}/restart`, { method: "POST" }),
+      /** `outcomeId` is the result the user is looking at; refused if it is no longer the latest. */
+      confirm: (id: string, outcomeId: string) =>
+        request<ClassificationSession>(`/classifications/${enc(id)}/confirm`, {
+          method: "POST",
+          body: { outcome_id: outcomeId },
+        }),
+      reject: (id: string, outcomeId: string, reason?: string | null) =>
+        request<ClassificationSession>(`/classifications/${enc(id)}/reject`, {
+          method: "POST",
+          body: { outcome_id: outcomeId, reason: reason || null },
+        }),
     },
   };
 }

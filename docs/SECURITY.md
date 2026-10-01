@@ -133,6 +133,17 @@
 4. **Source files are not virus-scanned**, and "Open the original file" hands the
    PDF to the browser's own viewer.
 
+## IP-SAKTI product profiles and classifier (Phase 3)
+
+| Control | Where |
+|---|---|
+| Product and classification routes exist only when `PRODUCT=ip_sakti` and only for the `user` role; another user's product or session is "not found" (404), so nothing about it is disclosed | `api/v1/products.py`, `api/v1/classification.py`, `test_classification_api.py` |
+| An answer is a question id and one of its choice ids, validated against the session's tree; free text, unknown fields and unreached questions are refused | `schemas/classification.py`, `sakti/classifier/service.answer` |
+| The category comes from a pure, deterministic walk with no model call; "unknown" stops it, and the database refuses a category without a determined walk | `sakti/classifier/engine.py`, CHECK `category_only_when_determined` |
+| Confirmed, rejected and superseded sessions, outcomes, superseded answers and reference links refuse UPDATE (triggers); a decision must name the latest outcome | `models/formulation.py`, `ipsakti_0003`, D-090 |
+| Only approved provision versions of a slot's lane can be linked as legal pointers, by curators only | `sakti/classifier/service.link_reference`, D-091 |
+| Audit records ids, choice codes and the tree version — never the profile's free text | `sakti/classifier/service.py` |
+
 ## Known limitations (deliberate, Phase 1)
 
 1. **Token storage.** The JWT lives in `sessionStorage`, so a successful XSS in

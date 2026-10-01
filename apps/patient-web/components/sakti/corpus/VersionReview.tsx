@@ -10,6 +10,7 @@ import { ArrowLeftIcon } from "@/components/icons";
 import { DiffView } from "./DiffView";
 import { Checksum, Fact, LaneBadge, ReviewBadge, pageRange } from "./labels";
 import { ReviewActions } from "./ReviewActions";
+import { ClassifierReferenceLinker } from "./ClassifierReferences";
 import { StatusHistory } from "./StatusHistory";
 
 /** One provision version: its exact text, where it came from, how it differs, and its status history. */
@@ -104,6 +105,17 @@ export function VersionReview({ id }: { id: string }) {
               )}
             </div>
           </Card>
+
+          {version.review_state === "approved" ? (
+            <Card aria-labelledby="classifier-support">
+              <h2 id="classifier-support" className="text-subheading text-ink">
+                {t("corpus.classifier.title")}
+              </h2>
+              <div className="mt-3">
+                <ClassifierReferenceLinker version={version} />
+              </div>
+            </Card>
+          ) : null}
 
           <Card aria-labelledby="status-history">
             <h2 id="status-history" className="text-subheading text-ink">

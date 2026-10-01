@@ -6,8 +6,8 @@ over the same test database. Each test is about one promise:
 * PRODUCT=carebridge serves exactly what it served before the boundary existed,
   plus one read-only metadata endpoint;
 * PRODUCT=ip_sakti serves no healthcare route; its own routes are sign-in,
-  metadata and, from Phase 2, the curator's source corpus — and nothing that
-  answers, searches or classifies;
+  metadata, the curator's source corpus (Phase 2) and product profiles with
+  the formulation classifier (Phase 3) — and nothing that answers or searches;
 * each product accepts its own roles and no others, and a token works only in
   the product that issued it;
 * each product has its own AI policy, and IP-SAKTI's permits nothing yet;
@@ -47,8 +47,8 @@ from tests.conftest import API, PASSWORD, auth, run_async
 SNAPSHOT = Path(__file__).parent / "data" / "carebridge_api_operations.json"
 METHODS = ("get", "post", "put", "patch", "delete")
 #: Areas that belong to later IP-SAKTI phases. Not one may exist yet. ("corpus"
-#: and "provision" left this list in Phase 2, which builds the curator's corpus.)
-FUTURE_LEGAL_WORDS = ("answer", "ask", "classif", "retriev", "search", "embed", "citation", "escalat", "curator",
+#: and "provision" left this list in Phase 2, "classif" in Phase 3.)
+FUTURE_LEGAL_WORDS = ("answer", "ask", "retriev", "search", "embed", "citation", "escalat", "curator",
                       "facilitator", "product-profile", "abs", "tkdl")
 
 
@@ -167,7 +167,26 @@ IP_SAKTI_CORPUS_OPERATIONS = {
 }
 
 
-def test_ip_sakti_serves_sign_in_metadata_and_the_curator_corpus_only():
+#: Phase 3: product profiles and the formulation classifier (D-087).
+IP_SAKTI_CLASSIFIER_OPERATIONS = {
+    "GET /api/v1/products",
+    "POST /api/v1/products",
+    "GET /api/v1/products/{product_id}",
+    "PATCH /api/v1/products/{product_id}",
+    "GET /api/v1/products/{product_id}/classifications",
+    "POST /api/v1/classifications",
+    "GET /api/v1/classifications/{session_id}",
+    "POST /api/v1/classifications/{session_id}/responses",
+    "POST /api/v1/classifications/{session_id}/restart",
+    "POST /api/v1/classifications/{session_id}/confirm",
+    "POST /api/v1/classifications/{session_id}/reject",
+    "GET /api/v1/classification-tree",
+    "GET /api/v1/classification-tree/{version}",
+    "POST /api/v1/classification-tree/{version}/references/{slot_id}",
+}
+
+
+def test_ip_sakti_serves_only_its_shell_corpus_and_classifier():
     assert operations(create_app(Product.IP_SAKTI)) == {
         "POST /api/v1/auth/login",
         "GET /api/v1/auth/me",
@@ -175,7 +194,7 @@ def test_ip_sakti_serves_sign_in_metadata_and_the_curator_corpus_only():
         "GET /api/v1/meta/ai",
         "GET /api/v1/meta/product",
         "GET /health",
-    } | IP_SAKTI_CORPUS_OPERATIONS
+    } | IP_SAKTI_CORPUS_OPERATIONS | IP_SAKTI_CLASSIFIER_OPERATIONS
 
 
 def test_ip_sakti_mounts_no_healthcare_route():

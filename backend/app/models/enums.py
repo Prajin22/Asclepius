@@ -460,3 +460,73 @@ class ProvisionStatus(StrEnum):
     OMITTED = "omitted"
     DISPUTED = "disputed"
     WITHDRAWN = "withdrawn"
+
+
+# ---------------------------------------------------------------------------
+# IP-SAKTI Sahayak — product profiles and the formulation classifier (Phase 3)
+# ---------------------------------------------------------------------------
+
+
+class FormulationCategory(StrEnum):
+    """The six categories the build brief's classifier can arrive at (D-087).
+
+    Exactly these. A seventh is a new, versioned classifier tree, never an
+    addition here because it seemed useful. The values are stable machine
+    identifiers; what each is called on screen lives in the catalogue.
+    """
+
+    CLASSICAL = "classical"
+    PATENT_PROPRIETARY = "patent_proprietary"
+    NEW_OR_NON_CLASSICAL = "new_or_non_classical"
+    PHYTOPHARMACEUTICAL = "phytopharmaceutical"
+    AYURVEDA_AAHARA = "ayurveda_aahara"
+    COSMETIC = "cosmetic"
+
+
+class ClassificationStatus(StrEnum):
+    """Where one classification session stands. Never a percentage.
+
+    incomplete: a question is waiting. requires_information: an answer was
+    "unknown", so the classifier stopped there and produced no category.
+    determined: the tree reached a category, which the user has not yet
+    confirmed. user_confirmed / user_rejected / superseded are final.
+    """
+
+    INCOMPLETE = "incomplete"
+    REQUIRES_INFORMATION = "requires_information"
+    DETERMINED = "determined"
+    USER_CONFIRMED = "user_confirmed"
+    USER_REJECTED = "user_rejected"
+    SUPERSEDED = "superseded"
+
+
+class OutcomeKind(StrEnum):
+    """What a walk of the tree ended in. An unknown answer never yields a category."""
+
+    DETERMINED = "determined"
+    REQUIRES_INFORMATION = "requires_information"
+
+
+class ReferenceStatus(StrEnum):
+    """Whether a classifier node's legal pointer rests on approved corpus text.
+
+    corpus_required: no approved provision has been linked — the official text
+    is not in the corpus yet, and nothing may be cited in its place.
+    unverified: linked to a provision version that is not approved.
+    verified: linked by a curator to an approved provision version of the same lane.
+    """
+
+    VERIFIED = "verified"
+    UNVERIFIED = "unverified"
+    CORPUS_REQUIRED = "corpus_required"
+
+
+class AdministrationRoute(StrEnum):
+    """How the product is taken or applied, as the user describes it. A fact, not a ruling."""
+
+    ORAL = "oral"
+    TOPICAL = "topical"
+    NASAL = "nasal"
+    PARENTERAL = "parenteral"
+    OTHER = "other"
+    UNKNOWN = "unknown"

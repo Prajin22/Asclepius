@@ -4,6 +4,7 @@ from app.api.v1 import (
     admin,
     ai,
     auth,
+    classification,
     conversations,
     corpus,
     doctors,
@@ -11,6 +12,7 @@ from app.api.v1 import (
     messages,
     meta,
     patients,
+    products,
 )
 from app.core.product import Product
 
@@ -40,7 +42,12 @@ def build_api_router(product: Product) -> APIRouter:
         api_router.include_router(admin.router)
 
     if product == Product.IP_SAKTI:
-        # Phase 2: the curator's legal source corpus. Nothing that answers,
-        # searches or classifies — those arrive with the phases that build them.
+        # Phase 2: the curator's legal source corpus. Nothing in it answers or
+        # searches — those arrive with the phases that build them.
         api_router.include_router(corpus.router)
+        # Phase 3: product profiles and the formulation classifier. Still nothing
+        # that answers a legal question.
+        api_router.include_router(products.router)
+        api_router.include_router(classification.router)
+        api_router.include_router(classification.tree_router)
     return api_router

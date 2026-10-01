@@ -527,7 +527,8 @@ def test_every_step_is_audited_without_storing_legal_text(db, corpus):
 
 def test_no_answering_or_searching_route_exists(sakti):
     paths = " ".join(sakti.app.openapi()["paths"])
-    for word in ("answer", "ask", "search", "retriev", "query", "classif", "citation", "escalat", "embed"):
+    # "classif" left this list in Phase 3, which builds the formulation classifier.
+    for word in ("answer", "ask", "search", "retriev", "query", "citation", "escalat", "embed"):
         assert word not in paths
 
 

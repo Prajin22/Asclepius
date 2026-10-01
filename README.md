@@ -105,8 +105,12 @@ official source with its provenance, read its text exactly, take provision
 versions from it, compare against what is approved, and approve or reject —
 with India and international material kept apart and approved text immutable.
 The corpus ships **empty**: no official source file is included, and none may
-be invented. Everything else still says **Not available yet**: it gives no legal
-answers and calls no AI. It is information, not legal advice, and not an
+be invented. Phase 3 adds **My Product** and **Classify**: a user describes a
+product and answers the build brief's fixed questions, and fixed rules lead to
+one of six categories — or stop at "I don't know" with no category — which the
+user then confirms or rejects. Every legal pointer reads "corpus required" until
+a curator links approved text. Everything else still says **Not available yet**:
+it gives no legal answers and calls no AI. It is information, not legal advice, and not an
 official government service. See
 [docs/IP_SAKTI_MIGRATION_PLAN.md](docs/IP_SAKTI_MIGRATION_PLAN.md),
 [docs/IP_SAKTI_AI_POLICY.md](docs/IP_SAKTI_AI_POLICY.md) and decisions D-077 –

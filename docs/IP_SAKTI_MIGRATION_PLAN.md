@@ -860,6 +860,8 @@ None of these phases is executed by this document.
 
 ### Phase 3 — Product / formulation classifier
 
+*Built 2026-10-01 — see §24 for what was built and where it departs from this table.*
+
 | | |
 |---|---|
 | Prerequisites | Q3 (the taxonomy and its authority); decoupling of `conversation/model.py` from medical enums |
@@ -995,6 +997,8 @@ transcription step whose errors must not reach a legal question unconfirmed.
 - **Q3.** *(Phase 3)* **What is the classification taxonomy, and on whose authority?**
   The categories a product or formulation may fall into are a regulatory
   question. This plan does not propose any.
+  *Answered for Phase 3: the build brief's six categories and Q1–Q4 tree (§24).
+  Whether they match the governing law is for the legal reviewer (Q7).*
 - **Q5.** *(Phase 4)* **How is confidence defined?** Which signals, what scale, what
   threshold triggers abstention.
 - **Q6.** *(Phase 4)* **What may an answer point contain besides the quotation?** A
@@ -1138,3 +1142,93 @@ version and instrument pages.
   and Tamil; a character outside it would shift the client's line offsets, and
   the server's returned text is what the curator then sees.
 * The Hindi and Tamil interface strings are unreviewed drafts.
+
+---
+
+## 24. Phase 3 — as built (2026-10-01)
+
+**Specification.** The classification section of the IP-SAKTI build brief, as
+quoted in the Phase 3 instruction: six categories and the Q1–Q4 decision tree,
+with "unknown" stopping the classifier. The brief document itself is still not
+in the repository. This answers Q3 for Phase 3: the taxonomy is the brief's;
+whether it matches the governing law is for the legal reviewer (Q7).
+
+### Product profile
+
+`product_profiles` (migration `ipsakti_0003`): name, intended use, dosage form,
+administration route, ingredients (name, part used, quantity), preparation
+method, the classical text the user follows (by name), extract and
+standardisation details, defined markers, notes, the language the free text is
+written in, and a revision number. **User-provided facts only** — no category,
+no conclusion. Owned by one user; anyone else's is "not found". API:
+`GET/POST /products`, `GET/PATCH /products/{id}`, `GET /products/{id}/classifications`.
+
+### Classifier tree
+
+`ip_sakti_formulation` v1, as data, fingerprinted and pinned (D-087):
+
+    Q1 purpose             nutrition → AYURVEDA_AAHARA · external beautification → COSMETIC · therapeutic → Q2
+    Q2 classical_formula    yes → CLASSICAL · no → Q3
+    Q3 schedule_combination yes → PATENT_PROPRIETARY · no → Q4
+    Q4 phytopharmaceutical  yes → PHYTOPHARMACEUTICAL · no → NEW_OR_NON_CLASSICAL
+    any question           unknown → stop: requires information, no category
+
+Each node has a question, help, "what is missing" and "why it is needed" text
+key, its choices' keys, the profile fields shown beside it, and its reference
+slot ids. Categories' machine ids: `classical`, `patent_proprietary`,
+`new_or_non_classical`, `phytopharmaceutical`, `ayurveda_aahara`, `cosmetic`.
+The walk is pure and deterministic (D-088). No AI is involved anywhere.
+
+### Sessions, outcomes, confirmation
+
+`classification_sessions` record the product, the profile as it stood, the tree
+id, version and fingerprint, and the status: incomplete · requires information ·
+determined · user confirmed · user rejected · superseded. `classification_answers`
+are append-only (a revision supersedes); `classification_outcomes` are immutable
+(a category only when determined, by CHECK). A determined result awaits the
+user's explicit confirmation of the outcome they saw; rejecting puts nothing in
+its place; "start again" makes a new session and keeps the old one (D-090).
+API: `POST /classifications`, `GET /classifications/{id}`,
+`POST /classifications/{id}/responses | restart | confirm | reject`,
+`GET /classification-tree[/{version}]`.
+
+### Legal pointers
+
+Seven reference slots in v1, all India lane: the First Schedule the questions
+refer to, and the official description of each of the six categories. A slot is
+`corpus_required` until a curator links it to an approved provision version
+(`POST /classification-tree/{version}/references/{slot_id}`, curator only), then
+`verified`; text that is not approved can never be linked (D-091). **Every v1
+slot is `corpus_required`**: the corpus holds no official text.
+
+### Authorisation
+
+Users: their own products and classifications only. Facilitators, curators and
+administrators: no access to products or sessions; every IP-SAKTI role may read
+the tree; only curators link references. CareBridge has none of these routes.
+
+### Audit
+
+session created · question presented · answer recorded · answer changed · unknown
+encountered · determined · confirmed · rejected · restarted · change refused ·
+reference linked · product created · product updated — each with the tree
+version and ids or choice codes, never the profile's free text.
+
+### Departures from this plan
+
+* §18 said "the engine reused" after decoupling `conversation/model.py` from
+  medical enums. The healthcare engine was left untouched instead; the
+  classifier follows its pattern (data, fingerprints, pinned versions, a pure
+  walk) in its own small module (D-087).
+* §18 suggested the API "start, answer, review, complete". The answer endpoint is
+  `/responses`, and "complete" is the explicit confirm or reject.
+
+### Known limitations
+
+* Every legal pointer is `corpus_required` until official text is curated (Q8).
+* v1 is an engineering draft; no legal reviewer has gone through the questions
+  or the categories (Q7).
+* Product documents are not attached in Phase 3; a profile is text only.
+* There is no free-text answering and no AI normalisation; answers are choices.
+* Hindi and Tamil strings are unreviewed drafts.
+* "Start again" begins from Q1; earlier answers are not carried over.

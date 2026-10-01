@@ -51,7 +51,7 @@ describes CareBridge unless it says otherwise.
 
 | | CareBridge | IP-SAKTI Sahayak |
 |---|---|---|
-| API routes | everything below | sign-in, `auth/me`, `meta/*`, and the curator's `/corpus/*` — healthcare routes answer 404 |
+| API routes | everything below | sign-in, `auth/me`, `meta/*`, the curator's `/corpus/*`, and `/products`, `/classifications`, `/classification-tree` — healthcare routes answer 404 |
 | Roles that may sign in | patient, doctor, admin | user, facilitator, curator, admin |
 | Web areas | `(app)`, `/clinician`, `/admin` | `(ip-sakti)` group, `/admin` |
 | AI policy | [AI_POLICY.md](AI_POLICY.md) | [IP_SAKTI_AI_POLICY.md](IP_SAKTI_AI_POLICY.md) — no capability permitted yet |
@@ -71,9 +71,20 @@ flagged for checking), curators cut provision versions from the read text by
 offsets, and every source and version is approved explicitly before it counts.
 Lanes are held by composite foreign keys; approved rows are immutable by
 trigger. The code is `app/sakti/corpus/`, `app/models/corpus.py` and
-`app/api/v1/corpus.py`. No search, retrieval or answering exists yet; every
-non-curator IP-SAKTI screen is still a placeholder, and the corpus holds no
-official text — see [IP_SAKTI_MIGRATION_PLAN.md §23](IP_SAKTI_MIGRATION_PLAN.md).
+`app/api/v1/corpus.py`.
+
+Phase 3 adds product profiles and the formulation classifier (D-087 – D-091): a
+user describes a product (their facts), answers the brief's fixed questions in a
+session bound to one tree version, and a pure, deterministic walk leads to one
+of six categories or stops at "unknown" with no category. A result is a proposal
+until the user confirms it. Each question's legal pointers are slot ids that a
+curator links to approved corpus text; until then they read "corpus required".
+The code is `app/sakti/classifier/`, `app/models/formulation.py`,
+`app/api/v1/products.py` and `app/api/v1/classification.py`.
+
+No search, retrieval or answering exists yet; Ask, Escalate and the
+facilitator screens are still placeholders, and the corpus holds no official
+text — see [IP_SAKTI_MIGRATION_PLAN.md §23–§24](IP_SAKTI_MIGRATION_PLAN.md).
 
 ## 2. Layering rules
 

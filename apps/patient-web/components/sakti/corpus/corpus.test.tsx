@@ -404,10 +404,11 @@ describe("the diff", () => {
 // --------------------------------------------------------------------------
 
 describe("the curator's area", () => {
-  it("is the only area whose screens are built", () => {
-    const curator = new Set(SAKTI_NAV.curator.map((item) => item.page));
+  it("has its four screens built, and only Phase 3's two user screens besides", () => {
+    // Phase 3 built Classify and My Product; everything else is still a placeholder.
+    const built = new Set<SaktiPage>([...SAKTI_NAV.curator.map((item) => item.page), "classify", "myProduct"]);
     for (const [page, info] of Object.entries(SAKTI_PAGES) as [SaktiPage, (typeof SAKTI_PAGES)[SaktiPage]][]) {
-      expect(info.available, page).toBe(curator.has(page));
+      expect(info.available, page).toBe(built.has(page));
     }
   });
 

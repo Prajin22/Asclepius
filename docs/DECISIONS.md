@@ -1056,6 +1056,111 @@ against the last approved source of the same instrument or the last approved
 version of the same provision. The diff shows which characters differ and never
 says what a change means.
 
+## D-087 — Six categories and the brief's decision tree, as versioned data
+
+The formulation classifier has exactly the six categories the build brief's
+classification section names — classical, patent or proprietary, new or
+non-classical, phytopharmaceutical, Ayurveda Aahara, cosmetic — as stable
+machine identifiers (`FormulationCategory`); what each is called on screen lives
+in the catalogue. A seventh is a new tree version, never an addition because it
+seems useful.
+
+The tree is the brief's, as data (`app/sakti/classifier/trees/formulation_v1.py`):
+Q1 purpose (nutrition → Ayurveda Aahara, external beautification → cosmetic,
+therapeutic → Q2); Q2 formula and method exactly as in a text listed in the
+relevant First Schedule (yes → classical, no → Q3); Q3 only First Schedule
+ingredients, a new combination and not parenteral (yes → patent or proprietary,
+no → Q4); Q4 a purified, standardised plant extract or fraction with at least
+four defined markers (yes → phytopharmaceutical, no → new or non-classical). Q3
+and Q4 stay single questions, as the brief writes them; the help text says that
+"yes" needs every condition.
+
+Trees are versioned and fingerprinted, and the fingerprint of each published
+version is pinned in `registry.PUBLISHED`; a test fails if a published tree is
+edited. A session records the tree id, version and fingerprint it started on,
+and is refused — not reinterpreted — if this build's copy of that version
+differs. The pattern is the Phase 5 history flows' (D-061, D-066); the code is
+not, because the healthcare engine walks a clinical question list, not a tree
+to categories, and importing it would tie the two products together. v1 is an
+engineering draft: a legal reviewer must go through it before anyone relies on
+it (plan Q7).
+
+## D-088 — The walk is deterministic, and "unknown" is a hard stop
+
+The engine (`app/sakti/classifier/engine.py`) is pure: a tree and answers in, a
+question, a stop or a category out — no database, clock, network or model, and a
+test fails if it imports one. The same tree version and answers always give the
+same result, and a stored outcome can be replayed from its tree version and path
+and must match its stored answers' hash.
+
+Every question offers "I don't know", and that choice — and only that choice —
+stops the walk where it is given. A stop produces no category: the database's
+CHECK on `classification_outcomes` refuses one, the session reports what is
+missing and why that question is asked, and nothing is said about what the
+category "probably" is. No model is asked to fill the gap.
+
+Answers are a question id and one of that question's choice ids, never free
+text, so nothing a user types can steer the tree; no LLM maps text to answers in
+Phase 3. A question the walk has not reached cannot be answered. Revising an
+earlier answer supersedes it and every later one, and the walk continues from
+there.
+
+## D-089 — A profile is the user's facts; the classification is the system's; references are the curator's
+
+Three kinds of thing are kept apart. `product_profiles` hold what the user says
+about their product — name, intended use, form, route, ingredients, method, the
+classical text they follow by name, extract, standardisation, markers — and no
+legal conclusion: there is no field for a category, and "does it match a First
+Schedule text?" is an answer to the classifier's question, recorded with the
+session that asked it. `classification_outcomes` are the system's result from
+those answers. Reference links are curator-verified only when they point at
+approved corpus text (D-091). A product profile is never treated as a
+classification, and a user's document or statement never becomes a legal source.
+
+A session copies the profile as it stood when it started, so later edits do not
+change what a past classification was made from. Product data references only
+`users` and its own tables; no healthcare table refers to it or is referred to.
+Profiles belong to their user: anyone else's id is "not found".
+
+## D-090 — A result is a proposal until the user confirms it, and history is never rewritten
+
+A determined walk writes an immutable outcome and sets the session to
+`determined` — "determined from your answers, awaiting your confirmation". Only
+the user's explicit confirmation, naming the outcome they were shown, makes it
+the product's confirmed classification; a stale outcome id is refused. Rejecting
+records the decision and an optional reason and puts no other category in its
+place. Confirmed, rejected and superseded sessions are final (triggers refuse
+any UPDATE). Status is explicit — incomplete, requires information, determined,
+user confirmed, user rejected, superseded — and never a percentage.
+
+Revising an answer before deciding writes a new outcome beside the old one. To
+revise after deciding, the user starts again: a new session on the current tree
+and current profile, linked to the old one, which stays exactly as it was; an
+open session restarted from is marked superseded so it cannot be confirmed. A
+product has at most one open session (a partial unique index). Every step is
+audited with the tree version: session created, question presented, answer
+recorded, answer changed, unknown encountered, determined, confirmed, rejected,
+restarted, change refused, reference linked — ids and choice codes only, never
+the profile's free text.
+
+## D-091 — A legal pointer is a slot id; it is "corpus required" until a curator links approved text
+
+Each question and each category names the reference slots it rests on — the
+First Schedule the questions refer to, and the official description of each
+category. A slot is an id, a lane (India for all of v1) and a description of
+what kind of text belongs there; it carries no section number and no wording.
+
+A slot's status is computed: `corpus_required` while no curator has linked it,
+`verified` once a curator links an approved provision version of the slot's lane
+(`classifier_reference_links`, append-only, lane held by a composite foreign
+key), and `unverified` if a link ever pointed at text that is not approved. Only
+approved text can be linked. A verified slot is shown by its stored metadata —
+instrument, locator, version, source — never by quoting it, and nothing
+unverified is shown as a citation. Each outcome records its slots' statuses at
+the time. With the corpus empty, every slot of v1 is `corpus_required`, and the
+classifier still works: the categories come from the rules, and the pointers say
+plainly that the official text is not in the corpus yet.
+
 ## D-018 — Doctor UI is English-only in Phase 1
 
 All doctor strings still come from a catalogue (`doctor.en.json`), so adding a
