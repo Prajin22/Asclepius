@@ -1,6 +1,6 @@
 # Decision log
 
-Small, reversible decisions taken while building Phases 1–3. Format: decision —
+Small, reversible decisions taken while building Phases 1–5. Format: decision —
 why — how to revisit.
 
 ## D-001 — Web (Next.js) rather than Flutter for Phase 1
@@ -560,6 +560,288 @@ A doctor who cannot tell a reviewed case from an unreviewed one is worse off
 than one who is told the picture is incomplete. Stating the content of
 unconfirmed items would put machine output in front of a doctor, which Phases 2
 and 3 deliberately avoided.
+
+## D-060 — Conversation candidates are their own staging table, not `AIExtractedFact`
+
+An answer to a question produces a `conversation_candidate_facts` row, not an
+`ai_extracted_facts` row, even though both are "a suggestion the patient must
+confirm" and both reuse the Phase 2 vocabulary for category, attribution and
+review state.
+
+Three reasons, any one of which would be enough. `AIExtractedFact.artifact_id`
+is non-nullable and a deterministic conversation produces no AI artifact, so
+reuse would mean making a Phase 4 column nullable. Its evidence shape is a
+verbatim quote with character offsets, a page and a bounding box, which
+describes a document and does not describe a tapped option — a conversation
+answer's evidence is (question id, question version, response id). And it is
+named and documented as AI-extracted, which this is not: no model is consulted
+anywhere in Phase 5A.
+
+What is *not* duplicated is the confirmed representation. A confirmed candidate
+becomes a `MedicalRecord` through the same mapping Phase 2 uses, imported from
+`app.services.ai_facts` rather than restated, so the two paths cannot drift into
+disagreeing about whether an allergy becomes a record. Phase 5A changes no
+Phase 4 table, and conversation-derived records flow into sharing and the
+Phase 4 bundle with no further work.
+
+Revisit if interpretation is added between answer and candidate: at that point
+a candidate may carry both a question reference and a model artifact, and the
+two tables may be worth merging behind one staging interface.
+
+## D-061 — The server decides the next question; a client says only what it answered
+
+`AnswerIn` carries `question_id` — what is being answered — and there is no
+field anywhere in the API for what to ask next. If the id does not match the
+question the session is waiting on, the answer is refused with `409
+unexpected_question` rather than silently accepted.
+
+A client that could name the next question could walk a patient past the
+questions it found inconvenient, and the stored history would not show it had
+happened. Keeping selection in `app/conversation/flow.py` also means "why was I
+asked this?" is answerable from a stored string rather than by replaying
+anything.
+
+Revisit only if a clinician-authored flow needs to jump explicitly; even then
+the jump belongs in the flow definition, not in the request body.
+
+## D-062 — Attribution comes from the question, never from the answer
+
+`QuestionDefinition.subject` says whose health an answer describes, and the
+candidate copies it. `history.family_conditions` is `FactSubject.FAMILY`
+because it asks about relatives; no part of Phase 5A reads an answer to decide
+whose it is.
+
+Inferring attribution from wording is exactly the failure D-025 exists to
+prevent — a father's penicillin allergy becoming the patient's. A question
+knows who it asked about before anyone answers it, so the safe answer is free.
+
+Revisit when one question can cover several people ("who in your family?"); the
+subject then comes from a structured follow-up, still never from prose.
+
+## D-063 — A client-supplied key for replays, a revision for races (corrected by D-073)
+
+Every answer carries an `idempotency_key`, unique per session, so a retried
+request is recognised as the same answer rather than recorded twice. Every
+accepted transition increments `ConversationSession.revision`; a client may
+send the revision it last saw, and an answer built against a stale one is
+refused with `409 conversation_out_of_date`.
+
+These solve different problems and both are needed. The key handles the same
+request arriving twice — a flaky connection, a double tap. The revision handles
+two *different* requests racing, where recording both would advance the
+conversation twice and skip a question. The unique constraint is the backstop
+when two replays race each other past the in-memory check.
+
+Revisit if sessions ever become multi-device, where a soft revision check will
+not be enough and the transition needs a row lock.
+
+## D-064 — Questions are versioned configuration, not rows in a table
+
+The flow lives in `app/conversation/flow.py` as frozen dataclasses with a
+stable id, a version and a localisation key. A session stores the flow version
+it started under; a response stores the question version the patient actually
+saw.
+
+A question's wording is not patient data, and changing it should be a reviewable
+diff rather than a migration. The id/version/key split is what keeps old
+answers readable: rewording bumps the version and leaves every stored answer
+pointing at the wording it was given under, and translating a question never
+rewrites history because the text is resolved in the browser.
+
+Revisit if non-engineers need to edit flows; that argues for a table, and the
+versioning rules above become the table's constraints rather than disappearing.
+
+## D-065 — Why a question was asked travels as a key, not as a sentence (partly superseded by D-069)
+
+`QuestionDefinition` carries both `applies_because` (English prose) and
+`because_key` (a localisation key). The prose is written to the session and
+stays on the server, for support and debugging. The API returns only the key,
+which the browser resolves.
+
+The engine has to be able to explain itself — "why am I being asked where the
+pain is?" is a fair question, and the answer must not require replaying
+anything. But an explanation that arrives as an English sentence is useless to
+the Tamil speaker it was written for, and Phase 4 already paid for learning
+that: server strings leaked onto the screen there and had to be chased out of
+`_label()` afterwards. Deciding it at the schema boundary costs nothing now and
+cannot be forgotten later.
+
+The same reasoning removed the prose reason from the audit details. The audit
+contract is ids and categories; "the patient said this involves pain" is a
+sentence about someone's symptoms, and it was already stored on the session.
+
+Revisit if a reason ever needs to interpolate a value (a date, a previous
+answer); the key then takes parameters, and the prose still does not travel.
+
+## D-066 — The history tree is data, walked by a pure engine
+
+A flow is a tuple of frozen `QuestionDefinition`s with explicit `order`
+numbers. A branch is a declared `Branch` — predicate id, trigger question, the
+options that open it, and a reason code for each outcome — not a function.
+`app/conversation/engine.py` resolves where every question stands from the flow
+and the answers alone: no clock, no randomness, no I/O, no model, and a test
+fails if the module so much as imports one. The service adds authorization,
+persistence, idempotency and audit around it and makes no decision of its own.
+
+Declared branches can be fingerprinted, listed, covered by an evaluation, and
+explained without reading code. A pure engine means the service, the
+evaluation harness and the tests all run literally the same decisions, and
+"same answers, same next question" is a property of the code rather than a
+hope. Only an explicit, controlled answer can open a branch; free text is never
+read to decide what to ask.
+
+Revisit only if a branch genuinely needs more than "the trigger's answer
+includes one of these options". Even then, add a declared condition type; do
+not reintroduce callables.
+
+## D-067 — Every flow says, on every payload, that it is a draft
+
+`FlowDefinition.status = engineering_draft` and `clinical_review = required`,
+and `ConversationOut` carries both on every response. Both published flows are
+engineering drafts: reasonable structures written by engineers, not reviewed
+by a clinician, not validated against any guideline, not complete. Nothing in
+the repository establishes otherwise, so nothing may say otherwise.
+
+Putting it in the payload rather than only in documentation means no screen
+built on the API can present the tree as a protocol without deliberately
+dropping a field it was given.
+
+Revisit when a clinician has reviewed a flow. That review produces a new flow
+version with a new status; it does not relabel this one.
+
+## D-068 — A session is walked under the flow it started with; published flows are immutable
+
+Flows live in a registry keyed by `(flow_id, version)`. The service resolves a
+session's questions from `session.flow_version`, never from the current flow.
+Every published flow's canonical form is hashed into `flow.PUBLISHED`, and a
+test fails if a published flow changes. A question whose wording, options or
+type change gets a new question version, and its localisation key includes the
+version, so an old answer always renders against the wording actually shown.
+
+This corrects a Phase 5A gap: 5A stored `flow_version` but always walked the one
+global tree, so the first new version would have silently changed every
+conversation in progress. v1 is kept, re-expressed declaratively with identical
+questions and branches, and the Phase 5A tests now run against it.
+
+Revisit if flows ever need authoring outside code; the registry becomes a
+table, and immutability becomes a constraint on it.
+
+## D-069 — Reasons are codes; skip reasons claim only what was said
+
+Why a question was asked, or not, is a reason code (`radiation_reported`,
+`radiation_not_reported`, `flow_sequence`, `configured_flow_complete`) plus the
+trigger question and predicate id. It is stored on the session, on every
+response and on every skip, sent to the browser as `reason: {code,
+trigger_question_id, predicate_id}`, and rendered from
+`conversation.reason.<code>`. No English sentence is stored anywhere as a
+reason. This supersedes the part of D-065 that kept an English explanation on
+the session, and replaces its `because_key`.
+
+A shut branch is shut for "no" and for "not sure" alike, so its reason must be
+true of both: `*_not_reported`, `*_not_chosen`, `*_not_known` — never
+`*_not_present` or `*_absent`, which would record an absence the patient never
+stated. The Phase 5B brief's example `radiation_not_present` is deliberately
+not followed, for exactly that reason; a test enforces the wording.
+
+## D-070 — "No", "not sure", "no answer" and "not asked" are four different facts
+
+* **no** — a stored answer, `{"choices": ["no"], "bool": false}`.
+* **not sure** — a stored answer with no `bool` at all, so it cannot be misread
+  as "no". Phase 5A stored `bool: false` for "unsure"; that is fixed for every
+  flow.
+* **no answer** — the patient declined an optional question: a response with
+  `declined = true` and nothing else. The Phase 5A column `skipped` is renamed
+  `declined` (migration 0009), because "skipped" was about to mean two things.
+* **not asked** — the branch stayed shut. There is no response at all, only a
+  `conversation_skips` row with the reason. Nothing fakes an answer for a
+  question nobody was asked.
+
+"None of these", "not sure" and "nothing noticed" are exclusive options: each is
+a complete answer and cannot be ticked with anything else. "None of these"
+means none of *these* and produces no fact. Every required tap question offers
+an honest way out, so it can be required without forcing a belief; every
+free-text question except the first can be declined.
+
+## D-071 — Only the patient's own words become candidates
+
+A candidate is created only from a free-text answer to a question with a
+category, and its value is the patient's words. A tapped option or a structured
+duration is already exactly what the patient said, in controlled form — and
+restating it as a candidate would mean writing an English rendering ("3 days",
+"nausea") into the record, the defect D-065 exists to prevent. This changes one
+Phase 5A behaviour: v1's `symptom.duration` no longer produces a "3 days"
+candidate.
+
+Durations typed as words stay words: "some time ago" and "three days" are
+stored as text with no structured value. A structured duration exists only when
+the patient entered one.
+
+## D-072 — Revising an answer supersedes it, and never behind a confirmed fact
+
+`POST .../answers/{question_id}/revision` marks the current answer superseded,
+adds the new one, and lets the engine work out the consequences: answered
+follow-ups whose branch the correction shuts are retired too (with a
+`no_longer_applicable` cause and a skip row), and follow-ups it opens are asked
+next. Candidates from retired answers are superseded, stay on record, and can
+no longer be acted on. Nothing is deleted.
+
+A revision is refused (`answer_has_confirmed_facts`) while anything drawn from
+an affected answer is confirmed or edited: that fact is in the patient's record
+now, and it changes through the record, or by rejecting the candidate first,
+never as a side effect. Only answered questions can be revised — a question
+that was not asked has nothing to change and cannot be given an answer this way.
+
+## D-073 — Concurrency is enforced by the database, not by a check
+
+`ConversationSession.revision` is a SQLAlchemy version column: every UPDATE of
+the session carries `WHERE revision = <value read>`, so of two requests that
+read the same revision only the first can write, and the loser is told
+`conversation_out_of_date` with nothing it did kept. Confirming a candidate
+moves the revision too, so a confirmation cannot race a revision of the answer
+it came from. Partial unique indexes hold at most one current answer and one
+current skip per question, and at most one open conversation per patient.
+
+This corrects D-063, which described Phase 5A's `expected_revision` comparison
+as race protection. It was a comparison in Python followed by a write: it
+caught stale clients, not races, and two different answers arriving together
+would both have been recorded. Two further 5A gaps are fixed here: a retry of
+the answer that moved a conversation into review was refused, because status
+was checked before the replay was recognised (replays are now recognised
+first); and a request key reused for a different question was silently treated
+as a replay (it is now refused).
+
+## D-074 — Localisation keys are versioned and cannot collide
+
+v2 keys are derived mechanically — `conversation.question.<id>.v<version>`,
+`conversation.help.<id>.v<version>`, `conversation.choice.<set>.<option>`,
+`conversation.reason.<code>` — under roots separate from v1's
+`conversation.q.*` / `conversation.option.*`. The i18n catalogue is nested and
+looked up by splitting on `.`, so a key cannot be both a string and a group;
+v2's question ids nest (`symptom.radiation`, `symptom.radiation.location`), and
+v1's `conversation.q.symptom.duration` is a leaf that a v2 key beneath it would
+have broken. A test checks every key across every flow for that collision.
+
+No key has a translation yet. They are a prerequisite for any patient UI, and
+need native-speaker review before use.
+
+## D-075 — A downgrade refuses rather than destroy patient answers
+
+Migration 0009's downgrade stops, and changes nothing, if any history_general
+v2 conversation or any superseded candidate exists: 0008 cannot hold v2's
+sections, and 0008's code would offer a superseded candidate for confirmation
+again. Migration 0003 deleted the rows its narrower schema could not hold; that
+was a derived record type, and these are things patients said. Export or remove
+the data deliberately, then downgrade.
+
+## D-076 — Where Phase 5C's model may stand, and where it may not
+
+Interpretation may be added in exactly one place: between a free-text answer
+and a candidate, producing suggestions that stay `pending` until the patient
+acts on them. It may not choose a question, open or shut a branch, change a
+reason, validate an answer, or confirm anything. The engine is pure and the
+flows are data precisely so that this boundary is structural: there is no
+callable in a flow for a model to sit behind, and the test that forbids the
+engine from importing a client or a clock will fail if one is added.
 
 ## D-018 — Doctor UI is English-only in Phase 1
 

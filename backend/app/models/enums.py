@@ -230,3 +230,70 @@ class AuthorizationBasis(StrEnum):
     PATIENT_GRANT = "patient_grant"
     #: This doctor's own earlier consultation with the patient (D-009).
     OWN_PRIOR_CONSULTATION = "own_prior_consultation"
+
+
+class ConversationStatus(StrEnum):
+    """Where a history conversation stands.
+
+    `not_started` is deliberately not stored: a patient with no session simply
+    has no row, the same reasoning as D-054. `active` is not stored either — it
+    is exactly "awaiting_answer or awaiting_confirmation", and a state that is
+    the union of two others is a second place for the truth to live.
+    """
+
+    #: A question has been put to the patient and the engine is waiting.
+    AWAITING_ANSWER = "awaiting_answer"
+    #: Every question in the flow is answered; the patient is reviewing what
+    #: their answers produced before any of it counts.
+    AWAITING_CONFIRMATION = "awaiting_confirmation"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    #: Abandoned by the patient, or superseded. Never deleted: the answers
+    #: already given are still the patient's own words.
+    ABANDONED = "abandoned"
+
+
+class ResponseType(StrEnum):
+    """The controlled vocabulary of answer shapes.
+
+    Deliberately small: only what the first flow actually asks for. A future
+    speech answer maps onto these same types rather than adding a new one, so
+    voice does not become a parallel data model.
+    """
+
+    FREE_TEXT = "free_text"
+    SINGLE_CHOICE = "single_choice"
+    MULTI_CHOICE = "multi_choice"
+    YES_NO = "yes_no"
+    DURATION = "duration"
+
+
+class ConversationSection(StrEnum):
+    """The history taxonomy the flows walk.
+
+    General-purpose symptom history. Not specialty-specific, and not a
+    diagnostic tree: these are the things a clinician would ask anyone about a
+    new complaint, in the order they would usually ask them. Engineering draft;
+    not clinically reviewed.
+
+    Values are only ever added. A section a published flow uses stays, because
+    answers recorded under that flow still carry it.
+    """
+
+    CURRENT_PROBLEM = "current_problem"
+    ONSET_DURATION = "onset_duration"
+    LOCATION = "location"
+    CHARACTER = "character"
+    #: history_general v2.
+    RADIATION_OR_SPREAD = "radiation_or_spread"
+    ASSOCIATED_SYMPTOMS = "associated_symptoms"
+    #: history_general v1 only. v2 asks the two separately.
+    AGGRAVATING_RELIEVING = "aggravating_relieving"
+    #: history_general v2.
+    AGGRAVATING_FACTORS = "aggravating_factors"
+    #: history_general v2.
+    RELIEVING_FACTORS = "relieving_factors"
+    RELEVANT_HISTORY = "relevant_history"
+    MEDICATIONS = "medications"
+    ALLERGIES = "allergies"
+    REVIEW = "review"

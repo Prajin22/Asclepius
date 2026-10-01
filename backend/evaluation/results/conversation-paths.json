@@ -1,0 +1,82 @@
+{
+  "flow_status": {
+    "v1": "engineering_draft, clinical review required",
+    "v2": "engineering_draft, clinical review required"
+  },
+  "paths": 29,
+  "passed": 29,
+  "failed": [],
+  "hard_gates": {
+    "wrong_question": 0,
+    "fake_answer": 0,
+    "collapsed_negative": 0,
+    "invented_fact": 0,
+    "accepted_invalid": 0,
+    "nondeterminism": 0
+  },
+  "branch_coverage_v2": {
+    "branches": 10,
+    "opened": 10,
+    "shut": 10,
+    "detail": {
+      "symptom.duration": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.location.other": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.character.other": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.radiation.location": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.associated.other": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.aggravating.other": {
+        "opened": true,
+        "shut": true
+      },
+      "symptom.relieving.other": {
+        "opened": true,
+        "shut": true
+      },
+      "history.relevant.details": {
+        "opened": true,
+        "shut": true
+      },
+      "medications.details": {
+        "opened": true,
+        "shut": true
+      },
+      "allergies.details": {
+        "opened": true,
+        "shut": true
+      }
+    }
+  },
+  "by_matrix": {
+    "A": 1,
+    "B": 1,
+    "C": 2,
+    "D": 1,
+    "E": 1,
+    "F": 1,
+    "G": 1,
+    "H": 1,
+    "I": 1,
+    "J": 2,
+    "K": 2,
+    "L": 3,
+    "M": 4,
+    "N": 5,
+    "V": 2,
+    "attribution": 1
+  }
+}

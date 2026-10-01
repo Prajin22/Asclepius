@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 
 URL = os.environ.get("MIGRATION_TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not URL, reason="MIGRATION_TEST_DATABASE_URL not set")
@@ -32,7 +32,9 @@ def test_upgrade_check_downgrade():
     engine = create_engine(URL)
     tables = set(inspect(engine).get_table_names())
     assert {"users", "patient_profiles", "consultations", "consultation_shares", "prescriptions",
-            "ai_artifacts", "audit_events", "consultation_summaries"} <= tables
+            "ai_artifacts", "audit_events", "consultation_summaries",
+            "conversation_sessions", "conversation_responses",
+            "conversation_candidate_facts", "conversation_skips"} <= tables
     command.check(cfg)  # raises if models and migrations have drifted
     command.downgrade(cfg, "base")
     assert set(inspect(engine).get_table_names()) <= {"alembic_version"}
@@ -57,7 +59,124 @@ def test_phase_4_revision_is_reversible_on_its_own():
 
     command.upgrade(cfg, "0007")
     assert "consultation_summaries" in set(inspect(engine).get_table_names())
+
+    # `check` compares the models against the database, so it only means
+    # anything at head. 0007 stopped being head when 0008 was added.
+    command.upgrade(cfg, "head")
     command.check(cfg)
 
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_phase_5_revision_is_reversible_on_its_own():
+    """0008 can be stepped down and back up without disturbing 0001-0007.
+
+    A conversation is a workflow. Health records confirmed out of one belong to
+    the patient and live in `medical_records`, so dropping the revision must
+    leave them standing.
+    """
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+
+    command.downgrade(cfg, "0007")
+    tables = set(inspect(engine).get_table_names())
+    for dropped in (
+        "conversation_sessions",
+        "conversation_responses",
+        "conversation_candidate_facts",
+    ):
+        assert dropped not in tables
+    assert {"medical_records", "consultation_summaries", "ai_artifacts"} <= tables
+
+    command.upgrade(cfg, "head")
+    assert {
+        "conversation_sessions",
+        "conversation_responses",
+        "conversation_candidate_facts",
+    } <= set(inspect(engine).get_table_names())
+    command.check(cfg)
+
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def _check_definition(engine, name: str) -> str:
+    with engine.connect() as conn:
+        return conn.execute(
+            text("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = :n"), {"n": name}
+        ).scalar_one()
+
+
+def test_phase_5b_revision_is_reversible_on_its_own():
+    """0009 steps down and back up without disturbing 0001-0008.
+
+    Autogenerate cannot see value changes on a VARCHAR + CHECK enum, so
+    `alembic check` passing proves nothing about the three new sections. The
+    constraint definitions are read back from PostgreSQL instead.
+    """
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    for name in ("ck_conversation_sessions_conversation_section", "ck_conversation_responses_response_section"):
+        definition = _check_definition(engine, name)
+        for section in ("radiation_or_spread", "aggravating_factors", "relieving_factors"):
+            assert section in definition, (name, section)
+    columns = {c["name"] for c in inspect(engine).get_columns("conversation_responses")}
+    assert {"declined", "reason_code", "trigger_question_id", "predicate_id"} <= columns
+    assert "skipped" not in columns
+
+    command.downgrade(cfg, "0008")
+    tables = set(inspect(engine).get_table_names())
+    assert "conversation_skips" not in tables
+    assert {"conversation_sessions", "conversation_responses", "conversation_candidate_facts",
+            "medical_records", "consultation_summaries"} <= tables
+    columns = {c["name"] for c in inspect(engine).get_columns("conversation_responses")}
+    assert "skipped" in columns and "declined" not in columns
+    assert "radiation_or_spread" not in _check_definition(engine, "ck_conversation_responses_response_section")
+
+    command.upgrade(cfg, "head")
+    assert "conversation_skips" in set(inspect(engine).get_table_names())
+    command.check(cfg)
+    command.downgrade(cfg, "base")
+    engine.dispose()
+
+
+def test_phase_5b_downgrade_refuses_to_destroy_patient_answers():
+    """With a v2 conversation on record, stepping down to 0008 would either
+    delete it or leave sections 0008 cannot hold. It refuses and changes nothing."""
+    from sqlalchemy.orm import Session
+
+    from app.models import ConversationSession, PatientProfile, User
+    from app.models.enums import UserRole
+
+    cfg = _config()
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(URL)
+    with Session(engine) as s:
+        user = User(role=UserRole.PATIENT, email="downgrade@example.com", password_hash="x")
+        s.add(user)
+        s.flush()
+        patient = PatientProfile(user_id=user.id, display_name="Synthetic")
+        s.add(patient)
+        s.flush()
+        s.add(ConversationSession(patient_id=patient.id, flow_id="history_general", flow_version=2))
+        s.commit()
+
+    with pytest.raises(RuntimeError, match="Refusing to downgrade 0009"):
+        command.downgrade(cfg, "0008")
+    # Nothing was changed: still at 0009, the conversation still there.
+    assert "conversation_skips" in set(inspect(engine).get_table_names())
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "0009"
+        assert conn.execute(text("SELECT COUNT(*) FROM conversation_sessions")).scalar_one() == 1
+
+    # Removed deliberately, the downgrade goes through.
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM users"))
     command.downgrade(cfg, "base")
     engine.dispose()

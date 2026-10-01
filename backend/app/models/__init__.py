@@ -2,6 +2,12 @@
 
 from app.models.ai import AIArtifact, AIExtractedFact
 from app.models.audit import AuditEvent
+from app.models.conversation import (
+    ConversationCandidateFact,
+    ConversationResponse,
+    ConversationSession,
+    ConversationSkip,
+)
 from app.models.consultation import (
     Consultation,
     ConsultationMessage,
@@ -24,6 +30,10 @@ __all__ = [
     "ConsultationMessage",
     "ConsultationShare",
     "ConsultationSummary",
+    "ConversationCandidateFact",
+    "ConversationResponse",
+    "ConversationSession",
+    "ConversationSkip",
     "DoctorLanguage",
     "DoctorProfile",
     "DocumentExtraction",
