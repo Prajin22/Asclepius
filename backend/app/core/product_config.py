@@ -39,8 +39,8 @@ PRODUCTS: dict[Product, ProductConfig] = {
     ),
     Product.IP_SAKTI: ProductConfig(
         product=Product.IP_SAKTI,
-        display_name="IP-SAKTI Sahayak",
-        api_title="IP-SAKTI Sahayak API",
+        display_name="Asclepius",
+        api_title="Asclepius API",
         api_description=(
             "Intellectual property and regulatory information for Ayurvedic products. "
             "Provides information grounded in cited sources; does not give legal advice."

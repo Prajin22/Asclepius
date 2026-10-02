@@ -33,7 +33,7 @@ vi.mock("@carebridge/api-client/react", () => ({
 vi.mock("@/components/LanguageSwitcher", () => ({ LanguageSwitcher: () => null }));
 
 const en = (key: string) => lookup(saktiCatalogs.en, key)!;
-const as = (role: Role) => ({ user: { role, email: `${role}@ipsakti.demo` } });
+const as = (role: Role) => ({ user: { role, email: `${role}@asclepius.demo` } });
 
 const MEDICAL = /patient|doctor|symptom|diagnos|prescri|medicat|medicine|allerg|clinic|hospital|health|consultation|treatment|emergency/i;
 const RAW_KEY = /\b(nav|pages|notAvailable|disclaimer|role|areaLabel|signIn|landing|app|actions)\.[a-zA-Z]/;
@@ -150,7 +150,7 @@ describe("the shell", () => {
     await userEvent.click(account);
     expect(account).toHaveAttribute("aria-expanded", "true");
     const panel = within(document.getElementById(account.getAttribute("aria-controls")!)!);
-    expect(panel.getByText("facilitator@ipsakti.demo")).toBeInTheDocument();
+    expect(panel.getByText("facilitator@asclepius.demo")).toBeInTheDocument();
     expect(panel.getByText(en("role.facilitator"))).toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
     expect(account).toHaveAttribute("aria-expanded", "false");
@@ -240,10 +240,25 @@ describe("placeholders", () => {
   });
 });
 
+describe("the product's name on screen", () => {
+  const FORMER = /IP-?SAKTI|Sahayak|सहायक|சகாயக்/i;
+
+  it.each(["en", "hi", "ta"])("is Asclepius on the landing page, sign-in and the shell in %s", (locale) => {
+    h.session = as("user");
+    h.path = "/dashboard";
+    for (const ui of [<SaktiLanding key="l" />, <SaktiSignIn key="s" />, <SaktiShell key="h" role="user">x</SaktiShell>]) {
+      const { unmount } = renderSakti(ui, locale);
+      expect(document.body.textContent).toContain("Asclepius");
+      expect(document.body.textContent).not.toMatch(FORMER);
+      unmount();
+    }
+  });
+});
+
 describe("the landing page", () => {
   it("names the product, its domain, its status and its limits", () => {
     renderSakti(<SaktiLanding />);
-    expect(screen.getByRole("heading", { level: 1, name: "IP-SAKTI Sahayak" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Asclepius" })).toBeInTheDocument();
     expect(screen.getByText(en("app.domain"))).toBeInTheDocument();
     expect(screen.getByText(en("landing.status"))).toBeInTheDocument();
     expect(screen.getByText(en("disclaimer.short"))).toBeInTheDocument();
@@ -273,10 +288,10 @@ describe("signing in", () => {
   it("signs in and sends each role to its own area", async () => {
     h.login.mockResolvedValue(as("curator"));
     renderSakti(<SaktiSignIn />);
-    await userEvent.type(screen.getByLabelText(en("signIn.email")), "curator@ipsakti.demo");
+    await userEvent.type(screen.getByLabelText(en("signIn.email")), "curator@asclepius.demo");
     await userEvent.type(screen.getByLabelText(en("signIn.password")), "Curator@2026");
     await userEvent.click(screen.getByRole("button", { name: en("actions.signIn") }));
-    expect(h.login).toHaveBeenCalledWith("curator@ipsakti.demo", "Curator@2026");
+    expect(h.login).toHaveBeenCalledWith("curator@asclepius.demo", "Curator@2026");
     expect(h.replace).toHaveBeenCalledWith("/curator");
   });
 
@@ -284,7 +299,7 @@ describe("signing in", () => {
     renderSakti(<SaktiSignIn />);
     const demos = within(screen.getByRole("region", { name: en("signIn.demoTitle") }));
     await userEvent.click(demos.getByRole("button", { name: "Fill in as IP facilitator" }));
-    expect(screen.getByLabelText(en("signIn.email"))).toHaveValue("facilitator@ipsakti.demo");
+    expect(screen.getByLabelText(en("signIn.email"))).toHaveValue("facilitator@asclepius.demo");
     expect(h.login).not.toHaveBeenCalled();
   });
 

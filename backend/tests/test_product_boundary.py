@@ -226,7 +226,7 @@ def test_a_healthcare_route_does_not_exist_in_ip_sakti(sakti_client, method, pat
 
 def test_ip_sakti_api_has_its_own_title():
     info = create_app(Product.IP_SAKTI).openapi()["info"]
-    assert info["title"] == "IP-SAKTI Sahayak API"
+    assert info["title"] == "Asclepius API"
     assert "not give legal advice" in info["description"]
 
 
@@ -247,7 +247,7 @@ def test_product_metadata_describes_carebridge(client):
 def test_product_metadata_describes_ip_sakti(sakti_client):
     body = sakti_client.get(f"{API}/meta/product").json()
     assert body["product"] == "ip_sakti"
-    assert body["display_name"] == "IP-SAKTI Sahayak"
+    assert body["display_name"] == "Asclepius"
     assert body["roles"] == ["admin", "curator", "facilitator", "user"]
     assert body["ai_policy"]["id"] == "ip_sakti_legal_information_v1"
     assert body["ai_policy"]["document"] == "docs/IP_SAKTI_AI_POLICY.md"
@@ -475,7 +475,7 @@ def test_ip_sakti_seed_creates_one_synthetic_account_per_role_and_nothing_else(d
     sakti_seed.seed(db)
     users = {u.email: u.role for u in db.scalars(select(User))}
     assert users == {email: role for role, email, _ in sakti_seed.DEMO_ACCOUNTS}
-    assert all(email.endswith("@ipsakti.demo") for email in users)
+    assert all(email.endswith("@asclepius.demo") for email in users)
     for healthcare in (PatientProfile, MedicalRecord, Consultation):
         assert db.scalar(select(func.count()).select_from(healthcare)) == 0
     assert "No legal content is seeded" in capsys.readouterr().out

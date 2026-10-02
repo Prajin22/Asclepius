@@ -17,22 +17,22 @@ from app.services import auth_service
 
 #: Not real people. Shown on the sign-in page when demo accounts are enabled.
 DEMO_ACCOUNTS: tuple[tuple[UserRole, str, str], ...] = (
-    (UserRole.USER, "user@ipsakti.demo", "User@2026"),
-    (UserRole.FACILITATOR, "facilitator@ipsakti.demo", "Facilitator@2026"),
-    (UserRole.CURATOR, "curator@ipsakti.demo", "Curator@2026"),
-    (UserRole.ADMIN, "admin@ipsakti.demo", "Admin@2026"),
+    (UserRole.USER, "user@asclepius.demo", "User@2026"),
+    (UserRole.FACILITATOR, "facilitator@asclepius.demo", "Facilitator@2026"),
+    (UserRole.CURATOR, "curator@asclepius.demo", "Curator@2026"),
+    (UserRole.ADMIN, "admin@asclepius.demo", "Admin@2026"),
 )
 
 
 def seed(db: Session) -> None:
     if auth_service.get_user_by_email(db, DEMO_ACCOUNTS[0][1]):
-        print("IP-SAKTI demo accounts already present. Use --reset to recreate them.")
+        print("Asclepius demo accounts (PRODUCT=ip_sakti) already present. Use --reset to recreate them.")
         return
     for role, email, password in DEMO_ACCOUNTS:
         db.add(User(role=role, email=email, password_hash=hash_password(password)))
     db.commit()
 
-    print("\nIP-SAKTI Sahayak demo accounts (synthetic):")
+    print("\nAsclepius demo accounts (PRODUCT=ip_sakti, synthetic):")
     for role, email, password in DEMO_ACCOUNTS:
         print(f"  {role.value:<12} {email:<28} {password}")
     print("No legal content is seeded. Answers, classification and the source library are not available yet.\n")

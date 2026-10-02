@@ -18,7 +18,7 @@ const LANES: { lane: Jurisdiction; icon: typeof MapPinArea }[] = [
 const today = () => new Date().toISOString().slice(0, 10);
 
 /**
- * Ask Sahayak — the question form and where cited answers will appear. Phase
+ * Ask Asclepius — the question form and where cited answers will appear. Phase
  * 3.5 builds the screen only: there is no answer service yet, so a question is
  * never sent anywhere and no answer, citation or legal text is shown. The
  * screen says so before and after the user presses the button.

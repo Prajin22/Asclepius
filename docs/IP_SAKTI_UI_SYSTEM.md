@@ -1,4 +1,9 @@
-# IP-SAKTI Sahayak — UI System
+# Asclepius — UI System (`PRODUCT=ip_sakti`)
+
+Users see this product as **Asclepius**, subtitled "Intellectual Property &
+Regulatory Guidance for Ayurvedic Products". *IP-SAKTI* / `ip_sakti` remain the
+internal identifiers: the product value, the branch, routes, storage keys, file
+names and migrations keep them.
 
 **Applies when `NEXT_PUBLIC_PRODUCT=ip_sakti`.** CareBridge's design language is
 [docs/DESIGN.md](DESIGN.md) and is unchanged. Both products share one component
@@ -84,8 +89,8 @@ in order; the first is where the role lands, `lib/routes.ts`).
   account menu (email, role, sign out).
 - **Phone and tablet (<1024px):** a compact header. The menu button opens the
   same destinations in the shared `Sheet` dialog, which has focus management,
-  closes on Escape and returns focus. The wordmark shortens to "IP-SAKTI" below
-  640px and to its square below 400px.
+  closes on Escape and returns focus. The wordmark, "Asclepius", gives way to its
+  square below 400px.
 
 ## 4. Page inventory
 

@@ -98,7 +98,7 @@ function source(overrides: Partial<CorpusSourceDetail> = {}): CorpusSourceDetail
     source_url: null, source_reference: "Synthetic test fixture", file_name: "fixture.pdf", mime_type: "application/pdf",
     size_bytes: 1200, text_sha256: TEXT_SHA, text_length: 10, parse_error_code: null,
     extraction_methods: ["pdf_text_layer"], extraction_engines: ["pdfplumber"], parsed_at: "2026-10-01T08:01:00Z",
-    uploaded_by: { id: "u1", email: "curator@ipsakti.demo" }, submitted_at: null, approved_by: null,
+    uploaded_by: { id: "u1", email: "curator@asclepius.demo" }, submitted_at: null, approved_by: null,
     issues_acknowledged: false, rejected_at: null, rejected_by: null, rejection_reason: null, versions: [],
     ...overrides,
   };
@@ -280,10 +280,10 @@ describe("the source screen", () => {
 
   it("shows an approved source as final, with who approved it", async () => {
     h.api.corpus.source = vi.fn(async () =>
-      source({ review_state: "approved", approved_at: "2026-10-01T09:00:00Z", approved_by: { id: "u1", email: "curator@ipsakti.demo" } }),
+      source({ review_state: "approved", approved_at: "2026-10-01T09:00:00Z", approved_by: { id: "u1", email: "curator@asclepius.demo" } }),
     );
     renderSakti(<SourceReview id="src-1" />);
-    expect(await screen.findByText(/curator@ipsakti\.demo/, { selector: "p.text-ink" })).toBeInTheDocument();
+    expect(await screen.findByText(/curator@asclepius\.demo/, { selector: "p.text-ink" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: en("corpus.review.approve") })).toBeNull();
     expect(screen.getByText(en("corpus.source.final"))).toBeInTheDocument();
   });

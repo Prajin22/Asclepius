@@ -75,7 +75,7 @@ Health check: <http://localhost:8000/health> → `{"status":"ok"}`.
 
 ## Two products, one codebase
 
-This branch also builds **IP-SAKTI Sahayak** — *Intellectual Property &
+This branch also builds **IP-SAKTI Sahayak** (`PRODUCT=ip_sakti`, shown to users as **Asclepius**) — *Intellectual Property &
 Regulatory Guidance for Ayurvedic Products*. One deployment serves one product,
 chosen by `PRODUCT` on the API and `NEXT_PUBLIC_PRODUCT` on the web build. Both
 default to `carebridge`, and everything else in this README is about CareBridge.
@@ -94,10 +94,10 @@ NEXT_PUBLIC_PRODUCT=ip_sakti npm run dev
 
 | Role | Email | Password |
 |---|---|---|
-| User | `user@ipsakti.demo` | `User@2026` |
-| IP facilitator | `facilitator@ipsakti.demo` | `Facilitator@2026` |
-| Corpus curator | `curator@ipsakti.demo` | `Curator@2026` |
-| Administrator | `admin@ipsakti.demo` | `Admin@2026` |
+| User | `user@asclepius.demo` | `User@2026` |
+| IP facilitator | `facilitator@asclepius.demo` | `Facilitator@2026` |
+| Corpus curator | `curator@asclepius.demo` | `Curator@2026` |
+| Administrator | `admin@asclepius.demo` | `Admin@2026` |
 
 So far IP-SAKTI has its shell (branding, a disclaimer on every screen, sign-in,
 one area per role) and, from Phase 2, the **curator's source corpus**: upload an

@@ -43,7 +43,11 @@ describe("IP-SAKTI Sahayak", () => {
   const sakti = PRODUCT_CONFIGS.ip_sakti;
 
   it("has its own identity and its own storage", () => {
-    expect(sakti.name).toBe("IP-SAKTI Sahayak");
+    expect(sakti.name).toBe("Asclepius");
+    // Display only: the technical identifiers stay as they were.
+    expect(sakti.product).toBe("ip_sakti");
+    expect(sakti.sessionKey).toBe("ipsakti.session");
+    expect(sakti.localeKey).toBe("ipsakti.locale");
     expect(sakti.description).toMatch(/not legal advice/);
     expect(sakti.sessionKey).not.toBe(PRODUCT_CONFIGS.carebridge.sessionKey);
     expect(sakti.localeKey).not.toBe(PRODUCT_CONFIGS.carebridge.localeKey);

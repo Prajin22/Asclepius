@@ -70,8 +70,16 @@ describe("IP-SAKTI catalogue", () => {
     }
   });
 
+  // The product is shown as Asclepius. IP-SAKTI and Sahayak (and their Hindi and
+  // Tamil renderings) are internal or former names and never reach the screen.
+  it.each(["en", "hi", "ta"])("%s never displays the internal or former product name", (locale) => {
+    for (const key of flattenKeys(saktiCatalogs[locale])) {
+      expect(lookup(saktiCatalogs[locale], key), `${locale}:${key}`).not.toMatch(/IP-?SAKTI|Sahayak|सहायक|சகாயக்/i);
+    }
+  });
+
   it.each(["en", "hi", "ta"])("%s names the product and its domain", (locale) => {
-    expect(lookup(saktiCatalogs[locale], "app.name")).toBe("IP-SAKTI Sahayak");
+    expect(lookup(saktiCatalogs[locale], "app.name")).toBe("Asclepius");
     expect(lookup(saktiCatalogs[locale], "app.domain")).toBeTruthy();
     expect(lookup(saktiCatalogs[locale], "disclaimer.short")).toBeTruthy();
   });

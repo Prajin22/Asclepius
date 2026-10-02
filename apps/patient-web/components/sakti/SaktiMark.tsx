@@ -2,16 +2,17 @@ import { cn } from "@carebridge/ui";
 import { SaktiMarkIcon } from "@/components/icons";
 
 /**
- * The IP-SAKTI Sahayak wordmark. Typographic on purpose: the product name is
- * the identity, and no emblem here suggests a seal, a crest or any official
- * standing the product does not have.
+ * The product's wordmark, "Asclepius" (PRODUCT=ip_sakti). Typographic on
+ * purpose: the name is the identity, and no emblem here suggests a seal, a
+ * crest or any official standing the product does not have. `compact` is kept
+ * for callers; the one-word name needs no shorter form.
  */
 export function SaktiMark({
   className,
-  compact = false,
   iconOnly = false,
 }: {
   className?: string;
+  /** Accepted for existing callers; the name is already one word. */
   compact?: boolean;
   /** Just the square, for the narrowest phones; the link around it carries the name. */
   iconOnly?: boolean;
@@ -22,10 +23,7 @@ export function SaktiMark({
         <SaktiMarkIcon size={18} weight="bold" />
       </span>
       {iconOnly ? null : (
-        <span className="whitespace-nowrap text-subheading leading-none tracking-tight">
-          <span className="font-bold">IP-SAKTI</span>
-          {compact ? null : <span className="ml-1.5 font-normal text-muted">Sahayak</span>}
-        </span>
+        <span className="whitespace-nowrap text-subheading font-bold leading-none tracking-tight">Asclepius</span>
       )}
     </span>
   );

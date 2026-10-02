@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "IP-SAKTI Sahayak",
+    "name": "Asclepius",
     "domain": "Intellectual Property & Regulatory Guidance for Ayurvedic Products"
   },
   "a11y": {
@@ -991,7 +991,7 @@
     "actions": {
       "add": "Add product",
       "classify": "Classify a product",
-      "ask": "Ask Sahayak"
+      "ask": "Ask Asclepius"
     },
     "readiness": {
       "title": "Readiness",
@@ -1034,7 +1034,7 @@
     }
   },
   "ask": {
-    "title": "Ask Sahayak",
+    "title": "Ask Asclepius",
     "description": "Ask a question about intellectual property or regulation for an Ayurvedic product.",
     "notEnabled": {
       "title": "The answer service is not enabled yet",
@@ -1052,7 +1052,7 @@
     "language": "Answer language",
     "languageHint": "Quoted legal text is always shown in its original language, never machine-translated.",
     "notSentNote": "Nothing you type here is sent while the answer service is off.",
-    "submit": "Ask Sahayak",
+    "submit": "Ask Asclepius",
     "held": {
       "title": "Your question was not sent",
       "body": "The source-grounded answer service is not enabled in this version, so no answer was generated. Your question is still here."

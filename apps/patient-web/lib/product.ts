@@ -49,7 +49,7 @@ export const PRODUCT_CONFIGS: Record<Product, ProductConfig> = {
   },
   ip_sakti: {
     product: "ip_sakti",
-    name: "IP-SAKTI Sahayak",
+    name: "Asclepius",
     description:
       "Intellectual Property & Regulatory Guidance for Ayurvedic Products. Information grounded in cited sources — not legal advice.",
     themeColor: "#0e5f63",
