@@ -1,6 +1,8 @@
-import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
+"use client";
 
-/** Not built yet: a clearly marked placeholder, nothing that looks as if it works. */
+import { BriefDesk } from "@/components/sakti/desk/Desk";
+
+/** Designed ahead of the escalation phase: the real layout, an honest empty state, nothing that looks as if it works. */
 export default function BriefPage() {
-  return <SaktiPlaceholder page="brief" />;
+  return <BriefDesk />;
 }

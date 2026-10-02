@@ -1,59 +1,38 @@
 "use client";
 
-import { useApi, useQuery } from "@carebridge/api-client/react";
+import { useApi } from "@carebridge/api-client/react";
 import { errorMessage, useI18n } from "@carebridge/i18n";
-import type { ClassificationStatus } from "@carebridge/shared-types";
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  ErrorState,
-  Field,
-  PageHeader,
-  Select,
-  SkeletonCard,
-  buttonClasses,
-  type Tone,
-} from "@carebridge/ui";
+import { Alert, Button, ErrorState, PageHeader, SkeletonCard, buttonClasses, cn } from "@carebridge/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { ProductIcon } from "@/components/icons";
+import { EmptyPanel, StateBadge } from "../ui";
+import { useProductOverview } from "./overview";
+import { ClassificationTimeline } from "./status";
 
-export const STATUS_TONE: Record<ClassificationStatus, Tone> = {
-  incomplete: "info",
-  requires_information: "warning",
-  determined: "brand",
-  user_confirmed: "success",
-  user_rejected: "neutral",
-  superseded: "neutral",
-};
+export { STATUS_TONE } from "./status";
 
 /** Classify: choose one of your products, then start or continue its classification. */
 export function ClassifyStart() {
   const api = useApi();
   const router = useRouter();
   const params = useSearchParams();
-  const { t, formatDateTime } = useI18n();
-  const products = useQuery((a) => a.products.list());
+  const { t } = useI18n();
+  const q = useProductOverview();
   const [chosen, setChosen] = useState<string | null>(params.get("product"));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  const list = products.data ?? [];
-  const product = list.find((p) => p.id === chosen) ?? list[0];
-  const history = useQuery(
-    (a) => (product ? a.products.classifications(product.id) : Promise.resolve([])),
-    [product?.id],
-  );
+  const list = q.data ?? [];
+  const item = list.find((p) => p.product.id === chosen) ?? list[0];
 
   async function start() {
-    if (!product) return;
+    if (!item) return;
     setBusy(true);
     setError(null);
     try {
-      const session = await api.classifier.start(product.id);
+      const session = await api.classifier.start(item.product.id);
       router.push(`/classify/${session.id}`);
     } catch (err) {
       setError(err);
@@ -64,81 +43,101 @@ export function ClassifyStart() {
   return (
     <>
       <PageHeader title={t("pages.classify.title")} description={t("pages.classify.description")} />
-      <div className="flex max-w-3xl flex-col gap-5">
-        {products.error && !products.data ? (
-          <ErrorState error={products.error} onRetry={products.reload} />
-        ) : !products.data ? (
-          <SkeletonCard />
-        ) : list.length === 0 ? (
-          <EmptyState>
-            <span className="flex flex-col items-center gap-3">
-              {t("classifier.start.noProducts")}
-              <Link href="/my-product" className={buttonClasses("primary", "sm")}>
-                {t("classifier.start.toMyProduct")}
-              </Link>
-            </span>
-          </EmptyState>
-        ) : (
-          <Card>
-            <div className="flex flex-col gap-4">
-              <Field label={t("classifier.start.product")}>
-                {(p) => (
-                  <Select {...p} value={product?.id ?? ""} onChange={(e) => setChosen(e.target.value)}>
-                    {list.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
-              {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
-              <div>
-                {product?.open_session_id ? (
-                  <Link href={`/classify/${product.open_session_id}`} className={buttonClasses("primary", "md")}>
-                    {t("classifier.start.continue")}
-                  </Link>
-                ) : (
-                  <Button onClick={start} disabled={busy}>
-                    {t("classifier.start.begin")}
-                  </Button>
-                )}
+      {q.error && !q.data ? (
+        <ErrorState error={q.error} onRetry={q.reload} />
+      ) : !q.data ? (
+        <SkeletonCard />
+      ) : list.length === 0 ? (
+        <EmptyPanel
+          icon={ProductIcon}
+          title={t("product.emptyTitle")}
+          action={
+            <Link href="/my-product/new" className={buttonClasses("primary", "md")}>
+              {t("product.add")}
+            </Link>
+          }
+        >
+          {t("classifier.start.noProducts")}
+        </EmptyPanel>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="flex min-w-0 flex-col gap-5">
+            <fieldset className="rounded-md border border-line bg-surface p-5 sm:p-6">
+              <legend className="sr-only">{t("classifier.start.product")}</legend>
+              <p className="text-subheading text-ink" aria-hidden>
+                {t("classifier.start.product")}
+              </p>
+              <p className="mt-0.5 text-small text-muted">{t("classifier.start.productHint")}</p>
+              <div className="mt-4 flex flex-col gap-2.5">
+                {list.map(({ product, state }) => (
+                  <label
+                    key={product.id}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors duration-150",
+                      item?.product.id === product.id ? "border-brand bg-brand-tint ring-1 ring-brand" : "border-line hover:bg-sunken",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="product"
+                      value={product.id}
+                      checked={item?.product.id === product.id}
+                      onChange={() => setChosen(product.id)}
+                      className="size-5 shrink-0 accent-[var(--color-brand)]"
+                    />
+                    <span className="min-w-0 flex-1 font-medium text-ink">{product.name}</span>
+                    <StateBadge state={state} className="shrink-0 max-sm:hidden" />
+                  </label>
+                ))}
               </div>
-            </div>
-          </Card>
-        )}
+            </fieldset>
 
-        {product ? (
-          <section aria-labelledby="history-title" className="flex flex-col gap-3">
-            <h2 id="history-title" className="text-subheading text-ink">
-              {t("classifier.start.history")}
-            </h2>
-            {!history.data ? (
-              <SkeletonCard />
-            ) : history.data.length === 0 ? (
-              <p className="text-muted">{t("classifier.start.noHistory")}</p>
-            ) : (
-              <Card padding="none" className="px-5 sm:px-6">
-                <ul className="divide-y divide-line">
-                  {history.data.map((session) => (
-                    <li key={session.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                      <Link href={`/classify/${session.id}`} className="font-medium text-brand-strong hover:underline">
-                        {session.category
-                          ? t(`classifier.category.${session.category}`)
-                          : t(`classifier.status.${session.status}`)}
-                      </Link>
-                      <span className="flex flex-wrap items-center gap-2 text-small text-muted">
-                        <Badge tone={STATUS_TONE[session.status]}>{t(`classifier.status.${session.status}`)}</Badge>
-                        {formatDateTime(session.created_at)}
+            {item ? (
+              <div className="flex flex-col gap-4 rounded-md border border-line bg-surface p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StateBadge state={item.state} />
+                </div>
+                <p className="text-muted">{t(`classifier.start.state.${item.state}`)}</p>
+                {error ? <Alert tone="error">{errorMessage(t, error)}</Alert> : null}
+                <ol className="grid gap-2 text-small text-muted sm:grid-cols-3">
+                  {(["one", "two", "three"] as const).map((k, i) => (
+                    <li key={k} className="flex gap-2 rounded-md bg-sunken p-3">
+                      <span aria-hidden className="font-bold text-brand-strong">
+                        {i + 1}
                       </span>
+                      {t(`classifier.start.how.${k}`)}
                     </li>
                   ))}
-                </ul>
-              </Card>
-            )}
-          </section>
-        ) : null}
-      </div>
+                </ol>
+                <div className="flex flex-wrap gap-2">
+                  {item.product.open_session_id ? (
+                    <Link href={`/classify/${item.product.open_session_id}`} className={buttonClasses("primary", "md")}>
+                      {t("classifier.start.continue")}
+                    </Link>
+                  ) : (
+                    <Button onClick={start} disabled={busy}>
+                      {busy ? t("classifier.session.restarting") : t("classifier.start.begin")}
+                    </Button>
+                  )}
+                  <Link href={`/my-product/${item.product.id}`} className={buttonClasses("ghost", "md")}>
+                    {t("classifier.start.viewProduct")}
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {item ? (
+            <section aria-labelledby="history-title" className="h-fit rounded-md border border-line bg-surface p-5">
+              <h2 id="history-title" className="text-subheading text-ink">
+                {t("classifier.start.history")}
+              </h2>
+              <p className="mb-4 mt-0.5 text-small text-muted">{item.product.name}</p>
+              <ClassificationTimeline history={item.history} />
+            </section>
+          ) : null}
+        </div>
+      )}
     </>
   );
 }

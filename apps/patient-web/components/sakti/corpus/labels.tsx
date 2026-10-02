@@ -3,36 +3,59 @@
 import { useT } from "@carebridge/i18n";
 import type { CorpusLane, CorpusReviewState, IngestionState } from "@carebridge/shared-types";
 import { Badge, cn, type Tone } from "@carebridge/ui";
+import {
+  CheckCircle,
+  CircleDashed,
+  HourglassMedium,
+  PencilSimpleLine,
+  SealCheck,
+  Warning,
+  WarningCircle,
+  XCircle,
+} from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { LaneMark } from "../ui";
 
-const REVIEW_TONE: Record<CorpusReviewState, Tone> = {
-  draft: "neutral",
-  under_review: "info",
-  approved: "success",
-  rejected: "danger",
+const REVIEW: Record<CorpusReviewState, { tone: Tone; icon: Icon }> = {
+  draft: { tone: "neutral", icon: PencilSimpleLine },
+  under_review: { tone: "info", icon: HourglassMedium },
+  approved: { tone: "success", icon: SealCheck },
+  rejected: { tone: "danger", icon: XCircle },
 };
 
-const INGESTION_TONE: Record<IngestionState, Tone> = {
-  uploaded: "neutral",
-  parsed: "success",
-  needs_review: "warning",
-  failed: "danger",
+const INGESTION: Record<IngestionState, { tone: Tone; icon: Icon }> = {
+  uploaded: { tone: "neutral", icon: CircleDashed },
+  parsed: { tone: "success", icon: CheckCircle },
+  needs_review: { tone: "warning", icon: Warning },
+  failed: { tone: "danger", icon: WarningCircle },
 };
 
-/** The lane is always shown in words, never by colour alone. */
+/** The lane is always shown in words and with its own icon, never by colour alone. */
 export function LaneBadge({ lane }: { lane: CorpusLane }) {
-  const t = useT();
-  return <Badge tone={lane === "india" ? "brand" : "info"}>{t(`corpus.lane.${lane}`)}</Badge>;
+  return <LaneMark lane={lane} size="sm" />;
 }
 
 export function ReviewBadge({ state }: { state: CorpusReviewState }) {
   const t = useT();
-  return <Badge tone={REVIEW_TONE[state]}>{t(`corpus.reviewState.${state}`)}</Badge>;
+  const { tone, icon: Glyph } = REVIEW[state];
+  return (
+    <Badge tone={tone}>
+      <Glyph size={13} weight="bold" aria-hidden />
+      {t(`corpus.reviewState.${state}`)}
+    </Badge>
+  );
 }
 
 export function IngestionBadge({ state }: { state: IngestionState }) {
   const t = useT();
-  return <Badge tone={INGESTION_TONE[state]}>{t(`corpus.ingestion.${state}`)}</Badge>;
+  const { tone, icon: Glyph } = INGESTION[state];
+  return (
+    <Badge tone={tone}>
+      <Glyph size={13} weight="bold" aria-hidden />
+      {t(`corpus.ingestion.${state}`)}
+    </Badge>
+  );
 }
 
 /** A SHA-256, in full: it is what an approval names, so it is never shortened. */

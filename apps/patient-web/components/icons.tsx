@@ -19,6 +19,7 @@ import {
   Question,
   Scales,
   SealCheck,
+  SquaresFour,
   Tray,
   TreeStructure,
   UploadSimple,
@@ -41,6 +42,7 @@ export const PeopleIcon = (p: IconProps) => <UsersThree {...defaults} {...p} />;
 export const ArrowLeftIcon = (p: IconProps) => <ArrowLeft {...defaults} size={16} {...p} />;
 
 // IP-SAKTI Sahayak — same family, same weight.
+export const DashboardIcon = (p: IconProps) => <SquaresFour {...defaults} {...p} />;
 export const SaktiMarkIcon = (p: IconProps) => <Scales {...defaults} {...p} />;
 export const AskIcon = (p: IconProps) => <Question {...defaults} {...p} />;
 export const ClassifyIcon = (p: IconProps) => <TreeStructure {...defaults} {...p} />;

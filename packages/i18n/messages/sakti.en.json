@@ -84,6 +84,7 @@
     "admin": "Administrator"
   },
   "areaLabel": {
+    "user": "Workspace",
     "facilitator": "Facilitator desk",
     "curator": "Corpus curation",
     "admin": "Administration"
@@ -92,7 +93,7 @@
     "main": "Main navigation",
     "ask": "Ask",
     "classify": "Classify",
-    "myProduct": "My Product",
+    "myProduct": "My Products",
     "escalate": "Escalate",
     "incoming": "Incoming escalations",
     "brief": "Brief",
@@ -102,7 +103,13 @@
     "upload": "Upload",
     "drafts": "Draft / Diff",
     "approve": "Approve",
-    "facilitators": "Facilitators"
+    "facilitators": "Facilitators",
+    "dashboard": "Dashboard",
+    "group": {
+      "products": "Your products",
+      "guidance": "Guidance"
+    },
+    "later": "Later"
   },
   "notAvailable": {
     "badge": "Not available yet",
@@ -129,7 +136,7 @@
       }
     },
     "myProduct": {
-      "title": "My Product",
+      "title": "My Products",
       "description": "Describe your products. What you write here is your own description, not a classification.",
       "points": {
         "one": "Hold the product or formulation name, its ingredients and its intended purpose.",
@@ -210,12 +217,59 @@
       "points": {
         "one": "Add IP facilitators and show who is available."
       }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Your products, their classifications, and what is ready."
     }
   },
   "landing": {
     "lead": "A guide to intellectual property and regulation for Ayurvedic products — being built to answer from official sources, to show the exact text it relied on, and to keep Indian and international law apart.",
-    "status": "In development. Questions and classification are not available yet. Curators can now prepare the library of official sources; nothing from it is shown to users yet.",
-    "areasTitle": "What it is being built to do"
+    "status": "Product profiles and the classifier work today. Cited answers and escalation to a facilitator come in later phases; curators are preparing the library of official sources, and nothing from it is shown to users yet.",
+    "areasTitle": "What works today, and what comes next",
+    "eyebrow": "Smart India Hackathon prototype · SIH26045",
+    "principles": {
+      "title": "How it is built",
+      "sources": {
+        "title": "Answers only from official text",
+        "body": "Every answer will quote the approved official text it relies on, with its source, version and date."
+      },
+      "lanes": {
+        "title": "India and international, kept apart",
+        "body": "Indian and international material are answered separately and never mixed."
+      },
+      "abstain": {
+        "title": "Says so when it does not know",
+        "body": "When the sources do not support an answer, it says so and offers a human facilitator instead."
+      }
+    },
+    "availability": {
+      "available": "Available",
+      "curators": "Curators only",
+      "later": "Not available yet"
+    },
+    "capabilities": {
+      "profiles": {
+        "title": "Product profiles",
+        "body": "Describe a product in your own words: purpose, form, ingredients, preparation."
+      },
+      "classifier": {
+        "title": "Formulation classifier",
+        "body": "Fixed, explainable questions lead to one of six categories, or stop at \"I don't know\"."
+      },
+      "corpus": {
+        "title": "Official source library",
+        "body": "Curators upload official documents, read them and approve exact text. Nothing from it is shown to users yet."
+      },
+      "answers": {
+        "title": "Cited answers",
+        "body": "Questions answered only from approved official text, with every quotation shown."
+      },
+      "escalation": {
+        "title": "Human facilitators",
+        "body": "Questions the sources cannot answer go to a person."
+      }
+    }
   },
   "signIn": {
     "title": "Sign in",
@@ -224,7 +278,9 @@
     "password": "Password",
     "demoTitle": "Demo accounts (synthetic)",
     "demoFill": "Fill in as {role}",
-    "wrongProduct": "This server is running a different product, so signing in here will not work."
+    "wrongProduct": "This server is running a different product, so signing in here will not work.",
+    "aboutTitle": "Information you can check",
+    "demoNote": "Synthetic accounts for the demonstration. Not real people."
   },
   "corpus": {
     "lane": {
@@ -466,7 +522,12 @@
       "removed": "Removed",
       "added": "Added",
       "changed": "Changed",
-      "identical": "No differences."
+      "identical": "No differences.",
+      "layout": "Layout",
+      "split": "Side by side",
+      "inline": "Inline",
+      "before": "Last approved",
+      "after": "This version"
     },
     "queue": {
       "sources": "Source documents",
@@ -474,7 +535,11 @@
       "emptyReview": "Nothing is waiting for review.",
       "emptyDrafts": "No drafts.",
       "inspect": "Inspect",
-      "compare": "Compare"
+      "compare": "Compare",
+      "emptyDraftsBody": "Uploaded sources and new provision versions appear here until they are submitted.",
+      "emptyReviewBody": "Sources and provision versions submitted for review appear here.",
+      "waitingSources": "Source documents waiting",
+      "waitingVersions": "Provision versions waiting"
     },
     "instrument": {
       "back": "Corpus",
@@ -494,6 +559,46 @@
       "none": "None yet.",
       "listTitle": "Classifier references",
       "listHelp": "What the classifier's questions rest on, and whether approved text supports each one yet."
+    },
+    "stats": {
+      "title": "Corpus at a glance",
+      "total": "Total sources",
+      "allLanes": "Counts cover both lanes.",
+      "thisLane": "Counts cover the chosen lane only.",
+      "noApproved": "No approved sources yet.",
+      "noApprovedBody": "Nothing in the corpus can be quoted or used until a source is approved."
+    },
+    "wizard": {
+      "progress": "Upload steps",
+      "stepOf": "Step {step} of {total}: {name}",
+      "steps": {
+        "select": "Select",
+        "metadata": "Metadata",
+        "parse": "Parse",
+        "review": "Review",
+        "submit": "Submit"
+      },
+      "done": "done",
+      "next": "Continue",
+      "back": "Back",
+      "selectHint": "Choose the lane first: it decides which instruments and authorities can be used, and it never changes.",
+      "lane": {
+        "india": "Indian Acts, Rules, notifications and other Indian sources.",
+        "international": "Treaties and other international instruments."
+      },
+      "fileHint": "A PDF, stored exactly as uploaded.",
+      "drop": "Drag a PDF here, or choose a file.",
+      "stored": "Stored. The file is kept exactly as uploaded; nothing has been read or approved.",
+      "ingestion": "Reading",
+      "openSource": "Open the source page",
+      "openText": "Check the text as read",
+      "reviewHint": "Check what was stored and read. To compare the text with the original, open the text review.",
+      "pages": "Pages",
+      "jurisdiction": "Jurisdiction",
+      "submitHint": "Submitting sends the source for review. It is used only after a curator approves it.",
+      "submitted": "Submitted for review",
+      "submittedBody": "A curator can now approve or reject it on Approve.",
+      "toApprove": "Go to Approve"
     }
   },
   "units": {
@@ -508,12 +613,8 @@
     "saving": "Saving…",
     "create": "Add product",
     "classify": "Classify",
-    "empty": "You have not described a product yet.",
+    "empty": "Describe a product in your own words to classify it.",
     "factsNote": "These are your facts about your product, kept as you write them. They are not a classification and not a legal determination.",
-    "notClassified": "Not classified yet",
-    "confirmedAs": "Your confirmed classification: {category}",
-    "inProgress": "A classification is in progress",
-    "revision": "Version {number}",
     "field": {
       "name": "Product or formulation name",
       "intended_use": "What it is for, in your words",
@@ -548,7 +649,111 @@
       "add": "Add a marker",
       "remove": "Remove marker {number}"
     },
-    "none": "Not given"
+    "none": "Not given",
+    "emptyTitle": "No products yet",
+    "search": "Search products",
+    "searchPlaceholder": "Name or ingredient",
+    "filter": "Classification state",
+    "filterAll": "All states",
+    "showing": "Showing {shown} of {total}",
+    "noMatch": "No products match the search or filter.",
+    "clearFilters": "Clear search and filter",
+    "action": {
+      "classify": "Classify",
+      "continue": "Continue",
+      "review": "Review result",
+      "view": "View",
+      "again": "Classify again"
+    },
+    "card": {
+      "form": "Form",
+      "ingredients": "Ingredients",
+      "confirmed": "Your confirmed classification",
+      "noPurpose": "No purpose described yet.",
+      "updated": "Updated {date} · version {number}"
+    },
+    "new": {
+      "title": "Add a product",
+      "description": "Describe the product in your own words. Only the name is required."
+    },
+    "editTitle": "Edit product",
+    "editDescription": "Saving makes a new version of the description. Earlier classifications keep the version they used.",
+    "createAndClassify": "Add and classify",
+    "remove": "Remove",
+    "unsaved": "Unsaved changes",
+    "noChanges": "No unsaved changes",
+    "nothingYet": "Nothing entered yet",
+    "sectionsNav": "Sections",
+    "sectionFilled": "Filled in",
+    "sectionEmpty": "Not filled in",
+    "validation": {
+      "name": "Give the product a name.",
+      "ingredient": "Name this ingredient, or remove the row.",
+      "summary": "Some details need attention before saving."
+    },
+    "hint": {
+      "name": "The name you use for it.",
+      "text_language": "The language of what you write here. Your words are kept exactly as written.",
+      "intended_use": "In plain words. For example: taken daily as part of the diet.",
+      "dosage_form": "For example: tablet, oil, powder, syrup.",
+      "administration_route": "Choose \"Not known\" if you are not sure.",
+      "ingredients": "One ingredient per row. Leave out what you do not know.",
+      "preparation_method": "For example: the steps, heat or solvents used.",
+      "classical_reference": "Name the text and the formulation as you know them. This is your statement; it is not checked here.",
+      "extract_description": "For example: the plant part, the solvent and the ratio.",
+      "standardization_description": "For example: what it is standardised to, and how.",
+      "markers": "One defined marker per row.",
+      "notes": "Anything else you want to keep with this description."
+    },
+    "section": {
+      "identity": {
+        "title": "Identity",
+        "hint": "What the product is called, and the language you write in."
+      },
+      "purpose": {
+        "title": "Purpose",
+        "hint": "What the product is for."
+      },
+      "form": {
+        "title": "Form and route",
+        "hint": "Its form, and how it is taken or applied."
+      },
+      "ingredients": {
+        "title": "Ingredients",
+        "hint": "What it contains, as far as you know."
+      },
+      "preparation": {
+        "title": "Preparation",
+        "hint": "How it is made."
+      },
+      "classical": {
+        "title": "Classical reference",
+        "hint": "A classical text or formulation it follows, if any."
+      },
+      "extract": {
+        "title": "Extract and standardisation",
+        "hint": "Only if the product is or contains an extract or fraction."
+      },
+      "markers": {
+        "title": "Markers",
+        "hint": "Defined markers, if the extract has any."
+      },
+      "notes": {
+        "title": "Notes",
+        "hint": "Anything else."
+      }
+    },
+    "detail": {
+      "stateTitle": "Classification",
+      "factsTitle": "Your description",
+      "state": {
+        "not_classified": "This product has not been classified. Answer up to four fixed questions to see which category your answers lead to.",
+        "in_progress": "A classification is in progress. Continue where you left off.",
+        "requires_information": "The last classification stopped at \"I don't know\". Nothing was assumed. Add what is missing, or change the answer.",
+        "awaiting_confirmation": "The classifier reached a result from your answers. It waits for you to confirm it or say it does not fit.",
+        "confirmed": "You confirmed this classification on {date}. It is your confirmation of the classifier's result, not a legal determination."
+      }
+    }
   },
   "classifier": {
     "choice": {
@@ -589,25 +794,46 @@
         "question": "What is the product's main purpose?",
         "help": "The purpose decides which group of rules the product is looked at under first.",
         "missing": "The product's main purpose.",
-        "why": "Without it the classifier cannot tell which group of categories to consider."
+        "why": "Without it the classifier cannot tell which group of categories to consider.",
+        "short": "Main purpose",
+        "hint": {
+          "therapeutic": "Choose this if the product is meant to have a therapeutic effect.",
+          "nutrition": "Choose this if it is meant to be eaten or drunk as food.",
+          "external_beautification": "Choose this if it is applied externally to cleanse or beautify."
+        }
       },
       "classical_formula": {
         "question": "Is the formula and method exactly as given in a text listed in the relevant First Schedule?",
         "help": "Answer yes only if you can name the listed text and the product follows its formula and method exactly.",
         "missing": "Whether the formula and method follow a listed text exactly.",
-        "why": "This decides whether the product can be a classical formulation."
+        "why": "This decides whether the product can be a classical formulation.",
+        "short": "Follows a listed text exactly",
+        "hint": {
+          "yes": "You can name the listed text, and the product follows its formula and method exactly.",
+          "no": "The formula or the method differs in any way, or no listed text applies."
+        }
       },
       "schedule_combination": {
         "question": "Does it contain only ingredients from the relevant First Schedule, in a new combination, and is it not given by injection or infusion?",
         "help": "Answer yes only if all three are true. If any one is not, answer no.",
         "missing": "Whether every ingredient is from the First Schedule, whether the combination is new, and how the product is given.",
-        "why": "This decides whether the product can be a patent or proprietary formulation."
+        "why": "This decides whether the product can be a patent or proprietary formulation.",
+        "short": "First Schedule ingredients, new combination, not injected",
+        "hint": {
+          "yes": "All three are true.",
+          "no": "At least one of the three is not true."
+        }
       },
       "phytopharmaceutical": {
         "question": "Is it a purified and standardised extract or fraction of a plant, with at least four defined markers?",
         "help": "Count only markers that are defined for this extract or fraction.",
         "missing": "Whether the product is a purified, standardised plant extract or fraction, and how many defined markers it has.",
-        "why": "This decides whether the product can be a phytopharmaceutical."
+        "why": "This decides whether the product can be a phytopharmaceutical.",
+        "short": "Purified, standardised extract with four or more markers",
+        "hint": {
+          "yes": "It is a purified, standardised extract or fraction with at least four defined markers.",
+          "no": "It is not, or it has fewer than four defined markers."
+        }
       },
       "slot": {
         "first_schedule": "The First Schedule these questions refer to",
@@ -624,9 +850,21 @@
       "begin": "Start classifying",
       "continue": "Continue the classification in progress",
       "noProducts": "Describe a product first, on My Product.",
-      "toMyProduct": "Go to My Product",
       "history": "Earlier classifications of this product",
-      "noHistory": "None yet."
+      "productHint": "Choose the product to classify.",
+      "viewProduct": "View product",
+      "state": {
+        "not_classified": "Not classified yet. Starting opens a new classification with the classifier's current questions.",
+        "in_progress": "A classification is in progress. Continue it where you left off.",
+        "requires_information": "The classification in progress stopped at \"I don't know\". Continue it to change that answer.",
+        "awaiting_confirmation": "A result is waiting for your confirmation.",
+        "confirmed": "You have confirmed a classification. Starting again opens a new one and keeps the old one."
+      },
+      "how": {
+        "one": "Answer up to four fixed questions, one at a time.",
+        "two": "\"I don't know\" stops the questions and says what is missing.",
+        "three": "Confirm the result, or say it does not fit."
+      }
     },
     "session": {
       "title": "Classifying {product}",
@@ -639,21 +877,12 @@
       "saving": "Saving…",
       "context": "What you told us about the product",
       "noContext": "You have not described this yet.",
-      "stopTitle": "Information needed",
-      "stopMissing": "Missing: {missing}",
-      "stopWhy": "Why it is needed: {why}",
-      "stopBody": "The classifier cannot determine a classification from the information available. Nothing has been assumed and no category has been chosen. Change the answer when you know more.",
-      "resultTitle": "Result",
-      "classification": "Classification",
-      "status": "Status",
-      "confirmation": "Confirmation",
       "awaiting": "Awaiting your confirmation",
       "confirmedOn": "Confirmed by you on {date}",
       "rejectedOn": "Rejected by you on {date}",
-      "references": "References",
       "resultNote": "This is the category the classifier's fixed questions lead to from your answers. It is not a legal determination, not an approval, and not advice.",
-      "confirm": "Confirm this classification",
-      "reject": "Reject",
+      "confirm": "Confirm classification",
+      "reject": "This does not fit — reject it",
       "rejectReason": "Why it does not fit (optional)",
       "confirmReject": "Reject this classification",
       "cancel": "Cancel",
@@ -664,6 +893,285 @@
       "history": "Results in this classification",
       "historyItem": "{number}. {result}",
       "stoppedAt": "Stopped: information needed"
+    },
+    "flow": {
+      "step": "Step {step} of {total}",
+      "stepNote": "Some answers finish sooner, so you may not see every step.",
+      "whyAsk": "Why we ask",
+      "back": "Back",
+      "changingNote": "Changing an answer can change which questions come after it.",
+      "unknownHint": "Choose this if you are not sure. The classification stops and says what is missing. Nothing is assumed.",
+      "restartHint": "Starting again keeps this classification as it is and opens a new one."
+    },
+    "unknown": {
+      "title": "More information is needed",
+      "lead": "You answered \"I don't know\", so the classification stopped here.",
+      "missing": "What is missing",
+      "why": "Why we ask",
+      "assumed": "Nothing has been assumed, and no category has been chosen.",
+      "review": "Review product",
+      "return": "Return to product",
+      "change": "Change this answer"
+    },
+    "result": {
+      "complete": "Classification complete",
+      "determined": "Determined from your answers",
+      "allAnswered": "All required questions answered",
+      "references": "Legal references",
+      "how": "How we arrived here",
+      "question": "Does this match your product?",
+      "change": "I need to change something",
+      "changeTitle": "What do you want to change?",
+      "changeAnswer": "Change one of my answers",
+      "editProduct": "Edit the product description",
+      "rejectNote": "Rejecting picks no other category. The product stays unclassified until you classify it again."
+    },
+    "timeline": {
+      "title": "Classification history",
+      "hint": "Every classification of this product, newest first. Nothing here can be changed.",
+      "empty": "No classifications yet.",
+      "session": "Classification {number}",
+      "noCategory": "No category",
+      "started": "Started",
+      "version": "Classifier version",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected",
+      "decided": "Decided",
+      "restart": "Started again from an earlier classification",
+      "open": "Open"
+    }
+  },
+  "ui": {
+    "state": {
+      "not_classified": "Not classified",
+      "in_progress": "Classification in progress",
+      "requires_information": "Requires information",
+      "awaiting_confirmation": "Awaiting confirmation",
+      "confirmed": "Confirmed"
+    },
+    "lane": {
+      "india": "India",
+      "international": "International"
+    },
+    "demo": {
+      "tag": "Demo data",
+      "short": "Demo",
+      "explain": "Demo data: what this means",
+      "title": "Demo mode",
+      "body": "This is a demonstration server. Some of what you see is synthetic, made up for the demonstration:",
+      "points": {
+        "accounts": "The sign-in accounts are synthetic, one per role. They are not real people.",
+        "samples": "A sample product, if you load one, is synthetic and labelled \"DEMO DATA\" wherever it appears.",
+        "never": "No legal text, statute, citation or government information is ever synthetic. The source library holds only what curators add from official sources."
+      },
+      "loadSample": "Load a sample product",
+      "loadingSample": "Adding the sample…"
+    },
+    "required": "Required",
+    "optional": "Optional",
+    "laterRelease": "Later release",
+    "readiness": {
+      "done": "ready",
+      "notYet": "not ready yet"
+    },
+    "infoOnly": "Information only — not legal advice.",
+    "shell": {
+      "openMenu": "Open menu"
+    },
+    "user": {
+      "menu": "Account",
+      "signedInAs": "Signed in as"
+    }
+  },
+  "dashboard": {
+    "hero": {
+      "title": "Understand your product's intellectual-property and regulatory landscape.",
+      "lead": "Describe a product in your own words, classify it with fixed, explainable questions, and — once the source library is connected — ask questions answered only from cited official text."
+    },
+    "actions": {
+      "add": "Add product",
+      "classify": "Classify a product",
+      "ask": "Ask Sahayak"
+    },
+    "readiness": {
+      "title": "Readiness",
+      "hint": "What is in place for your products today.",
+      "product": "Product information",
+      "productDone": "At least one product is described.",
+      "productTodo": "Describe a product to begin.",
+      "classification": "Classification",
+      "classificationDone": "At least one classification is confirmed by you.",
+      "classificationTodo": "No classification has been confirmed yet.",
+      "corpus": "Legal corpus connection",
+      "corpusNote": "{verified} of {total} classifier references are backed by approved official text.",
+      "answers": "Cited answer engine",
+      "answersNote": "Not available yet. It is built in a later phase."
+    },
+    "products": {
+      "title": "My products",
+      "all": "All products"
+    },
+    "recent": {
+      "title": "Recent classification",
+      "empty": "No classification yet. Classify a product to see its result here.",
+      "meta": "{product} · started {date} · classifier version {version}",
+      "open": "Open"
+    },
+    "references": {
+      "title": "Reference status",
+      "hint": "The legal references the classifier's questions rest on."
+    },
+    "start": {
+      "title": "Getting started",
+      "one": "Describe your product",
+      "oneBody": "Its name, purpose, form and ingredients, in your own words.",
+      "two": "Answer the classification questions",
+      "twoBody": "Up to four fixed questions. \"I don't know\" is always an answer.",
+      "three": "Confirm the result",
+      "threeBody": "A result is only a proposal until you confirm it.",
+      "four": "Ask a question",
+      "fourBody": "Answers quoted from official sources, with India and international kept apart."
+    }
+  },
+  "ask": {
+    "title": "Ask Sahayak",
+    "description": "Ask a question about intellectual property or regulation for an Ayurvedic product.",
+    "notEnabled": {
+      "title": "The answer service is not enabled yet",
+      "body": "You can prepare a question here, but it will not be sent and no answer will be generated. Cited answers come in a later phase, built only from approved official text."
+    },
+    "question": "Your question",
+    "questionHint": "One topic at a time works best. For example: which kinds of protection could apply to a product name?",
+    "product": "About which product (optional)",
+    "productHint": "Answers will be able to take your product's description into account.",
+    "noProduct": "No product",
+    "asOf": "As of date",
+    "asOfHint": "The law is read as it stood on this date.",
+    "jurisdiction": "Jurisdiction",
+    "jurisdictionHint": "India and international material are always answered separately, never mixed. Choose one or both.",
+    "language": "Answer language",
+    "languageHint": "Quoted legal text is always shown in its original language, never machine-translated.",
+    "notSentNote": "Nothing you type here is sent while the answer service is off.",
+    "submit": "Ask Sahayak",
+    "held": {
+      "title": "Your question was not sent",
+      "body": "The source-grounded answer service is not enabled in this version, so no answer was generated. Your question is still here."
+    },
+    "empty": {
+      "title": "No answer yet",
+      "body": "Cited answers will appear here once the source-grounded knowledge service is enabled."
+    },
+    "how": {
+      "title": "How answers will work"
+    },
+    "validation": {
+      "question": "Write a question first.",
+      "future": "The date cannot be in the future."
+    }
+  },
+  "answer": {
+    "lane": {
+      "india": {
+        "title": "Indian law and regulation",
+        "scope": "Only from approved Indian sources: India Code, e-Gazette, IP India, National Biodiversity Authority and FSSAI."
+      },
+      "international": {
+        "title": "International instruments",
+        "scope": "Only from approved international sources: WIPO Lex."
+      }
+    },
+    "confidence": {
+      "supported": "Supported by cited text",
+      "partial": "Partly supported",
+      "insufficient": "Not enough support — no answer given"
+    },
+    "asOf": "As of {date}",
+    "point": {
+      "requirement": "Requirement",
+      "information": "Information",
+      "citation": "Citation"
+    },
+    "citation": {
+      "version": "Version",
+      "validity": "Applies",
+      "validRange": "{from} to {to}",
+      "open": "open",
+      "notRecorded": "Not recorded",
+      "status": "Status",
+      "noStatus": "No status recorded",
+      "retrieved": "Retrieved",
+      "source": "Source document",
+      "checksum": "Text checksum",
+      "ocr": "Part of this text was read by OCR and checked by a curator against the original."
+    },
+    "notCovered": {
+      "title": "Not covered by the sources"
+    },
+    "escalate": {
+      "title": "Ask a person",
+      "body": "A human IP facilitator can look at a question the sources do not answer.",
+      "action": "Escalate to a facilitator",
+      "later": "Escalation opens in a later release."
+    }
+  },
+  "desk": {
+    "incoming": {
+      "cols": {
+        "question": "Question",
+        "product": "Product",
+        "lanes": "Lanes",
+        "received": "Received",
+        "status": "Status"
+      },
+      "empty": {
+        "title": "No escalations yet.",
+        "body": "When a user sends a question to a facilitator, it will arrive here with what the sources did and did not support."
+      }
+    },
+    "brief": {
+      "empty": {
+        "title": "No escalation selected.",
+        "body": "A brief brings together one escalation: the question, the user's product and the sources already found."
+      },
+      "sections": {
+        "question": "The question",
+        "product": "The user's product",
+        "supported": "What the sources supported",
+        "notCovered": "What the sources did not cover"
+      },
+      "pending": "Shown when an escalation is opened."
+    },
+    "messages": {
+      "list": "Conversations",
+      "empty": "No conversations yet.",
+      "select": {
+        "title": "No conversation selected.",
+        "body": "Conversations with users will appear here once escalation is available."
+      },
+      "reply": "Replies will be written here and shown to the user as yours, with your name and role."
+    },
+    "notes": {
+      "empty": {
+        "title": "No notes yet.",
+        "body": "Working notes on an escalation will be kept here. Only facilitators will see them."
+      }
+    }
+  },
+  "admin": {
+    "cols": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Approval",
+      "activity": "Last activity"
+    },
+    "empty": {
+      "title": "No facilitators have been added yet.",
+      "body": "Adding facilitators, approving them and seeing their activity opens in a later release."
+    },
+    "demo": {
+      "title": "Demo accounts",
+      "body": "Synthetic accounts created by the demo seed, one per role. Listed from this app's configuration, not read from the server. They are not real people."
     }
   }
 }

@@ -8,15 +8,92 @@ html {
 }
 
 /*
- * IP-SAKTI Sahayak (NEXT_PUBLIC_PRODUCT=ip_sakti). Same sheet, same type, same
- * components — its own accent, so it never reads as the healthcare product with
- * a new name. Only the brand family changes; status colours keep their meanings.
- * Contrast, computed: white on brand 7.4:1, brand-strong on brand-soft 8.7:1,
- * brand on surface 7.0:1. CareBridge's tokens are untouched.
+ * IP-SAKTI-only materials. Declared as theme tokens so they become utilities
+ * (bg-lane-india, text-source-ink, …); CareBridge never uses them.
+ *   lane-india / lane-intl — the two bodies of law. Never colour alone: every
+ *                            lane mark also carries its icon, its name and its rule.
+ *   source                 — approved official text, quoted. A parchment ground,
+ *                            so a quotation can never be mistaken for the
+ *                            product's own words.
+ *   demo                   — synthetic demonstration data. Amber, dashed, labelled.
+ * Contrast, computed: lane-india on its soft 6.6:1, lane-intl on its soft 7.5:1,
+ * source-ink on source 14.4:1, demo on its soft 7.0:1.
+ */
+@theme {
+  --color-lane-india: #8a3b12;
+  --color-lane-india-soft: #f7ebe2;
+  --color-lane-intl: #1f4b80;
+  --color-lane-intl-soft: #e6edf7;
+  --color-source: #fbf7ec;
+  --color-source-line: #d9c79c;
+  --color-source-ink: #2b2417;
+  --color-demo: #6b4e00;
+  --color-demo-soft: #fbf3d9;
+
+  /* One entrance: content rises 4px and settles. Only under motion-safe. */
+  --animate-rise: rise var(--duration-base) var(--ease-out-soft) both;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/*
+ * IP-SAKTI Sahayak (NEXT_PUBLIC_PRODUCT=ip_sakti): its own visual language, not
+ * the healthcare product recoloured. A cool herbarium-paper ground instead of
+ * warm washi, deep-teal brand, green-black ink, softer corners and cooler
+ * shadows: calm, institutional, evidence-first. Status colours keep their
+ * meanings across both products. Every text pair was computed on the surface
+ * it sits on: ink 16.3:1, muted 7.7:1, subtle 6.1:1 on surface; white on brand
+ * 7.4:1; brand on surface 7.2:1; control borders (line-strong) 3.3:1.
+ * CareBridge's tokens are untouched.
  */
 html[data-product="ip_sakti"] {
+  --color-canvas: #eef2ef;
+  --color-surface: #fbfcfa;
+  --color-sunken: #f1f4f1;
+  --color-line: #d3ddd7;
+  --color-line-strong: #7f9089;
+  --color-ink: #13201d;
+  --color-muted: #475450;
+  --color-subtle: #56635f;
+  --color-focus: #0a4649;
+
   --color-brand: #0e5f63;
   --color-brand-strong: #0a4649;
-  --color-brand-soft: #dcecea;
-  --color-brand-tint: #eef6f5;
+  --color-brand-soft: #d9ece9;
+  --color-brand-tint: #eef6f4;
+
+  /* "Paper" is the original material — here, a user's own document. */
+  --color-paper: #fbf7ec;
+  --color-paper-line: #d9c79c;
+  --color-paper-ink: #2b2417;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  --shadow-xs: 0 1px 1px rgba(19, 32, 29, 0.05);
+  --shadow-sm: 0 1px 2px rgba(19, 32, 29, 0.06), 0 6px 16px -12px rgba(19, 32, 29, 0.28);
+  --shadow-md: 0 1px 2px rgba(19, 32, 29, 0.06), 0 16px 32px -24px rgba(19, 32, 29, 0.32);
+  --shadow-lg: 0 2px 4px rgba(19, 32, 29, 0.06), 0 28px 52px -30px rgba(19, 32, 29, 0.38);
+}
+
+/* Tamil and Hindi run to long single words; one longer than its box breaks
+   inside the box instead of pushing the page sideways. */
+html[data-product="ip_sakti"] body {
+  overflow-wrap: break-word;
+}
+
+html[data-product="ip_sakti"] ::selection {
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
 }

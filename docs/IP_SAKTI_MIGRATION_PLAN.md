@@ -1232,3 +1232,32 @@ version and ids or choice codes, never the profile's free text.
 * There is no free-text answering and no AI normalisation; answers are choices.
 * Hindi and Tamil strings are unreviewed drafts.
 * "Start again" begins from Q1; earlier answers are not carried over.
+
+## 25. Phase 3.5 — product experience (2026-10-02)
+
+The interface was rebuilt into IP-SAKTI's own visual language, on the shared
+component library, with no backend change. It has a desktop sidebar and mobile
+sheet, a dashboard (now where a user lands), product cards with derived
+classification states, a nine-section product editor, a guided classification
+flow, and read-only classification history. It also adds a five-step curator
+upload, a side-by-side diff, and designed empty states for Ask, the facilitator
+desk and the administrator. In demo mode a "Demo data" marker appears, and a
+user can add one clearly synthetic sample product. Everything is described in
+[IP_SAKTI_UI_SYSTEM.md](IP_SAKTI_UI_SYSTEM.md).
+
+### Not built
+
+* Ask is a screen only. Nothing is sent and no answer, citation or legal text
+  is shown. The answer components exist as a typed contract for Phase 4 and
+  are exercised only by tests with synthetic, non-legal fixtures.
+* Escalation, the facilitator desk and facilitator management are layouts with
+  empty states.
+
+### Known limitations
+
+* A product's state is derived on the client from its classification history,
+  one request per product. That is fine for a demo, but a list endpoint should
+  return it when products are many.
+* Products cannot be deleted. The API has no delete, so a loaded sample product
+  stays.
+* Hindi and Tamil strings added in this phase are unreviewed drafts.

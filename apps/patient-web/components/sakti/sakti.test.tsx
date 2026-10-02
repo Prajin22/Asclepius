@@ -18,6 +18,7 @@ const h = vi.hoisted(() => ({
   login: vi.fn(),
   session: null as null | { user: { role: string; email: string } },
   apiProduct: "ip_sakti" as string,
+  demo: false,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -26,7 +27,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@carebridge/api-client/react", () => ({
   useAuth: () => ({ session: h.session, ready: true, logout: h.logout, login: h.login }),
-  useQuery: () => ({ data: { product: h.apiProduct }, error: null, loading: false, reload: () => {} }),
+  useQuery: () => ({ data: { product: h.apiProduct, demo_mode: h.demo }, error: null, loading: false, reload: () => {} }),
 }));
 // The real switcher needs the app's LocaleProvider; its own behaviour is tested elsewhere.
 vi.mock("@/components/LanguageSwitcher", () => ({ LanguageSwitcher: () => null }));
@@ -44,6 +45,7 @@ beforeEach(() => {
   h.session = null;
   h.path = "/ask";
   h.apiProduct = "ip_sakti";
+  h.demo = false;
 });
 
 describe("the shell", () => {
@@ -113,6 +115,66 @@ describe("the shell", () => {
     expect(h.replace).toHaveBeenCalledWith("/login");
   });
 
+  it("marks a destination whose capability does not exist yet", () => {
+    h.session = as("user");
+    h.path = "/dashboard";
+    renderSakti(<SaktiShell role="user">x</SaktiShell>);
+    const ask = screen.getByRole("link", { name: new RegExp(en("nav.ask")) });
+    expect(ask.textContent).toContain(en("nav.later"));
+    const classify = screen.getByRole("link", { name: new RegExp(en("nav.classify")) });
+    expect(classify.textContent).not.toContain(en("nav.later"));
+  });
+
+  it("lands a user on the dashboard", () => {
+    expect(SAKTI_NAV.user[0].href).toBe("/dashboard");
+  });
+
+  it("opens the navigation in an accessible sheet from the menu button, and closes it on Escape", async () => {
+    h.session = as("curator");
+    h.path = "/curator";
+    renderSakti(<SaktiShell role="curator">x</SaktiShell>);
+    const menu = screen.getByRole("button", { name: en("ui.shell.openMenu") });
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(menu);
+    const dialog = screen.getByRole("dialog");
+    for (const item of SAKTI_NAV.curator) expect(within(dialog).getByRole("link", { name: new RegExp(en(item.label)) })).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("shows who is signed in, with their role, and signs out from the account menu", async () => {
+    h.session = as("facilitator");
+    h.path = "/facilitator";
+    renderSakti(<SaktiShell role="facilitator">x</SaktiShell>);
+    const account = screen.getByRole("button", { name: en("ui.user.menu") });
+    await userEvent.click(account);
+    expect(account).toHaveAttribute("aria-expanded", "true");
+    const panel = within(document.getElementById(account.getAttribute("aria-controls")!)!);
+    expect(panel.getByText("facilitator@ipsakti.demo")).toBeInTheDocument();
+    expect(panel.getByText(en("role.facilitator"))).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(account).toHaveAttribute("aria-expanded", "false");
+    expect(account).toHaveFocus();
+    await userEvent.click(account);
+    await userEvent.click(screen.getByRole("button", { name: new RegExp(en("actions.signOut")) }));
+    expect(h.logout).toHaveBeenCalled();
+  });
+
+  it("marks demo mode on every screen, and explains exactly what is synthetic", async () => {
+    h.session = as("user");
+    h.demo = true;
+    renderSakti(<SaktiShell role="user">x</SaktiShell>);
+    await userEvent.click(screen.getByRole("button", { name: en("ui.demo.explain") }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText(en("ui.demo.points.never"))).toBeInTheDocument();
+  });
+
+  it("shows no demo marker outside demo mode", () => {
+    h.session = as("user");
+    renderSakti(<SaktiShell role="user">x</SaktiShell>);
+    expect(screen.queryByRole("button", { name: en("ui.demo.explain") })).toBeNull();
+  });
+
   it.each(["hi", "ta"])("renders entirely from the %s catalogue", (locale) => {
     h.session = as("user");
     renderSakti(<SaktiShell role="user">x</SaktiShell>, locale);
@@ -124,18 +186,24 @@ describe("the shell", () => {
 });
 
 describe("placeholders", () => {
-  const pages = Object.keys(SAKTI_PAGES) as SaktiPage[];
+  const all = Object.keys(SAKTI_PAGES) as SaktiPage[];
+  const pages = all.filter((page) => !SAKTI_PAGES[page].available);
 
-  it("every navigation destination has a placeholder page description", () => {
+  it("every navigation destination has a page description", () => {
     const linked = new Set(Object.values(SAKTI_NAV).flatMap((items) => items.map((i) => i.page)));
-    expect(linked).toEqual(new Set(pages));
+    expect(linked).toEqual(new Set(all));
+    for (const page of all) expect(lookup(saktiCatalogs.en, `pages.${page}.title`), page).toBeTruthy();
+  });
+
+  it("only the screens whose capability does not exist yet are placeholders", () => {
+    expect(pages.sort()).toEqual(["ask", "brief", "escalate", "facilitators", "incoming", "messages", "notes"]);
   });
 
   it.each(pages)("%s says plainly that it is not available yet", (page) => {
     renderSakti(<SaktiPlaceholder page={page} />);
     expect(screen.getByRole("heading", { level: 1, name: en(`pages.${page}.title`) })).toBeInTheDocument();
-    expect(screen.getByText(en("notAvailable.badge"))).toBeInTheDocument();
-    expect(screen.getByText(en("notAvailable.body"))).toBeInTheDocument();
+    expect(screen.getAllByText(en("notAvailable.badge")).length).toBeGreaterThan(0);
+    expect(document.body.textContent).toContain(en("notAvailable.body"));
     for (const point of SAKTI_PAGES[page].points) {
       expect(screen.getByText(en(`pages.${page}.points.${point}`))).toBeInTheDocument();
     }
@@ -162,11 +230,11 @@ describe("placeholders", () => {
     (page, locale) => {
       renderSakti(<SaktiPlaceholder page={page} />, locale);
       expect(document.body.textContent).not.toMatch(RAW_KEY);
-      expect(screen.getByText(lookup(saktiCatalogs[locale], "notAvailable.badge")!)).toBeInTheDocument();
+      expect(screen.getAllByText(lookup(saktiCatalogs[locale], "notAvailable.badge")!).length).toBeGreaterThan(0);
     },
   );
 
-  it("My Product says a profile is never a legal classification", () => {
+  it("shows a note where the screen has one", () => {
     renderSakti(<SaktiPlaceholder page="myProduct" />);
     expect(screen.getByText(en("pages.myProduct.note"))).toBeInTheDocument();
   });
@@ -182,11 +250,22 @@ describe("the landing page", () => {
     expect(screen.getByText(en("disclaimer.prototype"))).toBeInTheDocument();
   });
 
-  it("marks every area as not available and links nowhere but sign-in", () => {
+  it("says exactly what works today and what does not, and links nowhere but sign-in", () => {
     renderSakti(<SaktiLanding />);
-    expect(screen.getAllByText(en("notAvailable.badge"))).toHaveLength(SAKTI_NAV.user.length);
+    expect(screen.getAllByText(en("landing.availability.available"))).toHaveLength(2);
+    expect(screen.getAllByText(en("landing.availability.curators"))).toHaveLength(1);
+    expect(screen.getAllByText(en("landing.availability.later"))).toHaveLength(2);
+    expect(screen.getByText(en("landing.capabilities.answers.title"))).toBeInTheDocument();
+    expect(screen.getByText(en("ui.infoOnly"))).toBeInTheDocument();
     for (const link of screen.getAllByRole("link")) expect(link).toHaveAttribute("href", "/login");
     expect(document.body.textContent).not.toMatch(MEDICAL);
+    expect(document.body.textContent).not.toMatch(/government[- ]approved|official (service|app) of|certified|endorsed/i);
+  });
+
+  it.each(["hi", "ta"])("renders entirely from the %s catalogue", (locale) => {
+    renderSakti(<SaktiLanding />, locale);
+    expect(document.body.textContent).not.toMatch(RAW_KEY);
+    expect(document.body.textContent).not.toMatch(/\b(ui|landing)\.[a-zA-Z]/);
   });
 });
 

@@ -1,6 +1,8 @@
-import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
+"use client";
 
-/** Not built yet: a clearly marked placeholder, nothing that looks as if it works. */
-export default function AskPage() {
-  return <SaktiPlaceholder page="ask" />;
+import { AskPage } from "@/components/sakti/answer/AskPage";
+
+/** Phase 3.5: the question form and the two answer lanes, empty until the answer service exists. */
+export default function Ask() {
+  return <AskPage />;
 }

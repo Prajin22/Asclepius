@@ -12,7 +12,7 @@ export const HOME_FOR_ROLE: Record<Role, string> = {
   // Both
   admin: "/admin",
   // IP-SAKTI Sahayak
-  user: "/ask",
+  user: "/dashboard",
   facilitator: "/facilitator",
   curator: "/curator",
 };

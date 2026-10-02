@@ -2,11 +2,14 @@
 
 import { useApi, useQuery } from "@carebridge/api-client/react";
 import { useI18n } from "@carebridge/i18n";
-import { Alert, Card, EmptyState, ErrorState, PageHeader, SkeletonCard } from "@carebridge/ui";
+import { Alert, Card, ErrorState, PageHeader, SkeletonCard } from "@carebridge/ui";
+import { FileText, Paragraph } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useState } from "react";
 import { ReviewActions } from "@/components/sakti/corpus/ReviewActions";
+import { ApproveIcon } from "@/components/icons";
 import { SourceRow, VersionRow } from "@/components/sakti/corpus/rows";
+import { EmptyPanel, StatTile } from "@/components/sakti/ui";
 
 /**
  * Everything submitted for review. Each approval names the checksum shown
@@ -37,9 +40,19 @@ export default function ApprovePage() {
       ) : !q.data ? (
         <SkeletonCard />
       ) : q.data.sources.length + q.data.versions.length === 0 ? (
-        <EmptyState>{t("corpus.queue.emptyReview")}</EmptyState>
+        <EmptyPanel icon={ApproveIcon} title={t("corpus.queue.emptyReview")}>
+          {t("corpus.queue.emptyReviewBody")}
+        </EmptyPanel>
       ) : (
         <div className="flex flex-col gap-8">
+          <ul className="grid gap-3 sm:grid-cols-2">
+            <li>
+              <StatTile label={t("corpus.queue.waitingSources")} value={q.data.sources.length} icon={FileText} tone="info" />
+            </li>
+            <li>
+              <StatTile label={t("corpus.queue.waitingVersions")} value={q.data.versions.length} icon={Paragraph} tone="info" />
+            </li>
+          </ul>
           {q.data.sources.length ? (
             <section aria-labelledby="review-sources" className="flex flex-col gap-3">
               <h2 id="review-sources" className="text-subheading text-ink">

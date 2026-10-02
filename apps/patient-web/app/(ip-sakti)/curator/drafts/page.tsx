@@ -2,9 +2,11 @@
 
 import { useQuery } from "@carebridge/api-client/react";
 import { useI18n } from "@carebridge/i18n";
-import { Card, EmptyState, ErrorState, PageHeader, SkeletonCard } from "@carebridge/ui";
+import { Card, ErrorState, PageHeader, SkeletonCard } from "@carebridge/ui";
 import Link from "next/link";
+import { DraftIcon } from "@/components/icons";
 import { SourceRow, VersionRow } from "@/components/sakti/corpus/rows";
+import { EmptyPanel } from "@/components/sakti/ui";
 
 /** Work in progress, each piece one step from its comparison with what is approved. */
 export default function DraftsPage() {
@@ -19,7 +21,9 @@ export default function DraftsPage() {
       ) : !q.data ? (
         <SkeletonCard />
       ) : q.data.sources.length + q.data.versions.length === 0 ? (
-        <EmptyState>{t("corpus.queue.emptyDrafts")}</EmptyState>
+        <EmptyPanel icon={DraftIcon} title={t("corpus.queue.emptyDrafts")}>
+          {t("corpus.queue.emptyDraftsBody")}
+        </EmptyPanel>
       ) : (
         <div className="flex flex-col gap-8">
           {q.data.sources.length ? (

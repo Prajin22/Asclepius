@@ -1,10 +1,12 @@
 /**
  * IP-SAKTI Sahayak's information architecture: who sees which destinations.
  *
- * One entry per screen. A screen is a placeholder until the phase that builds
- * it flips `available`; nothing may be shown as working before it does. Phase 2
- * built the curator's four screens and Phase 3 the user's Classify and My
- * Product; every other screen is still a placeholder.
+ * One entry per screen. `available` is false while a screen's capability does
+ * not exist yet: such a screen may show its design and its empty states, but
+ * nothing may be shown as working before the phase that builds it. Phase 2
+ * built the curator's four screens, Phase 3 Classify and My Products, Phase 3.5
+ * the dashboard; Ask, Escalate and the facilitator and administrator screens
+ * are designed shells with honest empty states.
  */
 import type { SaktiRole } from "@carebridge/shared-types";
 import type { ComponentProps, ReactNode } from "react";
@@ -14,6 +16,7 @@ import {
   BriefIcon,
   ClassifyIcon,
   CorpusIcon,
+  DashboardIcon,
   DraftIcon,
   EscalateIcon,
   IncomingIcon,
@@ -28,6 +31,7 @@ type Icon = (props: ComponentProps<typeof AskIcon>) => ReactNode;
 
 /** Every IP-SAKTI screen. The key names its text under `pages.<key>` in the catalogue. */
 export type SaktiPage =
+  | "dashboard"
   | "ask"
   | "classify"
   | "myProduct"
@@ -47,11 +51,12 @@ export interface SaktiPageInfo {
   points: readonly ("one" | "two" | "three")[];
   /** Whether `pages.<key>.note` exists. */
   note?: boolean;
-  /** False until the phase that builds the screen. */
+  /** False until the phase that builds the screen's capability. */
   available: boolean;
 }
 
 export const SAKTI_PAGES: Record<SaktiPage, SaktiPageInfo> = {
+  dashboard: { points: [], available: true },
   ask: { points: ["one", "two", "three"], available: false },
   classify: { points: ["one", "two"], available: true },
   myProduct: { points: ["one", "two", "three"], note: true, available: true },
@@ -73,14 +78,17 @@ export interface SaktiNavItem {
   /** Catalogue key of the short label. */
   label: string;
   Icon: Icon;
+  /** Catalogue key of the sidebar group heading this item starts, if any. */
+  group?: string;
 }
 
 /** Each role's destinations, in order. The first is where the role lands. */
 export const SAKTI_NAV: Record<SaktiRole, readonly SaktiNavItem[]> = {
   user: [
-    { href: "/ask", page: "ask", label: "nav.ask", Icon: AskIcon },
+    { href: "/dashboard", page: "dashboard", label: "nav.dashboard", Icon: DashboardIcon },
+    { href: "/my-product", page: "myProduct", label: "nav.myProduct", Icon: ProductIcon, group: "nav.group.products" },
     { href: "/classify", page: "classify", label: "nav.classify", Icon: ClassifyIcon },
-    { href: "/my-product", page: "myProduct", label: "nav.myProduct", Icon: ProductIcon },
+    { href: "/ask", page: "ask", label: "nav.ask", Icon: AskIcon, group: "nav.group.guidance" },
     { href: "/escalate", page: "escalate", label: "nav.escalate", Icon: EscalateIcon },
   ],
   facilitator: [

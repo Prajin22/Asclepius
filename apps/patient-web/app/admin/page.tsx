@@ -20,7 +20,7 @@ import {
 import { CheckCircle, IdentificationCard, ListChecks, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useState, type ReactNode } from "react";
 import { forProduct } from "@/components/product/ProductOnly";
-import { SaktiPlaceholder } from "@/components/sakti/SaktiPlaceholder";
+import { FacilitatorsAdmin } from "@/components/sakti/desk/Desk";
 
 const TABS: DoctorApproval[] = ["pending", "approved", "rejected"];
 
@@ -28,7 +28,7 @@ const TABS: DoctorApproval[] = ["pending", "approved", "rejected"];
 export default forProduct({ carebridge: DoctorApplicationsPage, ip_sakti: FacilitatorsPage });
 
 function FacilitatorsPage() {
-  return <SaktiPlaceholder page="facilitators" />;
+  return <FacilitatorsAdmin />;
 }
 
 function DoctorApplicationsPage() {

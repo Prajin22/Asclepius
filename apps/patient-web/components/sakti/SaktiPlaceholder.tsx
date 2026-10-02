@@ -1,43 +1,49 @@
 "use client";
 
 import { useT } from "@carebridge/i18n";
-import { Card, EmptyState, PageHeader } from "@carebridge/ui";
-import { Info } from "@phosphor-icons/react/dist/ssr";
+import { Badge, PageHeader } from "@carebridge/ui";
+import { Clock, Info } from "@phosphor-icons/react/dist/ssr";
+import type { ReactNode } from "react";
 import { SAKTI_PAGES, type SaktiPage } from "./nav";
+import { LaterRelease } from "./ui";
 
 /**
- * A screen that exists in the shell but not yet in the product.
+ * A screen whose capability does not exist yet.
  *
  * It says so plainly, says what the screen will do, and offers nothing to
- * press: no button, no field, no sample answer, no sample law. A placeholder
- * that looked as if it worked would be the one thing worse than none.
+ * press: no working button, no sample answer, no sample law, no invented
+ * conversation. `children` is the screen's designed empty layout, if it has
+ * one. A placeholder that looked as if it worked would be worse than none.
  */
-export function SaktiPlaceholder({ page }: { page: SaktiPage }) {
+export function SaktiPlaceholder({ page, children }: { page: SaktiPage; children?: ReactNode }) {
   const t = useT();
   const info = SAKTI_PAGES[page];
-  const headingId = `${page}-planned`;
 
   return (
     <>
-      <PageHeader title={t(`pages.${page}.title`)} description={t(`pages.${page}.description`)} />
-      <div className="flex max-w-3xl flex-col gap-5">
-        <EmptyState title={t("notAvailable.title")}>{t("notAvailable.body")}</EmptyState>
-        <Card aria-labelledby={headingId}>
-          <h2 id={headingId} className="text-subheading text-ink">
-            {t("notAvailable.whenReady")}
-          </h2>
-          <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-muted marker:text-brand">
-            {info.points.map((point) => (
-              <li key={point}>{t(`pages.${page}.points.${point}`)}</li>
-            ))}
-          </ul>
-          {info.note ? (
-            <p className="mt-4 flex gap-2 border-t border-line pt-4 text-small text-muted">
-              <Info size={17} aria-hidden className="mt-0.5 shrink-0 text-brand-strong" />
-              {t(`pages.${page}.note`)}
-            </p>
-          ) : null}
-        </Card>
+      <PageHeader
+        title={t(`pages.${page}.title`)}
+        description={t(`pages.${page}.description`)}
+        actions={
+          <Badge tone="neutral">
+            <Clock size={13} weight="bold" aria-hidden />
+            {t("notAvailable.badge")}
+          </Badge>
+        }
+      />
+      <div className="flex flex-col gap-5">
+        {children}
+        <LaterRelease
+          title={t("notAvailable.title")}
+          body={`${t("notAvailable.body")} ${t("notAvailable.whenReady")}`}
+          points={info.points.map((point) => t(`pages.${page}.points.${point}`))}
+        />
+        {info.note ? (
+          <p className="flex gap-2 text-small text-muted">
+            <Info size={17} aria-hidden className="mt-0.5 shrink-0 text-brand-strong" />
+            {t(`pages.${page}.note`)}
+          </p>
+        ) : null}
       </div>
     </>
   );

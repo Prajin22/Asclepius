@@ -310,30 +310,55 @@ describe("the source screen", () => {
 // --------------------------------------------------------------------------
 
 describe("uploading a source", () => {
-  async function fillAndSubmit() {
+  const pdf = () => new File(["%PDF-1.4"], "fixture.pdf", { type: "application/pdf" });
+
+  async function chooseFile() {
     renderSakti(<CuratorUpload />);
+    const file = pdf();
+    await userEvent.upload(screen.getByLabelText(en("corpus.upload.file")), file);
+    await userEvent.click(screen.getByRole("button", { name: en("corpus.wizard.next") }));
     await screen.findByRole("option", { name: en("corpus.authority.india_code") });
+    return file;
+  }
+
+  async function fillAndUpload() {
+    const file = await chooseFile();
     await userEvent.type(screen.getByLabelText(en("corpus.upload.instrumentTitleLabel")), "Synthetic fixture instrument");
     await userEvent.type(screen.getByLabelText(en("corpus.upload.issuedBy")), "The test suite");
     await userEvent.type(screen.getByLabelText(en("corpus.upload.documentTitle")), "Synthetic fixture source");
     await userEvent.type(screen.getByLabelText(en("corpus.upload.sourceReference")), "Synthetic test fixture");
-    const file = new File(["%PDF-1.4"], "fixture.pdf", { type: "application/pdf" });
-    await userEvent.upload(screen.getByLabelText(en("corpus.upload.file")), file);
     await userEvent.click(screen.getByRole("button", { name: en("corpus.upload.submit") }));
     return file;
   }
 
+  beforeEach(() => {
+    h.api.corpus.uploadSource = vi.fn(async () => source({ id: "src-new", ingestion_state: "uploaded", page_count: null }));
+    h.api.corpus.parse = vi.fn(async () => source({ id: "src-new" }));
+    h.api.corpus.submitSource = vi.fn(async () => source({ id: "src-new", review_state: "under_review" }));
+  });
+
+  it("is five named steps, and the first needs a file before it continues", async () => {
+    renderSakti(<CuratorUpload />);
+    const steps = screen.getByRole("list", { name: en("corpus.wizard.progress") });
+    expect(within(steps).getAllByRole("listitem").map((li) => li.textContent)).toEqual(
+      ["select", "metadata", "parse", "review", "submit"].map((k, i) => `${i + 1}${en(`corpus.wizard.steps.${k}`)}`),
+    );
+    expect(within(steps).getAllByRole("listitem")[0]).toHaveAttribute("aria-current", "step");
+    expect(screen.getByRole("button", { name: en("corpus.wizard.next") })).toBeDisabled();
+  });
+
   it("offers only the authorities of the chosen lane", async () => {
     renderSakti(<CuratorUpload />);
+    await userEvent.click(screen.getByRole("radio", { name: new RegExp(en("ui.lane.international")) }));
+    await userEvent.upload(screen.getByLabelText(en("corpus.upload.file")), pdf());
+    await userEvent.click(screen.getByRole("button", { name: en("corpus.wizard.next") }));
     const authority = await screen.findByLabelText(en("corpus.authority.label"));
-    await screen.findByRole("option", { name: en("corpus.authority.india_code") });
-    expect(within(authority).queryByRole("option", { name: en("corpus.authority.wipo_lex") })).toBeNull();
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: en("corpus.lane.label") }), en("corpus.lane.international"));
+    await screen.findByRole("option", { name: en("corpus.authority.wipo_lex") });
     expect(within(authority).getAllByRole("option").map((o) => o.textContent)).toEqual([en("corpus.authority.wipo_lex")]);
   });
 
-  it("creates the instrument, uploads the file with its provenance, and opens it", async () => {
-    const file = await fillAndSubmit();
+  it("creates the instrument and stores the file with its provenance, reading nothing yet", async () => {
+    const file = await fillAndUpload();
     expect(h.api.corpus.createInstrument).toHaveBeenCalledWith({
       lane: "india", instrument_type: "act", title: "Synthetic fixture instrument", issued_by: "The test suite", description: null,
     });
@@ -343,25 +368,50 @@ describe("uploading a source", () => {
         sourceUrl: null,
       }),
     );
-    await waitFor(() => expect(h.push).toHaveBeenCalledWith("/curator/sources/src-new"));
+    expect(await screen.findByText(en("corpus.wizard.stored"))).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: en("corpus.wizard.steps.parse") })).toBeInTheDocument();
+    expect(h.api.corpus.parse).not.toHaveBeenCalled();
+  });
+
+  it("reads, reviews and submits — and approves nothing", async () => {
+    await fillAndUpload();
+    await userEvent.click(await screen.findByRole("button", { name: en("corpus.source.read") }));
+    expect(h.api.corpus.parse).toHaveBeenCalledWith("src-new");
+    await userEvent.click(await screen.findByRole("button", { name: en("corpus.wizard.next") }));
+
+    expect(screen.getByRole("heading", { name: en("corpus.wizard.steps.review") })).toBeInTheDocument();
+    expect(screen.getByText("fixture.pdf")).toBeInTheDocument();
+    expect(screen.getByText(SHA)).toBeInTheDocument();
+    expect(screen.getByText(en("corpus.wizard.jurisdiction"))).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: en("corpus.wizard.openText") })).toHaveAttribute("href", "/curator/sources/src-new");
+    await userEvent.click(screen.getByRole("button", { name: en("corpus.wizard.next") }));
+
+    await userEvent.click(screen.getByRole("button", { name: en("corpus.source.submit") }));
+    expect(h.api.corpus.submitSource).toHaveBeenCalledWith("src-new");
+    expect(await screen.findByText(en("corpus.wizard.submitted"))).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: en("corpus.wizard.toApprove") })).toHaveAttribute("href", "/curator/approve");
+    expect(h.api.corpus.approveSource).not.toHaveBeenCalled();
   });
 
   it("explains a refused upload", async () => {
     h.api.corpus.uploadSource = vi.fn(async () => {
       throw { code: "duplicate_source" };
     });
-    await fillAndSubmit();
+    await fillAndUpload();
     expect(await screen.findByText(en("errors.duplicate_source"))).toBeInTheDocument();
   });
 
   it("will not upload without saying where the file came from", async () => {
-    renderSakti(<CuratorUpload />);
-    await screen.findByRole("option", { name: en("corpus.authority.india_code") });
+    await chooseFile();
     await userEvent.type(screen.getByLabelText(en("corpus.upload.instrumentTitleLabel")), "x");
     await userEvent.type(screen.getByLabelText(en("corpus.upload.issuedBy")), "x");
     await userEvent.type(screen.getByLabelText(en("corpus.upload.documentTitle")), "x");
-    await userEvent.upload(screen.getByLabelText(en("corpus.upload.file")), new File(["%PDF"], "f.pdf", { type: "application/pdf" }));
     expect(screen.getByRole("button", { name: en("corpus.upload.submit") })).toBeDisabled();
+  });
+
+  it.each(["hi", "ta"])("renders entirely from the %s catalogue", async (locale) => {
+    renderSakti(<CuratorUpload />, locale);
+    expect(document.body.textContent).not.toMatch(RAW_KEY);
   });
 });
 
@@ -397,6 +447,31 @@ describe("the diff", () => {
     renderSakti(<DiffView diff={{ ...diff, baseline: null }} noBaseline={en("corpus.version.noBaseline")} />);
     expect(screen.getByText(en("corpus.version.noBaseline"))).toBeInTheDocument();
   });
+
+  it("sets the two texts side by side on a wide screen, and can fold them back inline", async () => {
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    try {
+      renderSakti(<DiffView diff={diff} noBaseline="none" />);
+      const table = screen.getByRole("table");
+      expect(within(table).getByRole("columnheader", { name: en("corpus.diff.before") })).toBeInTheDocument();
+      expect(within(table).getByRole("columnheader", { name: en("corpus.diff.after") })).toBeInTheDocument();
+      expect(screen.getByText("box").closest("del")).not.toBeNull();
+      expect(screen.getByText("crate").closest("ins")).not.toBeNull();
+      const inline = screen.getByRole("button", { name: en("corpus.diff.inline") });
+      await userEvent.click(inline);
+      expect(inline).toHaveAttribute("aria-pressed", "true");
+      expect(screen.queryByRole("table")).toBeNull();
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
+  it("is always one column on a narrow screen", () => {
+    renderSakti(<DiffView diff={diff} noBaseline="none" />);
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("button", { name: en("corpus.diff.split") })).toBeNull();
+  });
 });
 
 // --------------------------------------------------------------------------
@@ -404,9 +479,9 @@ describe("the diff", () => {
 // --------------------------------------------------------------------------
 
 describe("the curator's area", () => {
-  it("has its four screens built, and only Phase 3's two user screens besides", () => {
-    // Phase 3 built Classify and My Product; everything else is still a placeholder.
-    const built = new Set<SaktiPage>([...SAKTI_NAV.curator.map((item) => item.page), "classify", "myProduct"]);
+  it("has its four screens built, and only the user's dashboard, Classify and My Products besides", () => {
+    // Phase 3 built Classify and My Products, Phase 3.5 the dashboard; everything else is still a placeholder.
+    const built = new Set<SaktiPage>([...SAKTI_NAV.curator.map((item) => item.page), "classify", "myProduct", "dashboard"]);
     for (const [page, info] of Object.entries(SAKTI_PAGES) as [SaktiPage, (typeof SAKTI_PAGES)[SaktiPage]][]) {
       expect(info.available, page).toBe(built.has(page));
     }

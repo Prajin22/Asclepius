@@ -3,18 +3,20 @@
 import { useQuery } from "@carebridge/api-client/react";
 import { useI18n } from "@carebridge/i18n";
 import type { CorpusLane } from "@carebridge/shared-types";
-import { Card, EmptyState, ErrorState, PageHeader, SegmentedTabs, SkeletonCard, buttonClasses } from "@carebridge/ui";
+import { Alert, Card, EmptyState, ErrorState, PageHeader, SegmentedTabs, Skeleton, SkeletonCard, buttonClasses } from "@carebridge/ui";
+import { Books, HourglassMedium, PencilSimpleLine, SealCheck, XCircle } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useState } from "react";
-import { UploadIcon } from "@/components/icons";
+import { CorpusIcon, UploadIcon } from "@/components/icons";
 import { ClassifierReferenceStatus } from "@/components/sakti/corpus/ClassifierReferences";
 import { LaneBadge } from "@/components/sakti/corpus/labels";
 import { SourceRow } from "@/components/sakti/corpus/rows";
+import { EmptyPanel, StatTile } from "@/components/sakti/ui";
 
 type LaneFilter = "all" | CorpusLane;
 const FILTERS: LaneFilter[] = ["all", "india", "international"];
 
-/** The corpus: every source document and instrument, by lane. */
+/** The corpus: where it stands, then every source document and instrument, by lane. */
 export default function CorpusPage() {
   const { t } = useI18n();
   const [lane, setLane] = useState<LaneFilter>("all");
@@ -34,6 +36,41 @@ export default function CorpusPage() {
           </Link>
         }
       />
+      <section aria-labelledby="corpus-stats" className="mb-6">
+        <h2 id="corpus-stats" className="sr-only">
+          {t("corpus.stats.title")}
+        </h2>
+        {sources.data ? (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+            {(
+              [
+                ["total", Books, "brand"],
+                ["draft", PencilSimpleLine, "neutral"],
+                ["under_review", HourglassMedium, "info"],
+                ["approved", SealCheck, "success"],
+                ["rejected", XCircle, "danger"],
+              ] as const
+            ).map(([key, icon, tone]) => (
+              <li key={key} className={key === "total" ? "col-span-2 sm:col-span-1" : undefined}>
+                <StatTile
+                  label={t(key === "total" ? "corpus.stats.total" : `corpus.reviewState.${key}`)}
+                  value={key === "total" ? sources.data!.length : sources.data!.filter((s) => s.review_state === key).length}
+                  icon={icon}
+                  tone={tone}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : sources.error ? null : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Skeleton key={i} className="h-20 rounded-md" />
+            ))}
+          </div>
+        )}
+        <p className="mt-2 text-caption text-subtle">{t(lane === "all" ? "corpus.stats.allLanes" : "corpus.stats.thisLane")}</p>
+      </section>
+
       <SegmentedTabs
         label={t("corpus.list.filter")}
         value={lane}
@@ -46,23 +83,40 @@ export default function CorpusPage() {
         <h2 id="sources-title" className="text-subheading text-ink">
           {t("corpus.list.sourcesTitle")}
         </h2>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col gap-3">
           {sources.error && !sources.data ? (
             <ErrorState error={sources.error} onRetry={sources.reload} />
           ) : !sources.data ? (
             <SkeletonCard />
           ) : sources.data.length === 0 ? (
-            <EmptyState>{t(lane === "all" ? "corpus.list.empty" : "corpus.list.emptyLane")}</EmptyState>
+            <EmptyPanel
+              icon={CorpusIcon}
+              title={t("corpus.stats.noApproved")}
+              action={
+                <Link href="/curator/upload" className={buttonClasses("primary", "md")}>
+                  {t("corpus.list.upload")}
+                </Link>
+              }
+            >
+              {t(lane === "all" ? "corpus.list.empty" : "corpus.list.emptyLane")}
+            </EmptyPanel>
           ) : (
-            <Card padding="none" className="px-5 sm:px-6">
-              <ul className="divide-y divide-line">
-                {sources.data.map((source) => (
-                  <li key={source.id}>
-                    <SourceRow source={source} />
-                  </li>
-                ))}
-              </ul>
-            </Card>
+            <>
+              {sources.data.every((s) => s.review_state !== "approved") ? (
+                <Alert tone="info" title={t("corpus.stats.noApproved")}>
+                  {t("corpus.stats.noApprovedBody")}
+                </Alert>
+              ) : null}
+              <Card padding="none" className="px-5 sm:px-6">
+                <ul className="divide-y divide-line">
+                  {sources.data.map((source) => (
+                    <li key={source.id}>
+                      <SourceRow source={source} />
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </>
           )}
         </div>
       </section>
